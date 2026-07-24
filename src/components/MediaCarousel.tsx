@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Play, Headphones } from "lucide-react";
 import type { ContentItem } from "@/lib/content";
-import { RESOURCE_TYPES } from "@/lib/content";
+import { useFormatMap, formatLabel } from "@/hooks/use-cms";
 
 interface Props {
   items: ContentItem[];
@@ -10,8 +10,8 @@ interface Props {
 export function MediaCarousel({ items }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
+  const formats = useFormatMap();
 
-  // Auto-scroll gently
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -47,7 +47,7 @@ export function MediaCarousel({ items }: Props) {
         onTouchEnd={() => (paused.current = false)}
       >
         {items.map((item) => {
-          const type = RESOURCE_TYPES[item.type];
+          const type = formatLabel(formats, item.type);
           const isVideo = item.type === "video";
           return (
             <a

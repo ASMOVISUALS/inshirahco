@@ -16,8 +16,6 @@ export const Route = createFileRoute("/quranic-reflections")({
     <PillarArchive
       pillar="quranic-reflections"
       tint="heart"
-      eyebrow="Pillar 01 · Reflections"
-      intro="A slow, unhurried sitting-with the Book. Tadabbur, not tafsir. One verse at a time, until something in the chest quietly opens."
     />
   ),
 });

@@ -37,6 +37,11 @@ function AdminLayout() {
           <AdminLink to="/admin/reflections">Reflections</AdminLink>
           <AdminLink to="/admin/testimonials">Testimonials</AdminLink>
           <AdminLink to="/admin/newsletter">Newsletter</AdminLink>
+          <AdminLink to="/admin/pillars">Pillars</AdminLink>
+          <AdminLink to="/admin/formats">Formats</AdminLink>
+          <AdminLink to="/admin/pages">Pages</AdminLink>
+          <AdminLink to="/admin/faqs">FAQs</AdminLink>
+          <AdminLink to="/admin/settings">Settings</AdminLink>
         </nav>
       </header>
       <Outlet />

@@ -3,10 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { z } from "zod";
-import { PILLARS, RESOURCE_TYPES } from "@/lib/content";
-import type { Pillar, ResourceType } from "@/lib/content";
 import { articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
+import { usePillars, useFormats } from "@/hooks/use-cms";
 
 const searchSchema = z.object({
   type: z.string().optional(),
@@ -32,9 +31,11 @@ export const Route = createFileRoute("/resources")({
 
 function Resources() {
   const { data: content } = useSuspenseQuery(articlesQuery());
+  const pillars = usePillars();
+  const formats = useFormats();
   const search = Route.useSearch();
-  const [type, setType] = useState<ResourceType | "all">((search.type as ResourceType) || "all");
-  const [pillar, setPillar] = useState<Pillar | "all">((search.pillar as Pillar) || "all");
+  const [type, setType] = useState<string>(search.type ?? "all");
+  const [pillar, setPillar] = useState<string>(search.pillar ?? "all");
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -80,9 +81,9 @@ function Resources() {
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Pillar</p>
             <div className="flex flex-wrap gap-2">
               <FilterChip active={pillar === "all"} onClick={() => setPillar("all")}>All</FilterChip>
-              {Object.entries(PILLARS).map(([key, p]) => (
-                <FilterChip key={key} active={pillar === key} onClick={() => setPillar(key as Pillar)}>
-                  {p.short}
+              {pillars.map((p) => (
+                <FilterChip key={p.slug} active={pillar === p.slug} onClick={() => setPillar(p.slug)}>
+                  {p.short_label}
                 </FilterChip>
               ))}
             </div>
@@ -92,8 +93,8 @@ function Resources() {
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Format</p>
             <div className="flex flex-wrap gap-2">
               <FilterChip active={type === "all"} onClick={() => setType("all")}>All</FilterChip>
-              {Object.entries(RESOURCE_TYPES).map(([key, t]) => (
-                <FilterChip key={key} active={type === key} onClick={() => setType(key as ResourceType)}>
+              {formats.map((t) => (
+                <FilterChip key={t.slug} active={type === t.slug} onClick={() => setType(t.slug)}>
                   {t.plural}
                 </FilterChip>
               ))}
