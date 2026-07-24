@@ -1,53 +1,86 @@
-## Pillars admin: table view + password-gated edit
+## Goal
 
-### 1. Rework `/admin/pillars` as a read-only table
+Turn `/admin/pages` into a mini web builder (in the spirit of the article editor, but with its own block library tuned for marketing pages). Every existing page must render **identically** after the migration — no visual regressions allowed.
 
-Replace the stacked card list in `src/routes/_authenticated/admin/pillars.tsx` with a horizontally scrollable table (wraps in an `overflow-x-auto` container so it fits at full desktop but scrolls on narrower widths).
+## 1. New page-block model
 
-Columns, in order:
-1. Label
-2. Short Label
-3. Slug
-4. Arabic Letter
-5. Tint
-6. Href
-7. Sort Order
-8. Description
-9. Coming soon (checkbox, disabled — display only)
+Introduce a page-block schema separate from article blocks, stored on `pages.content.blocks` (JSONB array). Each block: `{ id, type, props }`.
 
-To the left of each row, **outside** the table, sits a pencil edit button (circular icon button matching the existing admin style). Clicking it opens a password confirmation modal (see step 2). No inline editing anywhere on this page.
+Initial block library (built from scratch for pages):
 
-### 2. Password re-auth modal
+**Layout / structure**
+- `hero` (eyebrow, arabic watermark, two title lines, description, up to 2 CTAs)
+- `section_header` (eyebrow + title + optional description)
+- `two_column` / `three_column` container (holds child blocks)
+- `divider`, `spacer`
 
-A small modal component (new file `src/components/AdminPasswordGate.tsx`) that:
-- Shows the current admin's email (read-only) and a single password field.
-- On submit, calls `supabase.auth.signInWithPassword({ email, password })` to verify — no session change of consequence since it's the same user.
-- On success, navigates to `/admin/pillars/$slug/edit` with a short-lived in-memory flag (React state / `sessionStorage` key like `pillar-edit-verified:<slug>` with a timestamp bounded to ~60s just to survive the redirect) that the edit route checks on mount.
-- On failure, shows an inline error and stays open.
-- Re-auth is required **every** time the pencil is clicked (per your answer).
+**Marketing / content**
+- `rich_text` (paragraphs, headings, lists — for About body etc.)
+- `feature_grid` (icon + title + description cards)
+- `pillar_cards` (pulls live pillars from Supabase)
+- `cta_banner` (title, description, button)
+- `stat_row`, `logo_row`, `image` / `image_text_split`
+- `testimonials_row` (pulls from testimonials table)
+- `reflection_spotlight` (pulls reflection_of_the_day)
+- `latest_articles` (auto list, filter by pillar)
+- `faq_accordion` (pulls from faqs, filterable)
+- `newsletter_block`
+- `arabic_verse` (reuses `QuranFetcher`)
+- `founder_letter` (arabic sigil + role + letter body)
+- `success_state` (arabic + title + description — used by /join, /contact)
+- `raw_html` (escape hatch)
 
-### 3. New edit route `/admin/pillars/$slug/edit`
+The library is data-driven (`src/lib/page-blocks.ts`) so blocks can be added later without touching pages.
 
-New file `src/routes/_authenticated/admin/pillars.$slug.edit.tsx`.
+## 2. Zero-regression migration
 
-On mount:
-- Reads the sessionStorage verification flag. If missing/expired, redirects back to `/admin/pillars` (so the URL can't be visited directly without going through the password gate).
-- Clears the flag immediately after reading it (single-use).
-- Loads the pillar row by slug from Supabase.
+For every existing row in `pages`, deterministically convert the current key/value JSON into the new `blocks` array so the rendered output is byte-identical.
 
-Renders an editable form with the same fields shown in the table (Label, Short Label, Slug read-only, Arabic Letter, Tint, Href, Sort Order, Description textarea, Coming soon checkbox) plus:
-- **Back** button (top-left) → returns to `/admin/pillars` table view. If the form is dirty, confirm before leaving.
-- **Cancel** button → resets the form to the loaded values (does not navigate).
-- **Save** button → updates the row via Supabase, invalidates `["admin","pillars"]` and `["cms","pillars"]` queries, and shows a success toast/confirmation banner. Stays on the edit page after save (per your requirement); shows an error toast on failure.
+- Each existing page route (`index`, `about`, `join`, `contact`, four pillar pages, `life-architecture`, etc.) gets a small mapper: existing keys → an ordered list of blocks with the same copy.
+- Mapping happens in a one-shot script executed via `supabase--insert` after the schema migration; the resulting `blocks` array is written back into `content.blocks` while the legacy keys are kept in `content.legacy` as a safety net.
+- Each page route is refactored to render from `content.blocks` via a `<PageRenderer />` component. If `blocks` is missing it falls back to the legacy renderer, so nothing can go dark mid-migration.
+- Acceptance: every existing route diffed visually before/after — hero copy, order, CTAs, arabic sigils, founder letter, success states, SEO tags all unchanged.
 
-### Technical notes
+## 3. Create brand-new pages
 
-- The password check does not grant any elevated DB permission — RLS already restricts updates to admins. It's a UX-level "confirm it's really you" gate. Making it a real security boundary would require a server function; call this out only if you want that instead.
-- Verification flag survives the redirect via `sessionStorage` (a single React state can't cross a navigation). It's single-use and time-bounded so a stale tab can't reuse it.
-- Table styling uses existing tokens (`border-border`, `bg-card`, etc.) and shadcn table primitives already present in the project.
+- Add `pages.slug`, `pages.title`, `pages.is_published`, `pages.template` columns (keep `key` for legacy fixed pages).
+- Add a catch-all route `src/routes/$pageSlug.tsx` that loads the page by slug and renders it through `<PageRenderer />`. Fixed routes (index, about, …) keep their own files and simply mount `<PageRenderer blocks={…} />`.
+- Admin: "New page" button → prompts for title + slug + starting template (Blank, Pillar page, Landing) → creates row → opens the builder.
 
-### Files
+## 4. Admin builder UI (`/admin/pages`)
 
-- Edit: `src/routes/_authenticated/admin/pillars.tsx` (table + pencil buttons + password modal trigger)
-- New: `src/components/AdminPasswordGate.tsx` (modal)
-- New: `src/routes/_authenticated/admin/pillars.$slug.edit.tsx` (edit form route)
+Replaces the current key/value table. Layout mirrors the article editor:
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Pages list (left rail)   │   Builder canvas                │
+│  • home                    │  ┌─ Toolbar: undo/redo, view ─┐│
+│  • about                   │  │                            ││
+│  • join                    │  │  [Blocks column]  [Preview]││
+│  • + New page              │  │                            ││
+└─────────────────────────────────────────────────────────────┘
+```
+
+- Left rail: list of pages (grouped: Core, Pillars, Custom), search, "+ New page".
+- Middle: block list — drag to reorder, hover-trash, click a block to edit its props in an inline form (same interaction language as the article editor). Left-side flyout palette grouped: Layout, Content, Marketing, Data, Media, Advanced.
+- Right: **live preview pane** rendering the real `<PageRenderer />` against draft state at the target viewport (desktop/tablet/mobile toggle). Updates on every edit.
+- Undo/redo history per session, save button, unsaved-changes warning on nav away, "View live" link.
+- Password gate reused from Pillars for destructive actions (delete page, change slug).
+
+## 5. Technical notes
+
+- New files: `src/lib/page-blocks.ts` (registry), `src/components/page-renderer/*` (one component per block, plus `<PageRenderer />`), `src/routes/_authenticated/admin/pages.$key.edit.tsx` (builder), `src/routes/$pageSlug.tsx` (dynamic).
+- Schema migration adds `slug`, `title`, `is_published`, `template`, and a `blocks` field on content — no destructive changes. GRANTs + RLS follow the same pattern as existing pages table.
+- Data-pulling blocks (pillars, testimonials, faqs, articles) use existing TanStack Query hooks so they stay live.
+- Reused primitives: `QuranFetcher`, `NewsletterSignup`, `ReflectionOfTheDay`, `MediaCarousel`, `ContentCard`.
+- Article editor is untouched.
+
+## 6. Rollout order
+
+1. Migration: add columns; keep everything running on legacy JSON.
+2. Ship `<PageRenderer />` + full block library.
+3. Backfill `content.blocks` for every existing page via a mapper; refactor each route to render from blocks with legacy fallback.
+4. Ship the new admin builder UI + create-page flow + dynamic route.
+5. Remove the old key/value table.
+
+Deliverable is complete only when every existing page still renders identically and a brand-new page can be created and published entirely from the admin.
