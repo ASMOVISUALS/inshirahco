@@ -1156,9 +1156,9 @@ function ListEditor({
   });
 
   const update = (next: string[], persist = true) => {
-    const safe = next.length ? next : [""];
-    (persist ? onCommit : onSet)({ items: safe } as Partial<ContentBlock>);
+    (persist ? onCommit : onSet)({ items: next } as Partial<ContentBlock>);
   };
+
 
   const changeAt = (i: number, v: string) => {
     const next = [...items];
