@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 
@@ -25,6 +25,8 @@ function ReflectionsAdmin() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Draft | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-reflections"] });
@@ -45,6 +47,18 @@ function ReflectionsAdmin() {
     onSuccess: () => { setDraft(null); invalidate(); },
   });
 
+  const update = useMutation({
+    mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
+      const { error } = await supabase.from("reflections").update({
+        arabic: d.arabic,
+        translation: d.translation,
+        reference: d.reference,
+      }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
+  });
+
   const toggle = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase.from("reflections").update({ active }).eq("id", id);
@@ -60,6 +74,12 @@ function ReflectionsAdmin() {
     },
     onSuccess: () => { setSelectedId(null); invalidate(); },
   });
+
+  const beginEdit = (r: { id: string; arabic: string; translation: string; reference: string }) => {
+    setEditingId(r.id);
+    setEditDraft({ arabic: r.arabic, translation: r.translation, reference: r.reference });
+    setSelectedId(null);
+  };
 
   return (
     <div className="grid gap-6" onClick={() => setSelectedId(null)}>
@@ -77,60 +97,30 @@ function ReflectionsAdmin() {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {draft && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex flex-col rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
-          >
-            <textarea
-              dir="rtl"
-              placeholder="العربية"
-              value={draft.arabic}
-              onChange={(e) => setDraft({ ...draft, arabic: e.target.value })}
-              className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-arabic text-lg outline-none focus:border-heart"
-              rows={3}
-            />
-            <textarea
-              placeholder="Translation"
-              value={draft.translation}
-              onChange={(e) => setDraft({ ...draft, translation: e.target.value })}
-              className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm italic outline-none focus:border-heart"
-              rows={3}
-            />
-            <input
-              placeholder="Reference"
-              value={draft.reference}
-              onChange={(e) => setDraft({ ...draft, reference: e.target.value })}
-              className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
-            />
-
-            <div className="mt-3 border-t border-heart/20 pt-3">
-              <QuranFetcher
-                compact
-                onFetched={(a) => setDraft({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
-              />
-            </div>
-
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDraft(null)}
-                className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={save.isPending || !draft.arabic || !draft.translation || !draft.reference}
-                onClick={() => save.mutate(draft)}
-                className="btn-primary text-sm disabled:opacity-50"
-              >
-                {save.isPending ? "Saving…" : "Save"}
-              </button>
-            </div>
-          </div>
+          <EditorCard
+            value={draft}
+            onChange={setDraft}
+            onCancel={() => setDraft(null)}
+            onSave={() => save.mutate(draft)}
+            saving={save.isPending}
+            saveLabel={save.isPending ? "Saving…" : "Save"}
+          />
         )}
 
         {data.map((r) => {
+          if (editingId === r.id && editDraft) {
+            return (
+              <EditorCard
+                key={r.id}
+                value={editDraft}
+                onChange={setEditDraft}
+                onCancel={() => { setEditingId(null); setEditDraft(null); }}
+                onSave={() => update.mutate({ id: r.id, d: editDraft })}
+                saving={update.isPending}
+                saveLabel={update.isPending ? "Saving…" : "Save changes"}
+              />
+            );
+          }
           const selected = selectedId === r.id;
           const dimmed = !r.active && !selected;
           return (
@@ -161,18 +151,92 @@ function ReflectionsAdmin() {
                     </span>
                     <span>{r.active ? "Active" : "Inactive"}</span>
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); if (confirm("Delete this reflection?")) del.mutate(r.id); }}
-                    aria-label="Delete reflection"
-                    className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); beginEdit(r); }}
+                      aria-label="Edit reflection"
+                      className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); if (confirm("Delete this reflection?")) del.mutate(r.id); }}
+                      aria-label="Delete reflection"
+                      className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function EditorCard({
+  value, onChange, onCancel, onSave, saving, saveLabel,
+}: {
+  value: Draft;
+  onChange: (d: Draft) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  saving: boolean;
+  saveLabel: string;
+}) {
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="flex flex-col rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
+    >
+      <textarea
+        dir="rtl"
+        placeholder="العربية"
+        value={value.arabic}
+        onChange={(e) => onChange({ ...value, arabic: e.target.value })}
+        className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-arabic text-lg outline-none focus:border-heart"
+        rows={3}
+      />
+      <textarea
+        placeholder="Translation"
+        value={value.translation}
+        onChange={(e) => onChange({ ...value, translation: e.target.value })}
+        className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm italic outline-none focus:border-heart"
+        rows={3}
+      />
+      <input
+        placeholder="Reference"
+        value={value.reference}
+        onChange={(e) => onChange({ ...value, reference: e.target.value })}
+        className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
+      />
+
+      <div className="mt-3 border-t border-heart/20 pt-3">
+        <QuranFetcher
+          compact
+          onFetched={(a) => onChange({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
+        />
+      </div>
+
+      <div className="mt-3 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={saving || !value.arabic || !value.translation || !value.reference}
+          onClick={onSave}
+          className="btn-primary text-sm disabled:opacity-50"
+        >
+          {saveLabel}
+        </button>
       </div>
     </div>
   );
