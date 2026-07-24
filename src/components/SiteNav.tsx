@@ -62,6 +62,13 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
         <div className="container-wide flex h-[72px] items-center justify-between gap-6">
           <Logo />
 
+          {minimal && (
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
+              <p className="eyebrow text-[10px]" style={{ color: "var(--tazkiyah, #3f7d5b)" }}>Admin</p>
+              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">Inshirah control room</h1>
+            </div>
+          )}
+
           {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {pillars.map((p) => (
