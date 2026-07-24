@@ -237,6 +237,9 @@ function JoinPage() {
                   </>
                 )}
 
+                {serverError && (
+                  <p role="alert" className="text-sm" style={{ color: "var(--heart)" }}>{serverError}</p>
+                )}
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <button
                     type="button"
@@ -246,11 +249,16 @@ function JoinPage() {
                     <ArrowLeft className="h-4 w-4" strokeWidth={1.8} />
                     {step === 1 ? "Cancel" : "Back"}
                   </button>
-                  <button type="submit" className="btn-primary inline-flex items-center gap-2">
-                    {step === 3 ? "Create account" : "Continue"}
-                    {step !== 3 && <ArrowRight className="h-4 w-4" strokeWidth={1.8} />}
+                  <button type="submit" disabled={submitting} className="btn-primary inline-flex items-center gap-2">
+                    {submitting ? "Creating…" : step === 3 ? "Create account" : "Continue"}
+                    {step !== 3 && !submitting && <ArrowRight className="h-4 w-4" strokeWidth={1.8} />}
                   </button>
                 </div>
+                {step === 1 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Already have an account? <Link to="/auth" className="font-semibold underline" style={{ color: "var(--heart)" }}>Sign in</Link>
+                  </p>
+                )}
               </form>
             )}
           </div>
