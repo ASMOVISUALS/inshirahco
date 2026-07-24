@@ -35,7 +35,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const topItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+const dashboardItem = { title: "Dashboard", url: "/admin", icon: LayoutDashboard };
+const topItems = [
   { title: "Articles", url: "/admin/articles", icon: FileText },
   { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
   { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
