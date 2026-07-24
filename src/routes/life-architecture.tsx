@@ -1,10 +1,31 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { pageQuery, faqsQuery } from "@/lib/queries";
+
+interface Preview { icon?: string; title: string; description: string; tag?: string }
+
+const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+  compass: Compass,
+  users: Users,
+  mountain: Mountain,
+  sparkles: Sparkles,
+  book: BookOpen,
+  calendar: Calendar,
+};
+
+const DEFAULT_PREVIEWS: Preview[] = [
+  { icon: "users", tag: "Cohorts", title: "Mentor-led courses", description: "Small cohorts walking through purpose, work, and long-term direction with a mentor who knows your name." },
+  { icon: "mountain", tag: "Retreats", title: "In-person retreats", description: "A few days away from the noise — reflection, halaqas, and quiet planning in landscapes that let the chest expand." },
+  { icon: "calendar", tag: "Gatherings", title: "Exclusive events", description: "Intimate salons and dinners with scholars, founders, and practitioners exploring the architecture of a life well-lived." },
+  { icon: "compass", tag: "1:1", title: "Direction sessions", description: "Private mentorship windows for members navigating a decision, a season, or a turning point." },
+  { icon: "book", tag: "Library", title: "Members' library", description: "A curated shelf of readings, worksheets, and audio — released slowly, meant to be sat with." },
+  { icon: "sparkles", tag: "Rituals", title: "Seasonal rhythms", description: "Ramadan, Dhul-Hijjah, and year-end reviews designed around the Islamic calendar and your own life map." },
+];
+
 
 export const Route = createFileRoute("/life-architecture")({
   loader: ({ context }) => {
@@ -31,6 +52,8 @@ function LifeArchitecture() {
   const { data: faqs = [] } = useQuery(faqsQuery("life-architecture"));
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentors = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+  const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
+
 
   return (
     <>
@@ -61,6 +84,40 @@ function LifeArchitecture() {
           cta={s("waitlist_cta", "Join the waitlist")}
         />
       </section>
+
+      <section className="container-wide py-16 md:py-24">
+        <div className="mb-12 max-w-2xl">
+          <p className="eyebrow">{s("previews_eyebrow", "What to look forward to")}</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">{s("previews_title", "The shape of what's coming")}</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {s("previews_description", "Life Architecture is a slow, deliberate programme. Here's a glimpse of the rooms we're building.")}
+          </p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {previews.map((p, i) => {
+            const Icon = ICONS[p.icon ?? "sparkles"] ?? Sparkles;
+            return (
+              <div key={i} className="group relative flex flex-col gap-4 rounded-3xl border border-border bg-card p-7 transition-transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="grid h-12 w-12 place-items-center rounded-2xl"
+                    style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.8} />
+                  </span>
+                  {p.tag && (
+                    <span className="eyebrow" style={{ color: "var(--gold)" }}>{p.tag}</span>
+                  )}
+                </div>
+                <h3 className="text-xl leading-snug md:text-2xl">{p.title}</h3>
+                <p className="text-[0.95rem] leading-relaxed text-muted-foreground">{p.description}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+
 
       {mentors.length > 0 && (
         <section className="container-wide py-16 md:py-24">
