@@ -38,16 +38,33 @@ function QuranFetcher({ onFetched }: { onFetched: (p: { arabic: string; text: st
   const [ayah, setAyah] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const maxAyah = (() => {
-    const n = parseInt(surah, 10);
-    return n >= 1 && n <= 114 ? SURAH_VERSE_COUNTS[n - 1] : null;
-  })();
-  const canFetch = !!surah && !!ayah && !loading;
+  const [surahGlow, setSurahGlow] = useState<"" | "glow-invalid" | "glow-valid">("");
+  const [ayahGlow, setAyahGlow] = useState<"" | "glow-invalid" | "glow-valid">("");
+  const glowKey = useRef(0);
+  const digitsOnly = (v: string) => v.replace(/\D+/g, "");
   const run = async () => {
     setError(null);
+    setSurahGlow("");
+    setAyahGlow("");
+    const s = parseInt(surah, 10);
+    const a = parseInt(ayah, 10);
+    const surahOk = Number.isInteger(s) && s >= 1 && s <= 114;
+    const maxA = surahOk ? SURAH_VERSE_COUNTS[s - 1] : null;
+    const ayahOk = surahOk && Number.isInteger(a) && a >= 1 && a <= (maxA as number);
+    glowKey.current += 1;
+    if (!surahOk) {
+      setSurahGlow("glow-invalid");
+      setAyahGlow("glow-invalid");
+      return;
+    }
+    if (!ayahOk) {
+      setSurahGlow("glow-valid");
+      setAyahGlow("glow-invalid");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetchAyah(parseInt(surah, 10), parseInt(ayah, 10));
+      const res = await fetchAyah(s, a);
       onFetched({ arabic: res.arabic, text: res.translation, source: res.reference });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch verse.");
@@ -55,17 +72,34 @@ function QuranFetcher({ onFetched }: { onFetched: (p: { arabic: string; text: st
       setLoading(false);
     }
   };
+  const inputCls = "w-24 rounded-md border border-border bg-background px-2 py-1 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
   return (
     <div className="mt-4 flex flex-wrap items-end gap-2 border-t pt-3 text-sm" style={{ borderColor: "color-mix(in oklab, var(--tazkiyah) 30%, transparent)" }}>
       <div className="flex flex-col">
         <label className="text-xs text-muted-foreground">Surah</label>
-        <input type="number" min={1} max={114} value={surah} onChange={(e) => setSurah(e.target.value)} placeholder="1–114" className="w-24 rounded-md border border-border bg-background px-2 py-1" />
+        <input
+          key={`s-${glowKey.current}-${surahGlow}`}
+          type="text"
+          inputMode="numeric"
+          value={surah}
+          onChange={(e) => { setSurah(digitsOnly(e.target.value)); setSurahGlow(""); }}
+          placeholder="1–114"
+          className={`${inputCls} ${surahGlow}`}
+        />
       </div>
       <div className="flex flex-col">
-        <label className="text-xs text-muted-foreground">Ayah{maxAyah ? ` (1–${maxAyah})` : ""}</label>
-        <input type="number" min={1} max={maxAyah ?? undefined} value={ayah} onChange={(e) => setAyah(e.target.value)} placeholder="verse #" className="w-24 rounded-md border border-border bg-background px-2 py-1" />
+        <label className="text-xs text-muted-foreground">Ayah</label>
+        <input
+          key={`a-${glowKey.current}-${ayahGlow}`}
+          type="text"
+          inputMode="numeric"
+          value={ayah}
+          onChange={(e) => { setAyah(digitsOnly(e.target.value)); setAyahGlow(""); }}
+          placeholder="verse #"
+          className={`${inputCls} ${ayahGlow}`}
+        />
       </div>
-      <button type="button" disabled={!canFetch} onClick={run} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary disabled:opacity-50">
+      <button type="button" disabled={loading} onClick={run} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary disabled:opacity-50">
         {loading ? "Fetching…" : "Fetch from Quran.com"}
       </button>
       {error ? <span className="text-xs text-destructive">{error}</span> : null}
