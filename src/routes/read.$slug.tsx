@@ -8,6 +8,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/read/$slug")({
   ssr: false,
@@ -69,6 +70,19 @@ function Detail() {
   const type = RESOURCE_TYPES[item.type];
   const { data: all = [] } = useQuery(articlesQuery());
   const related = all.filter((c) => c.pillar === item.pillar && c.slug !== item.slug).slice(0, 3);
+  const { data: authorProfile } = useQuery({
+    queryKey: ["profile-by-name", item.author.name],
+    enabled: !!item.author.name,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name,avatar_url")
+        .ilike("name", item.author.name)
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
   const [progress, setProgress] = useState(0);
@@ -115,7 +129,11 @@ function Detail() {
 
           <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-3">
-              <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              {authorProfile?.avatar_url ? (
+                <img src={authorProfile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              )}
               <div>
                 <p className="font-bold">{item.author.name}</p>
                 {item.author.role && <p className="text-xs text-muted-foreground">{item.author.role}</p>}
