@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
+import { siteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
