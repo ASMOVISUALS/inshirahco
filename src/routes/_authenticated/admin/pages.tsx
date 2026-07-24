@@ -8,21 +8,20 @@ export const Route = createFileRoute("/_authenticated/admin/pages")({
   component: PagesAdmin,
 });
 
-interface PageRow { key: string; title: string | null; content: unknown }
+interface PageRow { key: string; content: unknown }
 
 function PagesAdmin() {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin", "pages"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("pages").select("key,title,content").order("key");
+      const { data, error } = await supabase.from("pages").select("key,content").order("key");
       if (error) throw error;
       return (data ?? []) as PageRow[];
     },
   });
   const [selected, setSelected] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [title, setTitle] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,7 +32,6 @@ function PagesAdmin() {
     const row = data.find((r) => r.key === selected);
     if (row) {
       setDraft(JSON.stringify(row.content ?? {}, null, 2));
-      setTitle(row.title ?? "");
       setErr(null);
     }
   }, [selected, data]);
@@ -43,7 +41,7 @@ function PagesAdmin() {
       if (!selected) return;
       let parsed: unknown;
       try { parsed = JSON.parse(draft); } catch { throw new Error("Invalid JSON"); }
-      const { error } = await supabase.from("pages").update({ title, content: parsed as never }).eq("key", selected);
+      const { error } = await supabase.from("pages").update({ content: parsed as never }).eq("key", selected);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -67,8 +65,7 @@ function PagesAdmin() {
                 onClick={() => setSelected(r.key)}
                 className={`w-full rounded-xl px-3 py-2 text-left text-sm font-semibold ${selected === r.key ? "bg-secondary" : "hover:bg-secondary"}`}
               >
-                {r.title || r.key}
-                <span className="block font-mono text-[10px] text-muted-foreground">{r.key}</span>
+                <span className="font-mono text-[11px]">{r.key}</span>
               </button>
             </li>
           ))}
@@ -78,16 +75,13 @@ function PagesAdmin() {
       <div className="rounded-3xl border border-border bg-card p-6">
         {selected ? (
           <>
-            <label className="mb-3 block">
-              <span className="mb-1.5 block text-sm font-semibold">Title (admin label)</span>
-              <input className={cls} value={title} onChange={(e) => setTitle(e.target.value)} />
-            </label>
+            <p className="mb-3 font-mono text-xs text-muted-foreground">{selected}</p>
             <label className="block">
               <span className="mb-1.5 block text-sm font-semibold">Content (JSON)</span>
-              <textarea rows={26} className={`${cls} font-mono text-xs`} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              <textarea rows={26} className="w-full rounded-2xl border border-input bg-background px-4 py-3 font-mono text-xs outline-none focus:border-heart" value={draft} onChange={(e) => setDraft(e.target.value)} />
             </label>
             <p className="mt-2 text-xs text-muted-foreground">
-              Edit any field's value here. Keep the same JSON keys so the page can find them. Common fields: hero_title, hero_description, eyebrow, etc.
+              Edit any field's value here. Keep the same JSON keys so the page can find them.
             </p>
             {err && <p className="mt-3 text-sm" style={{ color: "var(--heart)" }}>{err}</p>}
             <button className="btn-primary mt-4" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</button>
@@ -99,5 +93,3 @@ function PagesAdmin() {
     </div>
   );
 }
-
-const cls = "w-full rounded-2xl border border-input bg-background px-4 py-2.5 outline-none focus:border-heart";
