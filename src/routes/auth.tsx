@@ -84,9 +84,9 @@ function AuthPage() {
           <div className="flex items-center gap-4">
             <LetterMark letter="ش" tint="heart" size={56} />
             <div>
-              <p className="eyebrow">{mode === "signin" ? "Welcome back" : "Reset password"}</p>
+              <p className="eyebrow">{mode === "signin" ? "Welcome back" : mode === "magic" ? "Magic link" : "Reset password"}</p>
               <h1 className="mt-1 text-4xl leading-tight md:text-5xl">
-                {mode === "signin" ? "Sign in" : "Forgot password"}
+                {mode === "signin" ? "Sign in" : mode === "magic" ? "Email me a link" : "Forgot password"}
               </h1>
             </div>
           </div>
@@ -116,8 +116,19 @@ function AuthPage() {
             {notice && <p className="text-sm" style={{ color: "var(--tazkiyah)" }}>{notice}</p>}
 
             <button type="submit" disabled={submitting} className="btn-primary justify-center">
-              {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : "Send reset link"}
+              {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "magic" ? "Send magic link" : "Send reset link"}
             </button>
+
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={() => { setMode("magic"); setError(null); setNotice(null); }}
+                className="text-sm font-semibold underline underline-offset-4 self-center"
+                style={{ color: "var(--heart)" }}
+              >
+                Email me a magic link instead
+              </button>
+            )}
 
             <div className="flex items-center justify-between text-sm">
               <button
