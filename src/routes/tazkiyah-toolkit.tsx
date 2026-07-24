@@ -16,8 +16,6 @@ export const Route = createFileRoute("/tazkiyah-toolkit")({
     <PillarArchive
       pillar="tazkiyah-toolkit"
       tint="tazkiyah"
-      eyebrow="Pillar 02 · Toolkit"
-      intro="Short practices, printable worksheets, and gentle exercises — small tools for the everyday work of softening and steadying the heart."
     />
   ),
 });

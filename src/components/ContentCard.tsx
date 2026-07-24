@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Bookmark, Download } from "lucide-react";
 import type { ContentItem } from "@/lib/content";
-import { PILLARS, RESOURCE_TYPES } from "@/lib/content";
 import { useBookmarks } from "@/hooks/use-theme";
+import { usePillarMap, useFormatMap, pillarLabel, formatLabel } from "@/hooks/use-cms";
 
 const TINT_STYLES: Record<string, { grad: string }> = {
   "quranic-reflections": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
@@ -17,8 +17,10 @@ interface Props {
 }
 
 export function ContentCard({ item, compact }: Props) {
-  const pillar = PILLARS[item.pillar];
-  const type = RESOURCE_TYPES[item.type];
+  const pillars = usePillarMap();
+  const formats = useFormatMap();
+  const pillar = pillarLabel(pillars, item.pillar);
+  const type = formatLabel(formats, item.type);
   const grad = TINT_STYLES[item.pillar]?.grad;
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
@@ -40,7 +42,7 @@ export function ContentCard({ item, compact }: Props) {
             className="absolute -right-4 -bottom-6 font-arabic text-[9rem] leading-none opacity-25"
             style={{ color: "var(--ink)" }}
           >
-            {pillar.letter}
+            {pillar.arabic_letter}
           </span>
           {item.downloadable && (
             <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-pill bg-white/85 px-2.5 py-1 text-xs font-bold text-ink">
@@ -52,7 +54,7 @@ export function ContentCard({ item, compact }: Props) {
 
       <div className={`flex flex-1 flex-col gap-3 p-6 ${compact ? "" : ""}`}>
         <div className="flex items-center justify-between">
-          <span className="eyebrow">{type.label} · {pillar.short}</span>
+          <span className="eyebrow">{type.label} · {pillar.short_label}</span>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); toggle(item.slug); }}

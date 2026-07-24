@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { LetterMark } from "@/components/LetterMark";
+import { pageQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/about")({
+  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("about")); },
   head: () => ({
     meta: [
       { title: "About — Inshirah" },
@@ -16,46 +19,44 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
+  const { data: page = {} } = useQuery(pageQuery("about"));
+  const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+  const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
+
   return (
     <>
       <section className="hero-radial">
         <div className="container-wide py-24 md:py-32 text-center">
-          <p className="font-arabic text-3xl" style={{ color: "var(--heart)" }} dir="rtl">انشراح</p>
+          <p className="font-arabic text-3xl" style={{ color: "var(--heart)" }} dir="rtl">{s("hero_arabic", "انشراح")}</p>
           <h1 className="mt-4 text-5xl leading-tight md:text-7xl">
-            Islamic psychology,<br /> for the world of good.
+            {s("hero_title", "Islamic psychology, for the world of good.")}
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            Inshirah is a small, unhurried publication. A place to sit with the Book, with the heart, and with the quieter questions of a life lived in remembrance.
+            {s("hero_description", "")}
           </p>
         </div>
       </section>
 
       <section className="container-wide py-16 md:py-24">
         <div className="mx-auto max-w-3xl space-y-8 font-display text-xl leading-relaxed md:text-2xl" style={{ fontVariationSettings: '"SOFT" 60, "WONK" 1', color: "var(--ink)" }}>
-          <p>
-            <span className="font-arabic text-2xl" style={{ color: "var(--heart)" }}>انشراح</span> — <em>inshirah</em> — is the Qur'anic word for the opening or expansion of the chest. It's the sense of ease that arrives in the middle of hardship. Not after it. In the middle of it.
-          </p>
-          <p>
-            This project began as a folder of notes. Reflections we couldn't stop writing, resources we kept sending to friends, conversations that felt too important to lose. Somewhere along the way, it became a home for that work.
-          </p>
-          <p>
-            We are not a clinic. We are not a coaching program. We're a slowly growing group of writers, students, and readers making space for what Islamic psychology has always offered — a way to know the heart, and a way to keep polishing it.
-          </p>
+          {paragraphs.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
         </div>
       </section>
 
       <section className="container-wide py-8 md:py-16">
         <div className="mb-10 max-w-xl">
-          <p className="eyebrow">Behind the words</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">The founder</h2>
+          <p className="eyebrow">{s("founder_eyebrow", "Behind the words")}</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">{s("founder_title", "The founder")}</h2>
         </div>
         <div className="mx-auto flex max-w-3xl flex-col gap-6 rounded-3xl border border-border bg-card p-8 md:flex-row md:items-start">
-          <LetterMark letter="ف" tint="heart" size={80} />
+          <LetterMark letter={s("founder_letter", "ف")} tint="heart" size={80} />
           <div>
-            <h3 className="text-2xl">Founder placeholder</h3>
-            <p className="mt-1 text-sm font-semibold text-muted-foreground">Writer, editor, student of the tradition</p>
+            <h3 className="text-2xl">{s("founder_name", "Founder")}</h3>
+            <p className="mt-1 text-sm font-semibold text-muted-foreground">{s("founder_role", "")}</p>
             <p className="mt-4 text-[1.02rem] leading-relaxed text-muted-foreground">
-              A short bio, to be filled in properly. For now: a person who reads slowly, writes even more slowly, and believes the heart is worth the long conversation.
+              {s("founder_bio", "")}
             </p>
           </div>
         </div>

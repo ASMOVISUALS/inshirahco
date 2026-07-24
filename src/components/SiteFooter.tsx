@@ -1,10 +1,31 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Instagram, Youtube, Twitter } from "lucide-react";
 import { Logo } from "./Logo";
 import { NewsletterSignup } from "./NewsletterSignup";
-import { PILLARS } from "@/lib/content";
+import { usePillars } from "@/hooks/use-cms";
+import { siteSettingQuery } from "@/lib/queries";
+
+const ICONS: Record<string, typeof Instagram> = {
+  instagram: Instagram,
+  youtube: Youtube,
+  twitter: Twitter,
+};
+
+interface SocialLink { label: string; href: string; icon: string }
 
 export function SiteFooter() {
+  const pillars = usePillars();
+  const { data: footer = {} } = useQuery(siteSettingQuery("footer"));
+
+  const tagline = (footer.tagline as string) ?? "Islamic psychology, for the world of good.";
+  const copyright = (footer.copyright as string) ?? "A passion project, offered freely.";
+  const domain = (footer.domain as string) ?? "inshirah.co";
+  const newsletterHeading = (footer.newsletter_heading as string) ?? "A gentle letter, now and then";
+  const newsletterDescription = (footer.newsletter_description as string) ?? "";
+  const newsletterCta = (footer.newsletter_cta as string) ?? "Subscribe";
+  const socials = (Array.isArray(footer.social) ? footer.social : []) as SocialLink[];
+
   return (
     <footer className="mt-24" style={{ background: "color-mix(in oklab, var(--ink) 95%, black)", color: "var(--paper)" }}>
       <div className="container-wide py-16 md:py-20">
@@ -15,36 +36,39 @@ export function SiteFooter() {
               <span className="font-arabic text-3xl" style={{ color: "var(--gold-decorative)" }}>انشراح</span>
             </div>
             <p className="mt-4 max-w-md text-[1.05rem] leading-relaxed" style={{ color: "color-mix(in oklab, var(--paper) 78%, transparent)" }}>
-              Islamic psychology, for the world of good. A quiet corner for reflection, tazkiyah, and the slow work of the heart.
+              {tagline}
             </p>
 
             <div className="mt-8 flex items-center gap-2">
-              {[Instagram, Youtube, Twitter].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  aria-label="Social link"
-                  className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-white/10"
-                  style={{ borderColor: "color-mix(in oklab, var(--paper) 25%, transparent)" }}
-                >
-                  <Icon className="h-4.5 w-4.5" strokeWidth={1.6} style={{ color: "var(--paper)" }} />
-                </a>
-              ))}
+              {socials.map((s, i) => {
+                const Icon = ICONS[s.icon?.toLowerCase()] ?? Instagram;
+                return (
+                  <a
+                    key={i}
+                    href={s.href || "#"}
+                    aria-label={s.label || "Social link"}
+                    className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-white/10"
+                    style={{ borderColor: "color-mix(in oklab, var(--paper) 25%, transparent)" }}
+                  >
+                    <Icon className="h-4.5 w-4.5" strokeWidth={1.6} style={{ color: "var(--paper)" }} />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
           <NewsletterSignup
             variant="dark"
-            heading="A gentle letter, now and then"
-            description="Slow writing, occasional resources, and the reflection of the week — sent when it's ready, never on a schedule."
-            cta="Subscribe"
+            heading={newsletterHeading}
+            description={newsletterDescription}
+            cta={newsletterCta}
           />
         </div>
 
         <div className="mt-16 grid gap-8 border-t pt-10 md:grid-cols-4" style={{ borderColor: "color-mix(in oklab, var(--paper) 15%, transparent)" }}>
           <FooterCol title="Read">
-            {Object.values(PILLARS).map((p) => (
-              <FooterLink key={p.href} to={p.href}>{p.label}</FooterLink>
+            {pillars.map((p) => (
+              <FooterLink key={p.slug} to={p.href}>{p.label}</FooterLink>
             ))}
           </FooterCol>
           <FooterCol title="Resources">
@@ -58,10 +82,10 @@ export function SiteFooter() {
           </FooterCol>
           <FooterCol title="Small print">
             <p className="text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>
-              © {new Date().getFullYear()} Inshirah. A passion project, offered freely.
+              © {new Date().getFullYear()} Inshirah. {copyright}
             </p>
             <p className="mt-2 text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>
-              inshirah.co
+              {domain}
             </p>
           </FooterCol>
         </div>
@@ -93,5 +117,4 @@ function FooterLink({ to, children }: { to: string; children: React.ReactNode })
   );
 }
 
-// Suppress the unused Logo import warning if bundler is strict
 void Logo;

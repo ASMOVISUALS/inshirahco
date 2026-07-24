@@ -69,7 +69,22 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "articles_pillar_fkey"
+            columns: ["pillar"]
+            isOneToOne: false
+            referencedRelation: "pillars"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "articles_type_fkey"
+            columns: ["type"]
+            isOneToOne: false
+            referencedRelation: "resource_formats"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       bookmarks: {
         Row: {
@@ -89,6 +104,36 @@ export type Database = {
           created_at?: string
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          page_key: string
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          page_key: string
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          page_key?: string
+          question?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -113,6 +158,69 @@ export type Database = {
           email?: string
           id?: string
           source?: string | null
+        }
+        Relationships: []
+      }
+      pages: {
+        Row: {
+          content: Json
+          created_at: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pillars: {
+        Row: {
+          arabic_letter: string
+          coming_soon: boolean
+          created_at: string
+          description: string
+          href: string
+          label: string
+          short_label: string
+          slug: string
+          sort_order: number
+          tint: string
+          updated_at: string
+        }
+        Insert: {
+          arabic_letter: string
+          coming_soon?: boolean
+          created_at?: string
+          description?: string
+          href: string
+          label: string
+          short_label: string
+          slug: string
+          sort_order?: number
+          tint?: string
+          updated_at?: string
+        }
+        Update: {
+          arabic_letter?: string
+          coming_soon?: boolean
+          created_at?: string
+          description?: string
+          href?: string
+          label?: string
+          short_label?: string
+          slug?: string
+          sort_order?: number
+          tint?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -179,6 +287,60 @@ export type Database = {
           sort_order?: number
           translation?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      resource_formats: {
+        Row: {
+          arabic_letter: string
+          created_at: string
+          label: string
+          plural: string
+          slug: string
+          sort_order: number
+          tint: string
+          updated_at: string
+        }
+        Insert: {
+          arabic_letter: string
+          created_at?: string
+          label: string
+          plural: string
+          slug: string
+          sort_order?: number
+          tint?: string
+          updated_at?: string
+        }
+        Update: {
+          arabic_letter?: string
+          created_at?: string
+          label?: string
+          plural?: string
+          slug?: string
+          sort_order?: number
+          tint?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }

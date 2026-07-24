@@ -16,8 +16,6 @@ export const Route = createFileRoute("/young-hearts")({
     <PillarArchive
       pillar="young-hearts"
       tint="heart-soft"
-      eyebrow="Pillar 03 · Youth"
-      intro="For the young heart in between: between cultures, between certainties, between what the world expects and what the soul quietly asks for."
     />
   ),
 });

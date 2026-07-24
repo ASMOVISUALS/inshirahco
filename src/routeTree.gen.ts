@@ -27,8 +27,13 @@ import { Route as ReadSlugRouteImport } from './routes/read.$slug'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
+import { Route as AuthenticatedAdminPillarsRouteImport } from './routes/_authenticated/admin/pillars'
+import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
+import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
+import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
 import { Route as AuthenticatedAdminArticlesIndexRouteImport } from './routes/_authenticated/admin/articles/index'
 import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_authenticated/admin/articles/$id'
 
@@ -122,18 +127,46 @@ const AuthenticatedAdminTestimonialsRoute =
     path: '/testimonials',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminReflectionsRoute =
   AuthenticatedAdminReflectionsRouteImport.update({
     id: '/reflections',
     path: '/reflections',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminPillarsRoute =
+  AuthenticatedAdminPillarsRouteImport.update({
+    id: '/pillars',
+    path: '/pillars',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
+  id: '/pages',
+  path: '/pages',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
     path: '/newsletter',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminFormatsRoute =
+  AuthenticatedAdminFormatsRouteImport.update({
+    id: '/formats',
+    path: '/formats',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminArticlesIndexRoute =
   AuthenticatedAdminArticlesIndexRouteImport.update({
     id: '/articles/',
@@ -163,8 +196,13 @@ export interface FileRoutesByFullPath {
   '/young-hearts': typeof YoungHeartsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
+  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -185,8 +223,13 @@ export interface FileRoutesByTo {
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
+  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -210,8 +253,13 @@ export interface FileRoutesById {
   '/young-hearts': typeof YoungHeartsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/read/$slug': typeof ReadSlugRoute
+  '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
+  '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
+  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
+  '/_authenticated/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -235,8 +283,13 @@ export interface FileRouteTypes {
     | '/young-hearts'
     | '/admin'
     | '/read/$slug'
+    | '/admin/faqs'
+    | '/admin/formats'
     | '/admin/newsletter'
+    | '/admin/pages'
+    | '/admin/pillars'
     | '/admin/reflections'
+    | '/admin/settings'
     | '/admin/testimonials'
     | '/admin/'
     | '/admin/articles/$id'
@@ -257,8 +310,13 @@ export interface FileRouteTypes {
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/read/$slug'
+    | '/admin/faqs'
+    | '/admin/formats'
     | '/admin/newsletter'
+    | '/admin/pages'
+    | '/admin/pillars'
     | '/admin/reflections'
+    | '/admin/settings'
     | '/admin/testimonials'
     | '/admin'
     | '/admin/articles/$id'
@@ -281,8 +339,13 @@ export interface FileRouteTypes {
     | '/young-hearts'
     | '/_authenticated/admin'
     | '/read/$slug'
+    | '/_authenticated/admin/faqs'
+    | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
+    | '/_authenticated/admin/pages'
+    | '/_authenticated/admin/pillars'
     | '/_authenticated/admin/reflections'
+    | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/articles/$id'
@@ -435,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTestimonialsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/reflections': {
       id: '/_authenticated/admin/reflections'
       path: '/reflections'
@@ -442,11 +512,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReflectionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/pillars': {
+      id: '/_authenticated/admin/pillars'
+      path: '/pillars'
+      fullPath: '/admin/pillars'
+      preLoaderRoute: typeof AuthenticatedAdminPillarsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pages': {
+      id: '/_authenticated/admin/pages'
+      path: '/pages'
+      fullPath: '/admin/pages'
+      preLoaderRoute: typeof AuthenticatedAdminPagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/newsletter': {
       id: '/_authenticated/admin/newsletter'
       path: '/newsletter'
       fullPath: '/admin/newsletter'
       preLoaderRoute: typeof AuthenticatedAdminNewsletterRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/formats': {
+      id: '/_authenticated/admin/formats'
+      path: '/formats'
+      fullPath: '/admin/formats'
+      preLoaderRoute: typeof AuthenticatedAdminFormatsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/faqs': {
+      id: '/_authenticated/admin/faqs'
+      path: '/faqs'
+      fullPath: '/admin/faqs'
+      preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/articles/': {
@@ -467,8 +565,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
+  AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
+  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
+  AuthenticatedAdminPillarsRoute: typeof AuthenticatedAdminPillarsRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTestimonialsRoute: typeof AuthenticatedAdminTestimonialsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminArticlesIdRoute: typeof AuthenticatedAdminArticlesIdRoute
@@ -477,8 +580,13 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
+    AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
+    AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRoute,
+    AuthenticatedAdminPillarsRoute: AuthenticatedAdminPillarsRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
+    AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminTestimonialsRoute: AuthenticatedAdminTestimonialsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminArticlesIdRoute: AuthenticatedAdminArticlesIdRoute,

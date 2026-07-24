@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { pageQuery, faqsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/life-architecture")({
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(pageQuery("life-architecture"));
+    context.queryClient.ensureQueryData(faqsQuery("life-architecture"));
+  },
   head: () => ({
     meta: [
       { title: "Life Architecture — Coming soon | Inshirah" },
@@ -18,75 +24,76 @@ export const Route = createFileRoute("/life-architecture")({
   component: LifeArchitecture,
 });
 
-const FAQ = [
-  { q: "What will the course actually cover?", a: "Placeholder. We're shaping a curriculum around vocation, long-term decision-making, spiritual grounding, and the practical scaffolding of a life you can sustain. Expect readings, mentor conversations, and reflective work — not lectures alone." },
-  { q: "Who is it for?", a: "Placeholder. Adults — early-to-mid career, or in a season of transition — who want to build with intention rather than react to circumstance. No prior background required, just a willingness to sit with hard questions." },
-  { q: "Will it cost money?", a: "Placeholder. Yes, eventually — sustainably priced, with a portion of seats reserved on a means-adjusted basis. Details will land with the waitlist announcement." },
-  { q: "When does it launch?", a: "Placeholder. When it's ready and not before. Join the waitlist to be the first to hear when a cohort opens." },
-];
+interface Mentor { name: string; bio: string }
 
 function LifeArchitecture() {
+  const { data: page = {} } = useQuery(pageQuery("life-architecture"));
+  const { data: faqs = [] } = useQuery(faqsQuery("life-architecture"));
+  const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+  const mentors = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+
   return (
     <>
       <section className="hero-radial">
         <div className="container-wide py-24 md:py-32">
           <div className="flex flex-col items-start gap-6">
             <span className="rounded-pill px-4 py-1.5 text-xs font-bold uppercase tracking-widest" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>
-              Coming soon
+              {s("badge", "Coming soon")}
             </span>
             <div className="flex items-start gap-5">
               <LetterMark letter="ح" tint="gold" size={72} />
               <div>
-                <p className="eyebrow">Pillar 04 · Architecture</p>
-                <h1 className="mt-2 text-5xl leading-tight md:text-7xl">Life Architecture</h1>
+                <p className="eyebrow">{s("eyebrow", "Pillar 04 · Architecture")}</p>
+                <h1 className="mt-2 text-5xl leading-tight md:text-7xl">{s("title", "Life Architecture")}</h1>
               </div>
             </div>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-              A mentor-led course on building a life with intention — vocation, direction, and the long, slow work of aligning what you do with who you're becoming. In development. Join the waitlist for the first cohort.
+              {s("description", "")}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Waitlist */}
       <section className="container-wide -mt-8 pb-16">
         <NewsletterSignup
-          heading="Be first when the door opens"
-          description="A single email when the first cohort is announced. No marketing sequences, no upsells."
-          cta="Join the waitlist"
+          heading={s("waitlist_heading", "Be first when the door opens")}
+          description={s("waitlist_description", "")}
+          cta={s("waitlist_cta", "Join the waitlist")}
         />
       </section>
 
-      {/* Mentors */}
-      <section className="container-wide py-16 md:py-24">
-        <div className="mb-10 max-w-xl">
-          <p className="eyebrow">The mentors</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">Small circle. Long conversations.</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Mentor profiles are placeholders — the confirmed circle will be introduced with the waitlist announcement.</p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-3xl border border-border bg-card p-7">
-              <div className="grid h-16 w-16 place-items-center rounded-full font-arabic text-3xl" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>م</div>
-              <h3 className="mt-5 text-xl">Mentor {i}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Placeholder bio. A short paragraph on the mentor's background, the kind of questions they hold well, and what they bring to the circle.</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {mentors.length > 0 && (
+        <section className="container-wide py-16 md:py-24">
+          <div className="mb-10 max-w-xl">
+            <p className="eyebrow">{s("mentors_eyebrow", "The mentors")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("mentors_title", "Small circle. Long conversations.")}</h2>
+            <p className="mt-3 text-sm text-muted-foreground">{s("mentors_description", "")}</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {mentors.map((m, i) => (
+              <div key={i} className="rounded-3xl border border-border bg-card p-7">
+                <div className="grid h-16 w-16 place-items-center rounded-full font-arabic text-3xl" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>م</div>
+                <h3 className="mt-5 text-xl">{m.name}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{m.bio}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* FAQ */}
-      <section className="container-wide py-8 md:py-16">
-        <div className="mb-10 max-w-xl">
-          <p className="eyebrow">Questions we're asked most</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">A few honest answers</h2>
-        </div>
-        <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-card">
-          {FAQ.map((f, i) => (
-            <FaqItem key={i} q={f.q} a={f.a} last={i === FAQ.length - 1} />
-          ))}
-        </div>
-      </section>
+      {faqs.length > 0 && (
+        <section className="container-wide py-8 md:py-16">
+          <div className="mb-10 max-w-xl">
+            <p className="eyebrow">{s("faq_eyebrow", "Questions we're asked most")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("faq_title", "A few honest answers")}</h2>
+          </div>
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-card">
+            {faqs.map((f, i) => (
+              <FaqItem key={f.id} q={f.question} a={f.answer} last={i === faqs.length - 1} />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

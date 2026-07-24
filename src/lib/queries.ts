@@ -95,3 +95,109 @@ export const hasAdminRoleQuery = (userId: string | null) =>
     enabled: !!userId,
     staleTime: 60_000,
   });
+
+// ============ CMS ============
+
+export interface PillarRow {
+  slug: string;
+  label: string;
+  short_label: string;
+  arabic_letter: string;
+  tint: string;
+  description: string;
+  href: string;
+  sort_order: number;
+  coming_soon: boolean;
+}
+
+export interface FormatRow {
+  slug: string;
+  label: string;
+  plural: string;
+  arabic_letter: string;
+  tint: string;
+  sort_order: number;
+}
+
+export const pillarsQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "pillars"],
+    queryFn: async (): Promise<PillarRow[]> => {
+      const { data, error } = await supabase
+        .from("pillars")
+        .select("slug,label,short_label,arabic_letter,tint,description,href,sort_order,coming_soon")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as PillarRow[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
+export const formatsQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "formats"],
+    queryFn: async (): Promise<FormatRow[]> => {
+      const { data, error } = await supabase
+        .from("resource_formats")
+        .select("slug,label,plural,arabic_letter,tint,sort_order")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as FormatRow[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
+export type PageContent = Record<string, unknown>;
+
+export const pageQuery = (key: string) =>
+  queryOptions({
+    queryKey: ["cms", "page", key],
+    queryFn: async (): Promise<PageContent> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("content")
+        .eq("key", key)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.content ?? {}) as PageContent;
+    },
+    staleTime: 60_000,
+  });
+
+export interface FaqRow {
+  id: string;
+  page_key: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+}
+
+export const faqsQuery = (pageKey: string) =>
+  queryOptions({
+    queryKey: ["cms", "faqs", pageKey],
+    queryFn: async (): Promise<FaqRow[]> => {
+      const { data, error } = await supabase
+        .from("faqs")
+        .select("id,page_key,question,answer,sort_order")
+        .eq("page_key", pageKey)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as FaqRow[];
+    },
+    staleTime: 60_000,
+  });
+
+export const siteSettingQuery = (key: string) =>
+  queryOptions({
+    queryKey: ["cms", "settings", key],
+    queryFn: async (): Promise<Record<string, unknown>> => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", key)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.value ?? {}) as Record<string, unknown>;
+    },
+    staleTime: 5 * 60_000,
+  });

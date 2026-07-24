@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
-import { PILLARS } from "@/lib/content";
-import { articlesQuery, testimonialsQuery } from "@/lib/queries";
+import { articlesQuery, testimonialsQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { LetterMark } from "@/components/LetterMark";
 import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { usePillars } from "@/hooks/use-cms";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -24,19 +24,25 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(articlesQuery());
     context.queryClient.ensureQueryData(testimonialsQuery());
+    context.queryClient.ensureQueryData(pageQuery("home"));
   },
   component: Home,
 });
 
+const TINTS = ["heart", "tazkiyah", "heart-soft", "gold"] as const;
+
 function Home() {
   const { data: content } = useSuspenseQuery(articlesQuery());
   const { data: testimonials } = useSuspenseQuery(testimonialsQuery());
+  const { data: page = {} } = useQuery(pageQuery("home"));
+  const pillars = usePillars();
   const latest = content.slice(0, 3);
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
+  const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+
   return (
     <>
-      {/* HERO */}
       <section className="hero-radial relative overflow-hidden">
         <span
           aria-hidden
@@ -52,50 +58,48 @@ function Home() {
             whiteSpace: "nowrap",
           }}
         >
-          انشراح
+          {s("hero_arabic", "انشراح")}
         </span>
 
         <div className="container-wide relative z-10 flex flex-col items-center justify-center py-28 text-center md:py-40">
           <p className="font-arabic text-2xl md:text-3xl" style={{ color: "var(--heart)" }} dir="rtl">
-            انشراح
+            {s("hero_arabic", "انشراح")}
           </p>
           <h1 className="mt-4 font-display text-[3rem] leading-[1.02] tracking-tight md:text-[5.5rem] md:leading-[0.98]">
-            an expansion<br className="hidden md:block" /> of the chest.
+            {s("hero_title_line1", "an expansion")}<br className="hidden md:block" /> {s("hero_title_line2", "of the chest.")}
           </h1>
           <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            Slow writing on Qur'anic reflection, tazkiyah, and the quiet architecture of a life lived in remembrance.
+            {s("hero_description", "Slow writing on Qur'anic reflection, tazkiyah, and the quiet architecture of a life lived in remembrance.")}
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/quranic-reflections" className="btn-primary">
-              Start reading <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link to="/about" className="btn-ghost">Our story</Link>
+            <a href={s("hero_cta_primary_href", "/quranic-reflections")} className="btn-primary">
+              {s("hero_cta_primary_label", "Start reading")} <ArrowRight className="h-4 w-4" />
+            </a>
+            <a href={s("hero_cta_secondary_href", "/about")} className="btn-ghost">{s("hero_cta_secondary_label", "Our story")}</a>
           </div>
         </div>
       </section>
 
-      {/* PILLARS */}
       <section className="container-wide py-20 md:py-28">
         <div className="mb-12 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-xl">
-            <p className="eyebrow">Four rooms in one house</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">Where to begin</h2>
+            <p className="eyebrow">{s("pillars_eyebrow", "Four rooms in one house")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("pillars_title", "Where to begin")}</h2>
           </div>
           <p className="max-w-md text-muted-foreground">
-            Inshirah is organized around four quiet pillars. Wander freely — there is no wrong door to enter through.
+            {s("pillars_description", "Inshirah is organized around four quiet pillars. Wander freely — there is no wrong door to enter through.")}
           </p>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {Object.values(PILLARS).map((p, idx) => {
-            const tint = (["heart", "tazkiyah", "heart-soft", "gold"] as const)[idx];
-            const isSoon = p.href === "/life-architecture";
+          {pillars.map((p, idx) => {
+            const tint = TINTS[idx % TINTS.length];
             return (
-              <Link key={p.href} to={p.href} className="card-soft group flex h-full flex-col justify-between !p-7">
+              <Link key={p.slug} to={p.href} className="card-soft group flex h-full flex-col justify-between !p-7">
                 <div>
                   <div className="flex items-center justify-between">
-                    <LetterMark letter={p.letter} tint={tint} size={54} />
-                    {isSoon && (
+                    <LetterMark letter={p.arabic_letter} tint={tint} size={54} />
+                    {p.coming_soon && (
                       <span className="rounded-pill px-3 py-1 text-[0.7rem] font-bold uppercase tracking-widest" style={{ background: "color-mix(in oklab, var(--gold-decorative) 20%, transparent)", color: "var(--gold)" }}>
                         Coming soon
                       </span>
@@ -113,12 +117,11 @@ function Home() {
         </div>
       </section>
 
-      {/* LATEST */}
       <section className="container-wide py-8 md:py-16">
         <div className="mb-10 flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Latest writing</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">Recently, from us to you</h2>
+            <p className="eyebrow">{s("latest_eyebrow", "Latest writing")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("latest_title", "Recently, from us to you")}</h2>
           </div>
           <Link to="/resources" className="hidden text-sm font-bold hover:underline md:inline-flex items-center gap-1" style={{ color: "var(--heart)" }}>
             All writing <ArrowRight className="h-3.5 w-3.5" />
@@ -131,28 +134,25 @@ function Home() {
         </div>
       </section>
 
-      {/* REFLECTION OF THE DAY */}
       <section className="container-wide py-16 md:py-24">
         <ReflectionOfTheDay />
       </section>
 
-      {/* CAROUSEL */}
       {media.length > 0 && (
         <section className="container-wide py-8 md:py-16">
           <div className="mb-8">
-            <p className="eyebrow">Listen & watch</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">Voices from the project</h2>
+            <p className="eyebrow">{s("media_eyebrow", "Listen & watch")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("media_title", "Voices from the project")}</h2>
           </div>
           <MediaCarousel items={media} />
         </section>
       )}
 
-      {/* TESTIMONIALS */}
       {testimonials.length > 0 && (
         <section className="container-wide py-16 md:py-24">
           <div className="mb-10 max-w-xl">
-            <p className="eyebrow">Community voices</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">Notes from readers</h2>
+            <p className="eyebrow">{s("testimonials_eyebrow", "Community voices")}</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">{s("testimonials_title", "Notes from readers")}</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {testimonials.map((t) => (
@@ -170,7 +170,6 @@ function Home() {
         </section>
       )}
 
-      {/* NEWSLETTER */}
       <section className="container-wide pb-24">
         <NewsletterSignup />
       </section>
