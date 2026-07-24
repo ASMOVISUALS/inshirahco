@@ -8,6 +8,7 @@ import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 import { usePillars } from "@/hooks/use-cms";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 
 export const Route = createFileRoute("/")({
   ssr: false,
