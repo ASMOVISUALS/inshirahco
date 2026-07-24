@@ -93,18 +93,16 @@ function ReflectionsAdmin() {
 
               {selected && (
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
-                  <label className="flex items-center gap-2 text-xs font-semibold" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={r.active}
-                      onChange={(e) => toggle.mutate({ id: r.id, active: e.target.checked })}
-                      className="peer sr-only"
-                    />
-                    <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-muted transition-colors peer-checked:bg-heart">
-                      <span className="ml-0.5 h-4 w-4 rounded-full bg-background transition-transform peer-checked:translate-x-4" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); toggle.mutate({ id: r.id, active: !r.active }); }}
+                    className="flex items-center gap-2 text-xs font-semibold"
+                  >
+                    <span className={"relative inline-flex h-5 w-9 items-center rounded-full transition-colors " + (r.active ? "bg-heart" : "bg-muted")}>
+                      <span className={"h-4 w-4 rounded-full bg-background transition-transform " + (r.active ? "translate-x-[18px]" : "translate-x-0.5")} />
                     </span>
                     <span>{r.active ? "Active" : "Inactive"}</span>
-                  </label>
+                  </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); if (confirm("Delete this reflection?")) del.mutate(r.id); }}
                     aria-label="Delete reflection"
