@@ -60,7 +60,7 @@ function AuthPage() {
       setSubmitting(true);
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: siteUrl("/auth/callback") },
       });
       setSubmitting(false);
       if (error) return setError(error.message);
