@@ -58,58 +58,51 @@ function PillarsAdmin() {
       </div>
 
       <div className="overflow-x-auto">
-        <div className="flex min-w-max gap-3">
-          {/* edit column outside the table */}
-          <div className="flex flex-col gap-0 pt-[52px]">
+        <Table className="min-w-max">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              {/* invisible edit column */}
+              <TableHead className="w-12 border-0 bg-transparent p-0" />
+              <TableHead>Label</TableHead>
+              <TableHead>Short Label</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Arabic Letter</TableHead>
+              <TableHead>Tint</TableHead>
+              <TableHead>Href</TableHead>
+              <TableHead className="text-right">Sort Order</TableHead>
+              <TableHead className="min-w-[280px]">Description</TableHead>
+              <TableHead className="text-center">Coming soon</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.map((r) => (
-              <div key={r.slug} className="flex h-[57px] items-center">
-                <button
-                  onClick={() => setGateSlug(r.slug)}
-                  className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-heart hover:text-heart"
-                  aria-label={`Edit ${r.label}`}
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-              </div>
+              <TableRow key={r.slug}>
+                <TableCell className="w-12 border-0 bg-transparent p-0 pr-3 align-middle">
+                  <button
+                    onClick={() => setGateSlug(r.slug)}
+                    className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-heart hover:text-heart"
+                    aria-label={`Edit ${r.label}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </TableCell>
+                <TableCell className="font-semibold">{r.label}</TableCell>
+                <TableCell>{r.short_label}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.slug}</TableCell>
+                <TableCell className="text-lg">{r.arabic_letter}</TableCell>
+                <TableCell>{r.tint}</TableCell>
+                <TableCell className="font-mono text-xs">{r.href}</TableCell>
+                <TableCell className="text-right">{r.sort_order}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{r.description}</TableCell>
+                <TableCell className="text-center">
+                  <Checkbox checked={r.coming_soon} disabled aria-label="Coming soon" />
+                </TableCell>
+              </TableRow>
             ))}
-          </div>
-
-          <div className="flex-1 rounded-2xl border border-border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Label</TableHead>
-                  <TableHead>Short Label</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Arabic Letter</TableHead>
-                  <TableHead>Tint</TableHead>
-                  <TableHead>Href</TableHead>
-                  <TableHead className="text-right">Sort Order</TableHead>
-                  <TableHead className="min-w-[280px]">Description</TableHead>
-                  <TableHead className="text-center">Coming soon</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((r) => (
-                  <TableRow key={r.slug}>
-                    <TableCell className="font-semibold">{r.label}</TableCell>
-                    <TableCell>{r.short_label}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{r.slug}</TableCell>
-                    <TableCell className="text-lg">{r.arabic_letter}</TableCell>
-                    <TableCell>{r.tint}</TableCell>
-                    <TableCell className="font-mono text-xs">{r.href}</TableCell>
-                    <TableCell className="text-right">{r.sort_order}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.description}</TableCell>
-                    <TableCell className="text-center">
-                      <Checkbox checked={r.coming_soon} disabled aria-label="Coming soon" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+          </TableBody>
+        </Table>
       </div>
+
 
       <AdminPasswordGate
         open={!!gateSlug}
