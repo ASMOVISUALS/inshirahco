@@ -28,13 +28,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
+const dashboardItem = { title: "Dashboard", url: "/admin", icon: LayoutDashboard };
 const topItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Articles", url: "/admin/articles", icon: FileText },
   { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
   { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
@@ -81,6 +82,21 @@ function AdminSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive(dashboardItem.url)} tooltip={dashboardItem.title}>
+                  <Link to={dashboardItem.url}>
+                    <dashboardItem.icon className="h-4 w-4" />
+                    <span>{dashboardItem.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <Separator className="mx-2 w-auto" />
         <SidebarGroup>
           <SidebarGroupLabel>Manage</SidebarGroupLabel>
           <SidebarGroupContent>
