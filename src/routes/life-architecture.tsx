@@ -21,10 +21,8 @@ const DEFAULT_PREVIEWS: Preview[] = [
   { icon: "users", tag: "Cohorts", title: "Mentor-led courses", description: "Small cohorts walking through purpose, work, and long-term direction with a mentor who knows your name." },
   { icon: "mountain", tag: "Retreats", title: "In-person retreats", description: "A few days away from the noise — reflection, halaqas, and quiet planning in landscapes that let the chest expand." },
   { icon: "calendar", tag: "Gatherings", title: "Exclusive events", description: "Intimate salons and dinners with scholars, founders, and practitioners exploring the architecture of a life well-lived." },
-  { icon: "compass", tag: "1:1", title: "Direction sessions", description: "Private mentorship windows for members navigating a decision, a season, or a turning point." },
-  { icon: "book", tag: "Library", title: "Members' library", description: "A curated shelf of readings, worksheets, and audio — released slowly, meant to be sat with." },
-  { icon: "sparkles", tag: "Rituals", title: "Seasonal rhythms", description: "Ramadan, Dhul-Hijjah, and year-end reviews designed around the Islamic calendar and your own life map." },
 ];
+
 
 
 export const Route = createFileRoute("/life-architecture")({
