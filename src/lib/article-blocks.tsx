@@ -182,8 +182,9 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
       );
     case "video": {
       const { embed, type } = toEmbedUrl(block.src);
+      const w = typeof block.width === "number" ? Math.max(0.33, Math.min(1, block.width)) : 1;
       return (
-        <figure className="my-8">
+        <figure className="my-8" style={{ width: `${Math.round(w * 100)}%`, marginLeft: "auto", marginRight: "auto" }}>
           {!block.src ? (
             <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">No video URL</div>
           ) : type === "youtube" || type === "vimeo" ? (
@@ -197,6 +198,7 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </figure>
       );
     }
+
     case "audio":
       return (
         <figure className="my-6 rounded-2xl border border-border bg-card p-4">
