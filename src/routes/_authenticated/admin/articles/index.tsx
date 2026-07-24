@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
 
