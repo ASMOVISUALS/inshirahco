@@ -11,7 +11,7 @@ import { usePillars, useFormats } from "@/hooks/use-cms";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
-export function SiteNav() {
+export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
   const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openMobileResources, setOpenMobileResources] = useState(false);
