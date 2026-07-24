@@ -215,11 +215,14 @@ function RenderBlock({ block }: { block: Block }) {
 
     case "heading": {
       const level = Math.min(4, Math.max(1, n("level", 2)));
-      const H = (`h${level}` as unknown) as keyof JSX.IntrinsicElements;
       const size = level === 1 ? "text-5xl md:text-6xl" : level === 2 ? "text-4xl md:text-5xl" : level === 3 ? "text-2xl md:text-3xl" : "text-xl";
+      const text = s("text");
       return (
         <section className="container-wide py-4">
-          <H className={size}>{s("text")}</H>
+          {level === 1 ? <h1 className={size}>{text}</h1>
+            : level === 2 ? <h2 className={size}>{text}</h2>
+            : level === 3 ? <h3 className={size}>{text}</h3>
+            : <h4 className={size}>{text}</h4>}
         </section>
       );
     }
