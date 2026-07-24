@@ -62,6 +62,7 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
         <div className="container-wide flex h-[72px] items-center justify-between gap-6">
           <Logo />
 
+          {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {pillars.map((p) => (
               <Link
@@ -125,6 +126,7 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
               {aboutLabel}
             </Link>
           </nav>
+          )}
 
           <div className="flex items-center gap-1">
             <button
