@@ -70,6 +70,19 @@ function Detail() {
   const type = RESOURCE_TYPES[item.type];
   const { data: all = [] } = useQuery(articlesQuery());
   const related = all.filter((c) => c.pillar === item.pillar && c.slug !== item.slug).slice(0, 3);
+  const { data: authorProfile } = useQuery({
+    queryKey: ["profile-by-name", item.author.name],
+    enabled: !!item.author.name,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name,avatar_url")
+        .ilike("name", item.author.name)
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
   const [progress, setProgress] = useState(0);
