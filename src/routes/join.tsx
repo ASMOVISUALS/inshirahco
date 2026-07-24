@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -52,11 +53,14 @@ function JoinPage() {
   const [gender, setGender] = useState<"male" | "female" | "prefer_not_to_say" | "">("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const progress = useMemo(() => (done ? 100 : (step / 3) * 100), [step, done]);
 
-  const goNext = () => {
+  const goNext = async () => {
     setErrors({});
+    setServerError(null);
     if (step === 1) {
       const r = emailSchema.safeParse({ email });
       if (!r.success) return setErrors({ email: r.error.issues[0].message });
@@ -76,7 +80,17 @@ function JoinPage() {
         r.error.issues.forEach((i) => { e[i.path[0] as string] = i.message; });
         return setErrors(e);
       }
-      // TODO: wire to backend later.
+      setSubmitting(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { name, dob, gender },
+        },
+      });
+      setSubmitting(false);
+      if (error) return setServerError(error.message);
       setDone(true);
     }
   };
