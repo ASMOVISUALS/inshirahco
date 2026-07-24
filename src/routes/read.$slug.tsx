@@ -167,64 +167,8 @@ function Detail() {
         </header>
 
         <div className="container-wide max-w-3xl pb-16">
-          <div className="prose-body space-y-6 text-[1.14rem] leading-[1.75] md:text-[1.18rem]">
-            {item.body?.map((block, i) => {
-              if (block.kind === "h2") {
-                return <h2 key={i} className="mt-12 text-3xl md:text-4xl">{block.text}</h2>;
-              }
-              if (block.kind === "h3") {
-                return <h3 key={i} className="mt-8 text-2xl md:text-3xl">{block.text}</h3>;
-              }
-              if (block.kind === "divider") {
-                return <hr key={i} className="my-10 border-t border-border" />;
-              }
-              if (block.kind === "callout") {
-                return (
-                  <aside key={i} className="my-8 rounded-3xl border p-6" style={{ background: "color-mix(in oklab, var(--gold) 12%, var(--paper-warm))", borderColor: "color-mix(in oklab, var(--gold) 45%, transparent)" }}>
-                    <p className="font-display text-lg italic md:text-xl">{block.text}</p>
-                  </aside>
-                );
-              }
-              if (block.kind === "list") {
-                const Tag = block.ordered ? "ol" : "ul";
-                return (
-                  <Tag key={i} className={`my-4 ${block.ordered ? "list-decimal" : "list-disc"} space-y-2 pl-6`}>
-                    {block.items.map((it, j) => <li key={j}>{it}</li>)}
-                  </Tag>
-                );
-              }
-              if (block.kind === "image") {
-                return (
-                  <figure key={i} className="my-8">
-                    <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />
-                    {block.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</figcaption>}
-                  </figure>
-                );
-              }
-              if (block.kind === "quote") {
-                return (
-                  <blockquote
-                    key={i}
-                    className="my-10 rounded-3xl border-l-4 p-8"
-                    style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}
-                  >
-                    {block.arabic && (
-                      <p className="font-arabic text-3xl leading-loose md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>
-                        {block.arabic}
-                      </p>
-                    )}
-                    <p className="mt-4 font-display text-xl italic md:text-2xl" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
-                      "{block.text}"
-                    </p>
-                    {block.source && (
-                      <p className="mt-3 text-sm font-semibold text-muted-foreground">— {block.source}</p>
-                    )}
-                  </blockquote>
-                );
-              }
-              return <p key={i}>{block.text}</p>;
-            })}
-          </div>
+          <ArticleBodyView blocks={item.body ?? []} />
+
 
           <div className="mt-12 flex flex-wrap items-center gap-3 rounded-3xl border border-border bg-card p-5">
             <span className="text-sm font-bold">Share</span>
