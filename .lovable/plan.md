@@ -1,75 +1,56 @@
-# Supabase Backend Integration Plan
+# Move everything to Supabase — full CMS-style admin
 
-Admin seed: **inshirahco@proton.me** (auto-promoted to `admin` in `user_roles` on first signup via trigger).
+Right now, the content types (`article`, `podcast`, `video`, `tadabbur`, `book`, `worksheet`, etc.) already live in the `articles` table — you can add any of them from `/admin/articles` today. What's actually still hardcoded is:
 
-## 1. Database schema (single migration)
+- The four **pillars** and nine **formats** (their labels, descriptions, Arabic letters, colours)
+- **Page copy** on Home, About, Life Architecture, Join, Contact
+- The Life Architecture **FAQ**
 
-Tables (all with `id uuid`, `created_at`, `updated_at` where relevant, RLS enabled, GRANTs, `updated_at` trigger):
+This plan puts every one of those into Supabase and gives you an admin page to edit each without touching SQL.
 
-- `pillars` — slug, name, tagline, description, accent_token, sort_order
-- `resource_types` — slug, label, icon
-- `articles` — slug, title, subtitle, body (markdown), excerpt, hero_image, pillar_id, resource_type_id, author, reading_minutes, published, published_at, tags[]
-- `reflections_of_the_day` — arabic, translation, source, reflection, active_date
-- `testimonials` — name, role, quote, avatar_url, featured
-- `newsletter_signups` — email (unique), source, consented_at
-- `profiles` — user_id (FK auth.users, cascade), name, dob, gender, email
-- `app_role` enum (`admin`, `member`) + `user_roles` (user_id, role)
-- `bookmarks` — user_id, article_id, unique(user_id, article_id)
+## New database tables
 
-Helpers:
-- `has_role(_user_id, _role)` SECURITY DEFINER
-- `handle_new_user()` trigger on `auth.users` insert → creates `profiles` row from `raw_user_meta_data` and, if email = `inshirahco@proton.me`, inserts admin `user_roles` row
-- `set_updated_at()` trigger fn
+- `pillars` — slug, label, short_label, arabic_letter, tint, description, sort_order, coming_soon
+- `resource_formats` — slug, label, plural, arabic_letter, sort_order (the "article / podcast / video…" list)
+- `pages` — key (`home`, `about`, `life-architecture`, `join`, `contact`), then a `content` JSONB of named copy blocks (hero eyebrow, hero title, body paragraphs, CTA labels, section titles, SEO title/description)
+- `faqs` — page_key, question, answer, sort_order (used by Life Architecture; reusable elsewhere)
+- `site_settings` — single-row key/value JSONB for nav labels, footer text, brand tagline
 
-### RLS policies (summary)
+Existing `articles` / `reflections` / `testimonials` / `newsletter_signups` stay as they are.
 
-- **Public read (anon + authenticated):** `pillars`, `resource_types`, `articles` (only `published = true`), `reflections_of_the_day`, `testimonials`
-- **Admin write** (via `has_role(auth.uid(), 'admin')`) on all content tables
-- **profiles:** user reads/updates own; admin reads all
-- **newsletter_signups:** anon+authenticated INSERT; admin SELECT
-- **bookmarks:** user manages own
-- **user_roles:** user reads own; admin manages all
+RLS: public `SELECT` on all content tables; admin-only `INSERT/UPDATE/DELETE` via `has_role(auth.uid(), 'admin')`. `articles.pillar` and `articles.type` become foreign keys to the new `pillars.slug` / `resource_formats.slug` so admin dropdowns stay in sync.
 
-## 2. Seed content
+## Frontend changes
 
-Migration inserts current mock content from `src/lib/content.ts` (4 pillars, resource types, ~sample articles, sample reflections, testimonials) so the site keeps rendering after cutover.
+- Delete the hardcoded `PILLARS` and `RESOURCE_TYPES` constants in `src/lib/content.ts`; replace with `pillarsQuery()` and `formatsQuery()` in `src/lib/queries.ts`.
+- Every component that currently imports `PILLARS`/`RESOURCE_TYPES` (`ContentCard`, `PillarArchive`, `SearchOverlay`, `resources.tsx`, `SiteNav`, admin editors, home) reads from those queries instead.
+- Each page (`index`, `about`, `life-architecture`, `join`, `contact`) fetches its `pages` row in the loader and renders every heading/paragraph/CTA from it. `head()` meta pulls its title & description from the same row.
+- Pillar routes (`/quranic-reflections`, etc.) remain as fixed route files but their labels, hero eyebrow and intro come from the `pillars` row — no editorial text left in the JSX.
 
-## 3. Server functions (`src/lib/*.functions.ts`)
+## New admin section — "Website content"
 
-Public reads (publishable-key server client):
-- `listPillars`, `listResourceTypes`, `listArticles({ pillar?, type?, q? })`, `getArticleBySlug`, `getTodayReflection`, `listTestimonials`, `subscribeNewsletter`
+Added to the `/admin` nav alongside the existing tabs:
 
-Auth-scoped (`requireSupabaseAuth`):
-- `listMyBookmarks`, `toggleBookmark`, `getMyProfile`, `updateMyProfile`
+- `/admin/pillars` — list, create, edit, reorder, toggle "coming soon"
+- `/admin/formats` — list, create, edit, reorder resource types
+- `/admin/pages` — pick a page, edit each named copy block in a form (title, description, hero copy, body paragraphs, CTAs, SEO)
+- `/admin/faqs` — grouped by page, add/edit/reorder Q&A pairs
+- `/admin/settings` — nav labels, footer text, brand tagline
 
-Admin (checks `has_role` via `context.supabase`, then dynamic-imports `supabaseAdmin` only where needed):
-- `adminListArticles/Upsert/Delete`, `adminListReflections/Upsert/Delete`, `adminListTestimonials/Upsert/Delete`, `adminListNewsletter`
+Existing `/admin/articles`, `/admin/reflections`, `/admin/testimonials`, `/admin/newsletter` stay.
 
-## 4. Frontend wiring
+## Seed data
 
-- Replace mock imports across `index.tsx`, `quranic-reflections.tsx`, `tazkiyah-toolkit.tsx`, `young-hearts.tsx`, `resources.tsx`, `read.$slug.tsx`, `ReflectionOfTheDay`, `PillarArchive` with TanStack Query (`ensureQueryData` in loaders, `useSuspenseQuery` in components). Add `errorComponent` + `notFoundComponent` to loader routes.
-- `NewsletterSignup` calls `subscribeNewsletter` server fn.
-- `/join` wizard → real `supabase.auth.signUp` with `emailRedirectTo: window.location.origin`, passing `name/dob/gender` via `options.data` so the trigger seeds `profiles`.
-- New `/auth` route: sign-in + password reset request. New `/reset-password` public route.
-- Root: `onAuthStateChange` filtered subscriber → `router.invalidate()` + query invalidate; SiteNav swaps Join/Sign-in for account menu + sign-out when session exists.
-- `useBookmarks`: if signed in, source of truth = server; localStorage becomes fallback + one-time migration on first authenticated load.
+Migration seeds the new tables with everything currently in the codebase word-for-word so the site looks identical after the switch — you then edit freely from `/admin`.
 
-## 5. Admin UI (under `_authenticated/`)
+## Out of scope (intentional)
 
-New pathless layout `src/routes/_authenticated/_admin/route.tsx` calls `requireAdmin` server fn in `beforeLoad`; redirects non-admins to `/`.
+- **Route slugs stay fixed in code** (`/quranic-reflections`, `/tazkiyah-toolkit`, `/young-hearts`, `/life-architecture`). Renaming a pillar's URL would break shared links; you can rename the *label* freely, and mark any pillar "coming soon" from admin. If you later want fully dynamic `/pillar/$slug` routes so admins can add new pillars end-to-end, that's a follow-up.
+- Auth pages (`/auth`, `/reset-password`) stay hardcoded — pure auth flow, no editorial copy.
 
-Pages:
-- `/admin` — dashboard (counts)
-- `/admin/articles` — list + create/edit form (markdown textarea, pillar/type selects, publish toggle)
-- `/admin/reflections` — CRUD
-- `/admin/testimonials` — CRUD
-- `/admin/newsletter` — read-only list + CSV export
+## Technical notes
 
-## 6. Post-migration checks
-
-Run `supabase--linter`, verify build, sign up with `inshirahco@proton.me`, confirm admin gate + a CRUD round-trip on articles.
-
-## Notes / caveats
-
-- Managed Cloud Supabase is already enabled and healthy. Since you say you also linked your own Supabase via connectors: I'll build against the project whose env vars are in `.env` (currently the managed one, ref `mxozodtilpebntzpotva`). If you want me to point at a different project instead, say the word before I run the migration.
-- No image upload/storage bucket in this pass — hero images stay as URLs. Easy add-on later.
+- All new tables follow the standard `id`, `created_at`, `updated_at`, RLS + `has_role` policy pattern already used in the project.
+- Public reads use the browser Supabase client with TanStack Query (`ensureQueryData` in loader + `useSuspenseQuery` in component), matching the existing `articlesQuery` / `testimonialsQuery` pattern.
+- Admin mutations use the browser client under the `_authenticated/admin` layout, which already gates on `has_role`.
+- Loaders that were `ssr: false` stay that way; new content routes render at request time, so edits show up instantly with a page refresh.
