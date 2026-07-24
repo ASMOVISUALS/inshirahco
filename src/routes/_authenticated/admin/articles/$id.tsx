@@ -1135,9 +1135,10 @@ function ListEditor({
   onSet: (patch: Partial<ContentBlock>) => void;
   onCommit: (patch: Partial<ContentBlock>) => void;
 }) {
-  const items = block.items.length ? block.items : [""];
+  const items = block.items;
   const Tag = block.ordered ? "ol" : "ul";
   const markerCls = block.ordered ? "list-decimal" : "list-disc";
+
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const focusReq = useRef<{ i: number; caret?: number } | null>(null);
