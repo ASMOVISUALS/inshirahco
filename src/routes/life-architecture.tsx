@@ -55,6 +55,11 @@ function LifeArchitecture() {
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
   const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
 
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
   return (
     <>
       <section className="hero-radial">
