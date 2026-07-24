@@ -71,7 +71,7 @@ function ReflectionsAdmin() {
         <button type="submit" disabled={add.isPending} className="btn-primary self-start">{add.isPending ? "Adding…" : "Add"}</button>
       </form>
 
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {data.map((r) => {
           const selected = selectedId === r.id;
           const dimmed = !r.active && !selected;
