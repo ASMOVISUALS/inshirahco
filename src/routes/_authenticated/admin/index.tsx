@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { articlesQuery, reflectionsQuery, testimonialsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/_admin/")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({ meta: [{ title: "Admin — Inshirah" }, { name: "robots", content: "noindex" }] }),
   component: AdminDashboard,
 });

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { hasAdminRoleQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
 
-export const Route = createFileRoute("/_authenticated/_admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
