@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
-import { CONTENT, PILLARS, TESTIMONIALS } from "@/lib/content";
+import { PILLARS } from "@/lib/content";
+import { articlesQuery, testimonialsQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { LetterMark } from "@/components/LetterMark";
 import { MediaCarousel } from "@/components/MediaCarousel";
@@ -8,6 +10,7 @@ import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Inshirah — Islamic psychology, for the world of good" },
@@ -18,12 +21,18 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(articlesQuery());
+    context.queryClient.ensureQueryData(testimonialsQuery());
+  },
   component: Home,
 });
 
 function Home() {
-  const latest = CONTENT.slice(0, 3);
-  const media = CONTENT.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
+  const { data: content } = useSuspenseQuery(articlesQuery());
+  const { data: testimonials } = useSuspenseQuery(testimonialsQuery());
+  const latest = content.slice(0, 3);
+  const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
   return (
     <>
@@ -128,35 +137,38 @@ function Home() {
       </section>
 
       {/* CAROUSEL */}
-      <section className="container-wide py-8 md:py-16">
-        <div className="mb-8">
-          <p className="eyebrow">Listen & watch</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">Voices from the project</h2>
-        </div>
-        <MediaCarousel items={media} />
-      </section>
+      {media.length > 0 && (
+        <section className="container-wide py-8 md:py-16">
+          <div className="mb-8">
+            <p className="eyebrow">Listen & watch</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">Voices from the project</h2>
+          </div>
+          <MediaCarousel items={media} />
+        </section>
+      )}
 
       {/* TESTIMONIALS */}
-      <section className="container-wide py-16 md:py-24">
-        <div className="mb-10 max-w-xl">
-          <p className="eyebrow">Community voices</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">Notes from readers</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Placeholder quotes — real reader notes will replace these as they come in.</p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <figure key={i} className="rounded-3xl border border-border bg-card p-7">
-              <blockquote className="font-display text-xl leading-snug" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
-                "{t.quote}"
-              </blockquote>
-              <figcaption className="mt-6 flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-full font-arabic" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 60%, transparent)", color: "var(--tazkiyah)" }}>ق</span>
-                <span className="text-sm font-semibold">{t.name}</span>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
+      {testimonials.length > 0 && (
+        <section className="container-wide py-16 md:py-24">
+          <div className="mb-10 max-w-xl">
+            <p className="eyebrow">Community voices</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">Notes from readers</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {testimonials.map((t) => (
+              <figure key={t.id} className="rounded-3xl border border-border bg-card p-7">
+                <blockquote className="font-display text-xl leading-snug" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
+                  "{t.quote}"
+                </blockquote>
+                <figcaption className="mt-6 flex items-center gap-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-full font-arabic" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 60%, transparent)", color: "var(--tazkiyah)" }}>ق</span>
+                  <span className="text-sm font-semibold">{t.name}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* NEWSLETTER */}
       <section className="container-wide pb-24">

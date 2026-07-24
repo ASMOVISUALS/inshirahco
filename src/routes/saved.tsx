@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CONTENT } from "@/lib/content";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { useBookmarks } from "@/hooks/use-theme";
 
 export const Route = createFileRoute("/saved")({
+  ssr: false,
+  loader: ({ context }) => { context.queryClient.ensureQueryData(articlesQuery()); },
   head: () => ({
     meta: [
       { title: "Saved — Inshirah" },
-      { name: "description", content: "Your bookmarked articles, reflections, and resources from Inshirah, saved locally to your browser." },
+      { name: "description", content: "Your bookmarked articles, reflections, and resources from Inshirah — synced to your account when signed in." },
       { property: "og:title", content: "Saved — Inshirah" },
       { property: "og:description", content: "Your bookmarks, waiting for you." },
       { property: "og:url", content: "/saved" },
@@ -19,15 +22,16 @@ export const Route = createFileRoute("/saved")({
 });
 
 function Saved() {
+  const { data: content } = useSuspenseQuery(articlesQuery());
   const { slugs } = useBookmarks();
-  const items = CONTENT.filter((c) => slugs.includes(c.slug));
+  const items = content.filter((c) => slugs.includes(c.slug));
 
   return (
     <section className="container-wide py-16 md:py-24">
       <p className="eyebrow">Yours to return to</p>
       <h1 className="mt-3 text-5xl leading-tight md:text-6xl">Saved for later</h1>
       <p className="mt-4 max-w-xl text-muted-foreground">
-        Everything you've bookmarked lives here. Saved locally to your browser — nothing to sign in for.
+        Everything you've bookmarked lives here. Sign in and they sync across devices.
       </p>
 
       {items.length === 0 ? (

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
 import { PILLARS, RESOURCE_TYPES } from "@/lib/content";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
+import { useAuth } from "@/hooks/use-auth";
+import { hasAdminRoleQuery } from "@/lib/queries";
+import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
 const NAV_PILLARS = [
@@ -32,7 +36,16 @@ export function SiteNav() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
   const { slugs } = useBookmarks();
+  const { user } = useAuth();
+  const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
+  const navigate = useNavigate();
   const megaRef = useRef<HTMLDivElement>(null);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
+
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -153,12 +166,28 @@ export function SiteNav() {
               {theme === "dark" ? <Sun className="h-4.5 w-4.5" strokeWidth={1.8} /> : <Moon className="h-4.5 w-4.5" strokeWidth={1.8} />}
             </button>
 
-            <Link
-              to="/join"
-              className="ml-2 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm"
-            >
-              Join
-            </Link>
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Link to="/admin" aria-label="Admin" className="hidden md:grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-secondary">
+                    <Shield className="h-4.5 w-4.5" strokeWidth={1.8} />
+                  </Link>
+                )}
+                <button type="button" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
+                  <LogOut className="h-4 w-4" strokeWidth={1.8} /> Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="hidden md:inline-flex rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
+                  Sign in
+                </Link>
+                <Link to="/join" className="ml-1 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm">
+                  Join
+                </Link>
+              </>
+            )}
+
 
 
             <button
@@ -212,7 +241,19 @@ export function SiteNav() {
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Contact</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>
-            <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary mt-6 justify-center">Join</Link>
+            {user ? (
+              <div className="mt-6 flex flex-col gap-2">
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Admin</Link>
+                )}
+                <button type="button" onClick={() => { setOpenMobile(false); signOut(); }} className="btn-primary justify-center">Sign out</button>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col gap-2">
+                <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
+                <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
+              </div>
+            )}
           </div>
         </div>
       )}
