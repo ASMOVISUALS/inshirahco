@@ -248,9 +248,10 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </div>
       );
     case "columns": {
-      const count = Math.max(1, Math.min(4, block.items.length));
-      const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : count === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
+      const count = Math.max(1, Math.min(3, block.items.length));
+      const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : "md:grid-cols-3";
       return (
+
         <div className={`my-8 grid gap-6 ${gridCls}`}>
           {block.items.map((child, i) => (
             <div key={i} className="min-w-0 [&_img]:!my-0 [&>*]:!my-0">
