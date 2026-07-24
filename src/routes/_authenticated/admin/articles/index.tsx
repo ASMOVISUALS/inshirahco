@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin/articles/")({
 
 function ArticlesList() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-articles"],
     queryFn: async () => {
@@ -34,7 +35,7 @@ function ArticlesList() {
           description: "",
           pillar: "quranic-reflections",
           type: "article",
-          read_time: "5 min",
+          read_time: "1 min",
           author_name: "Inshirah",
           tags: [],
           body: [],
@@ -45,7 +46,10 @@ function ArticlesList() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-articles"] }),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      if (data?.id) navigate({ to: "/admin/articles/$id", params: { id: data.id } });
+    },
   });
 
   const togglePublish = useMutation({
