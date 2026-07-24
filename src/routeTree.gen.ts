@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadSlugRouteImport } from './routes/read.$slug'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
@@ -111,6 +112,11 @@ const ReadSlugRoute = ReadSlugRouteImport.update({
   path: '/read/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -183,7 +189,7 @@ const AuthenticatedAdminArticlesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
@@ -211,7 +218,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
@@ -240,7 +248,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/admin'
+    | '/auth/callback'
     | '/read/$slug'
     | '/admin/faqs'
     | '/admin/formats'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
+    | '/auth/callback'
     | '/read/$slug'
     | '/admin/faqs'
     | '/admin/formats'
@@ -338,6 +349,7 @@ export interface FileRouteTypes {
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/_authenticated/admin'
+    | '/auth/callback'
     | '/read/$slug'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/formats'
@@ -356,7 +368,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
   JoinRoute: typeof JoinRoute
   LifeArchitectureRoute: typeof LifeArchitectureRoute
@@ -476,6 +488,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/read/$slug'
       preLoaderRoute: typeof ReadSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
@@ -609,11 +628,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
   JoinRoute: JoinRoute,
   LifeArchitectureRoute: LifeArchitectureRoute,
