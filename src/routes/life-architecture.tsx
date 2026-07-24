@@ -52,6 +52,8 @@ function LifeArchitecture() {
   const { data: faqs = [] } = useQuery(faqsQuery("life-architecture"));
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentors = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+  const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
+
 
   return (
     <>
