@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light only" />
+<title>Reset your Inshirah password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; background:#FBF2E4; -webkit-font-smoothing:antialiased; }
+  .h { font-family:'Fraunces', Georgia, serif; color:#2B221C; letter-spacing:-0.01em; }
+  .t { font-family:'Nunito', -apple-system, 'Segoe UI', sans-serif; color:#2B221C; }
+  .ar { font-family:'Amiri', serif; color:#B4463D; }
+  a.btn:hover { background:#9d3a32 !important; }
+  @media (max-width: 620px) { .card { padding:28px 22px !important; } .h1 { font-size:26px !important; line-height:32px !important; } }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#FBF2E4;">
+<span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">
+  Reset your Inshirah password with the secure link inside.
+</span>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FBF2E4;">
+  <tr><td align="center" style="padding:40px 16px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+      <tr><td align="center" style="padding:0 0 24px 0;">
+        <div class="ar" style="font-size:22px;line-height:1;opacity:0.85;">بِسْمِ ٱللَّٰهِ</div>
+        <div class="h" style="font-size:20px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-top:10px;color:#B4463D;">INSHIRAH</div>
+      </td></tr>
+
+      <tr><td class="card" style="background:#ffffff;border:1px solid #EFE2CE;border-radius:16px;padding:44px 40px;">
+        <h1 class="h h1" style="margin:0 0 14px 0;font-size:32px;line-height:38px;font-weight:600;">
+          Reset your password
+        </h1>
+        <p class="t" style="margin:0 0 20px 0;font-size:16px;line-height:26px;color:#4B3F35;">
+          We received a request to reset the password for your Inshirah account. Choose a new password by tapping below.
+        </p>
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 28px 0;">
+          <tr><td align="center" bgcolor="#B4463D" style="border-radius:999px;">
+            <a class="btn t" href="{{ .ConfirmationURL }}"
+               style="display:inline-block;padding:14px 30px;font-size:15px;font-weight:700;color:#FBF2E4;text-decoration:none;border-radius:999px;background:#B4463D;">
+              Choose a new password
+            </a>
+          </td></tr>
+        </table>
+
+        <p class="t" style="margin:0 0 8px 0;font-size:13px;line-height:20px;color:#6B5B4F;">
+          Or paste this link into your browser:
+        </p>
+        <p class="t" style="margin:0 0 28px 0;font-size:13px;line-height:20px;word-break:break-all;">
+          <a href="{{ .ConfirmationURL }}" style="color:#B4463D;text-decoration:underline;">{{ .ConfirmationURL }}</a>
+        </p>
+
+        <hr style="border:none;border-top:1px solid #EFE2CE;margin:24px 0;" />
+        <p class="t" style="margin:0;font-size:13px;line-height:20px;color:#6B5B4F;">
+          If you didn't request a reset, no changes have been made — you can safely ignore this email.
+        </p>
+      </td></tr>
+
+      <tr><td align="center" style="padding:24px 16px 0 16px;">
+        <p class="t" style="margin:0 0 6px 0;font-size:12px;line-height:18px;color:#8A7C6F;">
+          Inshirah — Islamic psychology for the modern heart
+        </p>
+        <p class="t" style="margin:0;font-size:12px;line-height:18px;color:#8A7C6F;">
+          <a href="{{ .SiteURL }}" style="color:#8A7C6F;text-decoration:underline;">inshirah.co</a>
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
