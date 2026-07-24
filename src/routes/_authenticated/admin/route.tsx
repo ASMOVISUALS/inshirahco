@@ -34,7 +34,6 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const topItems = [
 const dashboardItem = { title: "Dashboard", url: "/admin", icon: LayoutDashboard };
 const topItems = [
   { title: "Articles", url: "/admin/articles", icon: FileText },
