@@ -4,6 +4,7 @@ import { z } from "zod";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { siteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -59,7 +60,7 @@ function AuthPage() {
       setSubmitting(true);
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: siteUrl("/auth/callback") },
       });
       setSubmitting(false);
       if (error) return setError(error.message);
@@ -69,7 +70,7 @@ function AuthPage() {
       if (!parsed.success) return setError(parsed.error.issues[0].message);
       setSubmitting(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: siteUrl("/reset-password"),
       });
       setSubmitting(false);
       if (error) return setError(error.message);
