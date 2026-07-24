@@ -194,7 +194,7 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
             <ExternalLink className="h-3.5 w-3.5" /> View live
           </a>
           <Link
-            to="/_authenticated/admin/pages/$key/builder" as="/admin/pages/$key/builder"
+            to="/admin/pages/$key/builder"
             params={{ key: row.key }}
             className="btn-primary text-sm"
           >
