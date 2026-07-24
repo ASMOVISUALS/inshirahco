@@ -24,6 +24,11 @@ function About() {
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
 
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
   return (
     <>
       <section className="hero-radial">
