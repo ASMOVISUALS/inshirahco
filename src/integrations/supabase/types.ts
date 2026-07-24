@@ -165,19 +165,31 @@ export type Database = {
         Row: {
           content: Json
           created_at: string
+          is_published: boolean
           key: string
+          slug: string | null
+          template: string
+          title: string | null
           updated_at: string
         }
         Insert: {
           content?: Json
           created_at?: string
+          is_published?: boolean
           key: string
+          slug?: string | null
+          template?: string
+          title?: string | null
           updated_at?: string
         }
         Update: {
           content?: Json
           created_at?: string
+          is_published?: boolean
           key?: string
+          slug?: string | null
+          template?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: []

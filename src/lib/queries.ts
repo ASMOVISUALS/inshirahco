@@ -164,6 +164,31 @@ export const pageQuery = (key: string) =>
     staleTime: 60_000,
   });
 
+export interface PageMetaRow {
+  key: string;
+  slug: string;
+  title: string;
+  is_published: boolean;
+  template: string;
+}
+
+export const pageBySlugQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-by-slug", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("key,slug,title,is_published,content")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60_000,
+  });
+
+
 export interface FaqRow {
   id: string;
   page_key: string;

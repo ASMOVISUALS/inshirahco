@@ -1,0 +1,51 @@
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { pageBySlugQuery } from "@/lib/queries";
+import { PageRenderer, readBlocks } from "@/lib/page-blocks";
+
+// Reserved slugs that have their own route files
+const RESERVED = new Set([
+  "", "about", "auth", "auth.callback", "contact", "join", "life-architecture",
+  "quranic-reflections", "read", "reset-password", "resources", "saved",
+  "sitemap.xml", "tazkiyah-toolkit", "young-hearts", "admin",
+]);
+
+export const Route = createFileRoute("/$pageSlug")({
+  loader: async ({ context, params }) => {
+    if (RESERVED.has(params.pageSlug)) throw notFound();
+    const data = await context.queryClient.ensureQueryData(pageBySlugQuery(params.pageSlug));
+    if (!data) throw notFound();
+    return data;
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) return { meta: [{ title: "Not found" }, { name: "robots", content: "noindex" }] };
+    const content = (loaderData.content ?? {}) as Record<string, unknown>;
+    const seoTitle = (content.seo_title as string) || loaderData.title || "Inshirah";
+    const seoDesc = (content.seo_description as string) || "";
+    return {
+      meta: [
+        { title: `${seoTitle} — Inshirah` },
+        { name: "description", content: seoDesc },
+        { property: "og:title", content: seoTitle },
+        { property: "og:description", content: seoDesc },
+      ],
+    };
+  },
+  component: DynamicPage,
+  errorComponent: ({ error }) => <div className="container-wide py-24 text-center text-muted-foreground">{error.message}</div>,
+  notFoundComponent: () => <div className="container-wide py-24 text-center text-muted-foreground">Page not found.</div>,
+});
+
+function DynamicPage() {
+  const { pageSlug } = Route.useParams();
+  const { data } = useSuspenseQuery(pageBySlugQuery(pageSlug));
+  const blocks = readBlocks((data?.content ?? {}) as Record<string, unknown>);
+  if (blocks.length === 0) {
+    return (
+      <div className="container-wide py-24 text-center text-muted-foreground">
+        This page has no content yet.
+      </div>
+    );
+  }
+  return <PageRenderer blocks={blocks} />;
+}
