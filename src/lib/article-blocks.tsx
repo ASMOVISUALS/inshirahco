@@ -139,9 +139,10 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </Tag>
       );
     }
-    case "image":
+    case "image": {
+      const w = typeof block.width === "number" ? Math.max(0.33, Math.min(1, block.width)) : 1;
       return (
-        <figure className="my-8">
+        <figure className="my-8" style={{ width: `${Math.round(w * 100)}%`, marginLeft: "auto", marginRight: "auto" }}>
           {block.src ? (
             <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />
           ) : (
@@ -152,6 +153,8 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
           {block.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</figcaption>}
         </figure>
       );
+    }
+
     case "quote":
       return (
         <blockquote className="my-10 rounded-3xl border-l-4 p-8" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}>
