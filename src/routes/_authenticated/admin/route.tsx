@@ -63,18 +63,11 @@ function AdminLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col">
-        <header className="flex h-16 items-center gap-3 border-b border-border bg-background px-6">
-          <p className="eyebrow text-xs">Admin</p>
-          <span className="text-muted-foreground">/</span>
-          <h1 className="text-lg font-display leading-none">Inshirah control room</h1>
-        </header>
-        <div className="flex flex-1 min-h-0 w-full">
-          <AdminSidebar />
-          <main className="flex-1 min-w-0 overflow-auto p-8">
-            <Outlet />
-          </main>
-        </div>
+      <div className="flex min-h-[calc(100vh-72px)] w-full">
+        <AdminSidebar />
+        <main className="flex-1 min-w-0 overflow-auto p-8">
+          <Outlet />
+        </main>
       </div>
     </SidebarProvider>
   );

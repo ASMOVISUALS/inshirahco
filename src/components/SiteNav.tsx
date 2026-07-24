@@ -11,7 +11,7 @@ import { usePillars, useFormats } from "@/hooks/use-cms";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
-export function SiteNav() {
+export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
   const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openMobileResources, setOpenMobileResources] = useState(false);
@@ -62,6 +62,7 @@ export function SiteNav() {
         <div className="container-wide flex h-[72px] items-center justify-between gap-6">
           <Logo />
 
+          {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {pillars.map((p) => (
               <Link
@@ -125,6 +126,7 @@ export function SiteNav() {
               {aboutLabel}
             </Link>
           </nav>
+          )}
 
           <div className="flex items-center gap-1">
             <button

@@ -114,17 +114,13 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
-      {isAdmin ? (
-        <Outlet />
-      ) : (
-        <div className="flex min-h-screen flex-col">
-          <SiteNav />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <SiteFooter />
-        </div>
-      )}
+      <div className="flex min-h-screen flex-col">
+        <SiteNav minimal={isAdmin} />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        {!isAdmin && <SiteFooter />}
+      </div>
     </QueryClientProvider>
   );
 }
