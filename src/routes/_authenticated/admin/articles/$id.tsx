@@ -1125,7 +1125,7 @@ function EditableBlock({
   return null;
 }
 
-/* ---------------- List editor (native line-break flow) ---------------- */
+/* ---------------- List editor (per-item inputs, Enter/Backspace flow) ---------------- */
 
 function ListEditor({
   block, onSet, onCommit,
@@ -1134,44 +1134,85 @@ function ListEditor({
   onSet: (patch: Partial<ContentBlock>) => void;
   onCommit: (patch: Partial<ContentBlock>) => void;
 }) {
-  const text = block.items.join("\n");
+  const items = block.items.length ? block.items : [""];
   const Tag = block.ordered ? "ol" : "ul";
   const markerCls = block.ordered ? "list-decimal" : "list-disc";
 
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const resize = () => {
-    const el = ref.current; if (!el) return;
-    el.style.height = "auto";
-    el.style.height = el.scrollHeight + "px";
-  };
-  useEffect(() => { resize(); }, [text]);
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const focusReq = useRef<{ i: number; caret?: number } | null>(null);
 
-  const commitLines = (v: string) => {
-    const items = v.split("\n").map((s) => s.replace(/\r$/, ""));
-    onCommit({ items: items.length ? items : [""] } as Partial<ContentBlock>);
+  useEffect(() => {
+    const req = focusReq.current;
+    if (!req) return;
+    const el = refs.current[req.i];
+    if (el) {
+      el.focus();
+      const pos = req.caret ?? el.value.length;
+      try { el.setSelectionRange(pos, pos); } catch {}
+    }
+    focusReq.current = null;
+  });
+
+  const update = (next: string[], persist = true) => {
+    const safe = next.length ? next : [""];
+    (persist ? onCommit : onSet)({ items: safe } as Partial<ContentBlock>);
+  };
+
+  const changeAt = (i: number, v: string) => {
+    const next = [...items];
+    next[i] = v;
+    onSet({ items: next } as Partial<ContentBlock>);
+  };
+
+  const handleKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const next = [...items];
+      next.splice(i + 1, 0, "");
+      focusReq.current = { i: i + 1, caret: 0 };
+      update(next);
+    } else if (e.key === "Backspace" && items[i] === "" && items.length > 1) {
+      e.preventDefault();
+      const next = items.filter((_, idx) => idx !== i);
+      const target = Math.max(0, i - 1);
+      focusReq.current = { i: target };
+      update(next);
+    }
+  };
+
+  const activateGhost = (v: string) => {
+    const next = [...items, v];
+    focusReq.current = { i: items.length };
+    update(next);
   };
 
   return (
     <Tag className={`${markerCls} space-y-2 pl-6`}>
-      {/* Fake bullet items to preserve markers visually */}
-      {block.items.map((it, i) => (
-        <li key={i} className="min-h-[1.5em]">
-          <span className="invisible">{it || "."}</span>
+      {items.map((it, i) => (
+        <li key={i}>
+          <input
+            ref={(el) => { refs.current[i] = el; }}
+            className="w-full bg-transparent outline-none"
+            value={it}
+            placeholder={i === 0 ? "Type a list item…" : ""}
+            onChange={(e) => changeAt(i, e.target.value)}
+            onBlur={() => onCommit({ items } as Partial<ContentBlock>)}
+            onKeyDown={(e) => handleKey(i, e)}
+          />
         </li>
       ))}
-      <li className="list-none -mt-[calc(1.75em*var(--n))]" style={{ ["--n" as never]: block.items.length } as React.CSSProperties}>
-        <textarea
-          ref={ref}
-          className="w-full resize-none overflow-hidden bg-transparent outline-none"
-          value={text}
-          placeholder="Type a list item, press Enter for the next…"
-          onChange={(e) => onSet({ items: e.target.value.split("\n") } as Partial<ContentBlock>)}
-          onBlur={(e) => commitLines(e.target.value)}
+      <li className="list-none opacity-50">
+        <input
+          className="w-full bg-transparent italic outline-none placeholder:text-muted-foreground"
+          value=""
+          placeholder="empty"
+          onChange={(e) => activateGhost(e.target.value)}
         />
       </li>
     </Tag>
   );
 }
+
 
 /* ---------------- Image editor with resize handles ---------------- */
 
