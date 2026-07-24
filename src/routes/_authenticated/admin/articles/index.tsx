@@ -82,6 +82,7 @@ function ArticlesList() {
         <h2 className="text-2xl font-display">Articles</h2>
         <button onClick={() => createNew.mutate()} className="btn-primary">Add an article</button>
       </div>
+      {isLoading ? (
         <p className="text-muted-foreground">Loading…</p>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-border">
