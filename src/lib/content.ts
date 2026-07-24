@@ -23,10 +23,17 @@ export type ContentBlock =
   | { kind: "h2"; text: string }
   | { kind: "h3"; text: string }
   | { kind: "quote"; text: string; arabic?: string; source?: string }
+  | { kind: "plain_quote"; text: string; source?: string }
   | { kind: "callout"; text: string }
   | { kind: "list"; items: string[]; ordered?: boolean }
   | { kind: "image"; src: string; alt?: string; caption?: string }
-  | { kind: "divider" };
+  | { kind: "divider" }
+  | { kind: "video"; src: string; caption?: string }
+  | { kind: "audio"; src: string; caption?: string }
+  | { kind: "hyperlink"; url: string; label: string; description?: string }
+  | { kind: "recommended"; slug: string }
+  | { kind: "arabic_large"; arabic: string; english?: string }
+  | { kind: "columns"; items: ContentBlock[] };
 
 export interface ContentItem {
   slug: string;
