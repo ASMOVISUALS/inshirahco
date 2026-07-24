@@ -28,6 +28,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
