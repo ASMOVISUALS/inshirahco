@@ -136,26 +136,30 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
           )}
 
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary"
-            >
-              <Search className="h-4.5 w-4.5" strokeWidth={1.8} />
-            </button>
-            <Link
-              to="/saved"
-              aria-label={`Saved (${slugs.length})`}
-              className="relative hidden h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary md:grid"
-            >
-              <Bookmark className="h-4.5 w-4.5" strokeWidth={1.8} />
-              {slugs.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-heart px-1 text-[10px] font-bold text-primary-foreground" style={{ background: "var(--heart)" }}>
-                  {slugs.length}
-                </span>
-              )}
-            </Link>
+            {!minimal && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search"
+                  className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary"
+                >
+                  <Search className="h-4.5 w-4.5" strokeWidth={1.8} />
+                </button>
+                <Link
+                  to="/saved"
+                  aria-label={`Saved (${slugs.length})`}
+                  className="relative hidden h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary md:grid"
+                >
+                  <Bookmark className="h-4.5 w-4.5" strokeWidth={1.8} />
+                  {slugs.length > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-heart px-1 text-[10px] font-bold text-primary-foreground" style={{ background: "var(--heart)" }}>
+                      {slugs.length}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             <button
               type="button"
               onClick={toggleTheme}
