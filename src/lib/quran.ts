@@ -8,6 +8,21 @@ export const SURAH_VERSE_COUNTS: number[] = [
   11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
 ];
 
+export const SURAH_NAMES: string[] = [
+  "Al-Fatihah","Al-Baqarah","Ali 'Imran","An-Nisa","Al-Ma'idah","Al-An'am","Al-A'raf","Al-Anfal","At-Tawbah","Yunus",
+  "Hud","Yusuf","Ar-Ra'd","Ibrahim","Al-Hijr","An-Nahl","Al-Isra","Al-Kahf","Maryam","Ta-Ha",
+  "Al-Anbiya","Al-Hajj","Al-Mu'minun","An-Nur","Al-Furqan","Ash-Shu'ara","An-Naml","Al-Qasas","Al-'Ankabut","Ar-Rum",
+  "Luqman","As-Sajdah","Al-Ahzab","Saba","Fatir","Ya-Sin","As-Saffat","Sad","Az-Zumar","Ghafir",
+  "Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiyah","Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf",
+  "Adh-Dhariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi'ah","Al-Hadid","Al-Mujadilah","Al-Hashr","Al-Mumtahanah",
+  "As-Saff","Al-Jumu'ah","Al-Munafiqun","At-Taghabun","At-Talaq","At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Ma'arij",
+  "Nuh","Al-Jinn","Al-Muzzammil","Al-Muddaththir","Al-Qiyamah","Al-Insan","Al-Mursalat","An-Naba","An-Nazi'at","'Abasa",
+  "At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad",
+  "Ash-Shams","Al-Layl","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-'Adiyat",
+  "Al-Qari'ah","At-Takathur","Al-'Asr","Al-Humazah","Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr",
+  "Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas",
+];
+
 export type FetchedAyah = {
   arabic: string;
   translation: string;
@@ -23,8 +38,6 @@ export async function fetchAyah(surah: number, ayah: number): Promise<FetchedAya
     throw new Error(`Ayah must be between 1 and ${maxAyah} for this surah.`);
   }
 
-  // quranapi.pages.dev returns Dr. Mustafa Khattab's "The Clear Quran"
-  // as the `english` field, plus Uthmani Arabic as `arabic1`.
   const res = await fetch(`https://quranapi.pages.dev/api/${surah}/${ayah}.json`);
   if (!res.ok) throw new Error(`Quran API error (${res.status}).`);
   const json = (await res.json()) as {
@@ -37,9 +50,10 @@ export async function fetchAyah(surah: number, ayah: number): Promise<FetchedAya
   const translation = (json.english ?? "").trim();
   if (!arabic) throw new Error("No Arabic text returned.");
 
+  const name = SURAH_NAMES[surah - 1];
   return {
     arabic,
     translation,
-    reference: `Qur'an ${surah}:${ayah}`,
+    reference: `${name} ${surah}:${ayah}`,
   };
 }

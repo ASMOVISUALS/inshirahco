@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { QuranFetcher } from "@/components/QuranFetcher";
 
 export const Route = createFileRoute("/_authenticated/admin/reflections")({
   head: () => ({ meta: [{ title: "Reflections — Admin" }, { name: "robots", content: "noindex" }] }),
   component: ReflectionsAdmin,
 });
+
+type Draft = { arabic: string; translation: string; reference: string };
 
 function ReflectionsAdmin() {
   const qc = useQueryClient();
@@ -20,25 +23,26 @@ function ReflectionsAdmin() {
     },
   });
 
-  const [arabic, setArabic] = useState("");
-  const [translation, setTranslation] = useState("");
-  const [reference, setReference] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-reflections"] });
     qc.invalidateQueries({ queryKey: ["reflections"] });
   };
 
-  const add = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("reflections").insert({ arabic, translation, reference, active: true, sort_order: data.length });
+  const save = useMutation({
+    mutationFn: async (d: Draft) => {
+      const { error } = await supabase.from("reflections").insert({
+        arabic: d.arabic,
+        translation: d.translation,
+        reference: d.reference,
+        active: true,
+        sort_order: data.length,
+      });
       if (error) throw error;
     },
-    onSuccess: () => {
-      setArabic(""); setTranslation(""); setReference("");
-      invalidate();
-    },
+    onSuccess: () => { setDraft(null); invalidate(); },
   });
 
   const toggle = useMutation({
@@ -58,20 +62,74 @@ function ReflectionsAdmin() {
   });
 
   return (
-    <div className="grid gap-8" onClick={() => setSelectedId(null)}>
-      <form
-        onSubmit={(e) => { e.preventDefault(); add.mutate(); }}
-        onClick={(e) => e.stopPropagation()}
-        className="grid gap-3 rounded-3xl border border-border bg-card p-6"
-      >
-        <h2 className="text-xl font-display">Add reflection</h2>
-        <input placeholder="Arabic" value={arabic} onChange={(e) => setArabic(e.target.value)} required className={cls + " font-arabic text-lg"} dir="rtl" />
-        <input placeholder="Translation" value={translation} onChange={(e) => setTranslation(e.target.value)} required className={cls} />
-        <input placeholder="Reference (e.g. Qur'an 94:5)" value={reference} onChange={(e) => setReference(e.target.value)} required className={cls} />
-        <button type="submit" disabled={add.isPending} className="btn-primary self-start">{add.isPending ? "Adding…" : "Add"}</button>
-      </form>
+    <div className="grid gap-6" onClick={() => setSelectedId(null)}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-display">Reflections</h2>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); if (!draft) setDraft({ arabic: "", translation: "", reference: "" }); }}
+          disabled={!!draft}
+          className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" /> Add reflection
+        </button>
+      </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {draft && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="flex flex-col rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
+          >
+            <textarea
+              dir="rtl"
+              placeholder="العربية"
+              value={draft.arabic}
+              onChange={(e) => setDraft({ ...draft, arabic: e.target.value })}
+              className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-arabic text-lg outline-none focus:border-heart"
+              rows={3}
+            />
+            <textarea
+              placeholder="Translation"
+              value={draft.translation}
+              onChange={(e) => setDraft({ ...draft, translation: e.target.value })}
+              className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm italic outline-none focus:border-heart"
+              rows={3}
+            />
+            <input
+              placeholder="Reference"
+              value={draft.reference}
+              onChange={(e) => setDraft({ ...draft, reference: e.target.value })}
+              className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
+            />
+
+            <div className="mt-3 border-t border-heart/20 pt-3">
+              <QuranFetcher
+                compact
+                onFetched={(a) => setDraft({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
+              />
+            </div>
+
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDraft(null)}
+                className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={save.isPending || !draft.arabic || !draft.translation || !draft.reference}
+                onClick={() => save.mutate(draft)}
+                className="btn-primary text-sm disabled:opacity-50"
+              >
+                {save.isPending ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {data.map((r) => {
           const selected = selectedId === r.id;
           const dimmed = !r.active && !selected;
@@ -119,5 +177,3 @@ function ReflectionsAdmin() {
     </div>
   );
 }
-
-const cls = "w-full rounded-2xl border border-input bg-background px-4 py-2.5 outline-none focus:border-heart";
