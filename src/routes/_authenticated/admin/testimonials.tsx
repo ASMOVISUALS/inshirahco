@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/testimonials")({
@@ -24,6 +24,8 @@ function TestimonialsAdmin() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Draft | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-testimonials"] });
@@ -44,6 +46,18 @@ function TestimonialsAdmin() {
     onSuccess: () => { setDraft(null); invalidate(); },
   });
 
+  const update = useMutation({
+    mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
+      const { error } = await supabase.from("testimonials").update({
+        quote: d.quote,
+        name: d.name,
+        role: d.role || null,
+      }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
+  });
+
   const toggle = useMutation({
     mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
       const { error } = await supabase.from("testimonials").update({ featured }).eq("id", id);
@@ -59,6 +73,12 @@ function TestimonialsAdmin() {
     },
     onSuccess: () => { setSelectedId(null); invalidate(); },
   });
+
+  const beginEdit = (t: { id: string; quote: string; name: string; role: string | null }) => {
+    setEditingId(t.id);
+    setEditDraft({ quote: t.quote, name: t.name, role: t.role ?? "" });
+    setSelectedId(null);
+  };
 
   return (
     <div className="grid gap-6" onClick={() => setSelectedId(null)}>
@@ -76,51 +96,30 @@ function TestimonialsAdmin() {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {draft && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex flex-col rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
-          >
-            <textarea
-              placeholder="Quote"
-              value={draft.quote}
-              onChange={(e) => setDraft({ ...draft, quote: e.target.value })}
-              className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm italic outline-none focus:border-heart"
-              rows={4}
-            />
-            <input
-              placeholder="Name"
-              value={draft.name}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold outline-none focus:border-heart"
-            />
-            <input
-              placeholder="Role (optional)"
-              value={draft.role}
-              onChange={(e) => setDraft({ ...draft, role: e.target.value })}
-              className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
-            />
-
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDraft(null)}
-                className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={save.isPending || !draft.quote || !draft.name}
-                onClick={() => save.mutate(draft)}
-                className="btn-primary text-sm disabled:opacity-50"
-              >
-                {save.isPending ? "Saving…" : "Save"}
-              </button>
-            </div>
-          </div>
+          <EditorCard
+            value={draft}
+            onChange={setDraft}
+            onCancel={() => setDraft(null)}
+            onSave={() => save.mutate(draft)}
+            saving={save.isPending}
+            saveLabel={save.isPending ? "Saving…" : "Save"}
+          />
         )}
 
         {data.map((t) => {
+          if (editingId === t.id && editDraft) {
+            return (
+              <EditorCard
+                key={t.id}
+                value={editDraft}
+                onChange={setEditDraft}
+                onCancel={() => { setEditingId(null); setEditDraft(null); }}
+                onSave={() => update.mutate({ id: t.id, d: editDraft })}
+                saving={update.isPending}
+                saveLabel={update.isPending ? "Saving…" : "Save changes"}
+              />
+            );
+          }
           const selected = selectedId === t.id;
           const dimmed = !t.featured && !selected;
           return (
@@ -151,18 +150,83 @@ function TestimonialsAdmin() {
                     </span>
                     <span>{t.featured ? "Featured" : "Hidden"}</span>
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); if (confirm("Delete this testimonial?")) del.mutate(t.id); }}
-                    aria-label="Delete testimonial"
-                    className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); beginEdit(t); }}
+                      aria-label="Edit testimonial"
+                      className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); if (confirm("Delete this testimonial?")) del.mutate(t.id); }}
+                      aria-label="Delete testimonial"
+                      className="grid h-8 w-8 place-items-center rounded-full bg-heart text-background hover:bg-heart/80 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function EditorCard({
+  value, onChange, onCancel, onSave, saving, saveLabel,
+}: {
+  value: Draft;
+  onChange: (d: Draft) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  saving: boolean;
+  saveLabel: string;
+}) {
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="flex flex-col rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
+    >
+      <textarea
+        placeholder="Quote"
+        value={value.quote}
+        onChange={(e) => onChange({ ...value, quote: e.target.value })}
+        className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm italic outline-none focus:border-heart"
+        rows={4}
+      />
+      <input
+        placeholder="Name"
+        value={value.name}
+        onChange={(e) => onChange({ ...value, name: e.target.value })}
+        className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold outline-none focus:border-heart"
+      />
+      <input
+        placeholder="Role (optional)"
+        value={value.role}
+        onChange={(e) => onChange({ ...value, role: e.target.value })}
+        className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
+      />
+
+      <div className="mt-3 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={saving || !value.quote || !value.name}
+          onClick={onSave}
+          className="btn-primary text-sm disabled:opacity-50"
+        >
+          {saveLabel}
+        </button>
       </div>
     </div>
   );
