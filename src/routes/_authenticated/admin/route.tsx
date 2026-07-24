@@ -63,17 +63,15 @@ function AdminLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AdminSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="flex h-14 items-center gap-3 border-b border-border px-4">
-            <SidebarTrigger />
-            <div>
-              <p className="eyebrow text-xs">Admin</p>
-              <h1 className="text-lg font-display leading-none">Inshirah control room</h1>
-            </div>
-          </header>
-          <main className="flex-1 p-8">
+      <div className="flex min-h-screen w-full flex-col">
+        <header className="flex h-16 items-center gap-3 border-b border-border bg-background px-6">
+          <p className="eyebrow text-xs">Admin</p>
+          <span className="text-muted-foreground">/</span>
+          <h1 className="text-lg font-display leading-none">Inshirah control room</h1>
+        </header>
+        <div className="flex flex-1 min-h-0 w-full">
+          <AdminSidebar />
+          <main className="flex-1 min-w-0 overflow-auto p-8">
             <Outlet />
           </main>
         </div>
@@ -119,7 +117,11 @@ function AdminSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="flex justify-end px-1 pb-1 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <SidebarTrigger />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
 }
+
