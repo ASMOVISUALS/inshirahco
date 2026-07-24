@@ -1075,7 +1075,7 @@ function EditableBlock({
         <AutoTextarea dir="rtl" className={`${base} font-arabic text-3xl leading-loose md:text-4xl`} placeholder="النص العربي (اختياري)" value={block.arabic ?? ""} onChange={(v) => set({ arabic: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ arabic: v } as Partial<ContentBlock>)} />
         <AutoTextarea className={`${base} mt-4 font-display text-xl italic md:text-2xl`} placeholder="Translation / quote" value={block.text} onChange={(v) => set({ text: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ text: v } as Partial<ContentBlock>)} />
         <input className={`${base} mt-3 text-sm text-muted-foreground`} placeholder="Source (e.g. Qur'an 94:5–6)" value={block.source ?? ""} onChange={(e) => set({ source: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ source: e.target.value } as Partial<ContentBlock>)} />
-        <QuranFetcher onFetched={(p) => commitPatch(p as Partial<ContentBlock>)} />
+        <QuranFetcher onFetched={(a) => commitPatch({ arabic: a.arabic, text: a.translation, source: a.reference } as Partial<ContentBlock>)} />
       </blockquote>
     );
   }
