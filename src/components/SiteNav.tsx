@@ -241,7 +241,19 @@ export function SiteNav() {
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Contact</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>
-            <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary mt-6 justify-center">Join</Link>
+            {user ? (
+              <div className="mt-6 flex flex-col gap-2">
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Admin</Link>
+                )}
+                <button type="button" onClick={() => { setOpenMobile(false); signOut(); }} className="btn-primary justify-center">Sign out</button>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col gap-2">
+                <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
+                <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
+              </div>
+            )}
           </div>
         </div>
       )}
