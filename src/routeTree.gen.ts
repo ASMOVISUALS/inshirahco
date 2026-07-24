@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
 import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
@@ -28,6 +29,11 @@ const YoungHeartsRoute = YoungHeartsRouteImport.update({
 const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
   id: '/tazkiyah-toolkit',
   path: '/tazkiyah-toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/read/$slug': typeof ReadSlugRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/read/$slug': typeof ReadSlugRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/read/$slug': typeof ReadSlugRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/quranic-reflections'
     | '/resources'
     | '/saved'
+    | '/sitemap.xml'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/read/$slug'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/quranic-reflections'
     | '/resources'
     | '/saved'
+    | '/sitemap.xml'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/read/$slug'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/quranic-reflections'
     | '/resources'
     | '/saved'
+    | '/sitemap.xml'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/read/$slug'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   QuranicReflectionsRoute: typeof QuranicReflectionsRoute
   ResourcesRoute: typeof ResourcesRoute
   SavedRoute: typeof SavedRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
   YoungHeartsRoute: typeof YoungHeartsRoute
   ReadSlugRoute: typeof ReadSlugRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/tazkiyah-toolkit'
       fullPath: '/tazkiyah-toolkit'
       preLoaderRoute: typeof TazkiyahToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuranicReflectionsRoute: QuranicReflectionsRoute,
   ResourcesRoute: ResourcesRoute,
   SavedRoute: SavedRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TazkiyahToolkitRoute: TazkiyahToolkitRoute,
   YoungHeartsRoute: YoungHeartsRoute,
   ReadSlugRoute: ReadSlugRoute,
@@ -250,3 +271,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
