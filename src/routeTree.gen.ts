@@ -9,38 +9,235 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
+import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
+import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReadSlugRouteImport } from './routes/read.$slug'
 
+const YoungHeartsRoute = YoungHeartsRouteImport.update({
+  id: '/young-hearts',
+  path: '/young-hearts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
+  id: '/tazkiyah-toolkit',
+  path: '/tazkiyah-toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuranicReflectionsRoute = QuranicReflectionsRouteImport.update({
+  id: '/quranic-reflections',
+  path: '/quranic-reflections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
+  id: '/life-architecture',
+  path: '/life-architecture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadSlugRoute = ReadSlugRouteImport.update({
+  id: '/read/$slug',
+  path: '/read/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
+    | '/sitemap.xml'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
+    | '/read/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
+    | '/sitemap.xml'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
+    | '/read/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
+    | '/sitemap.xml'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
+    | '/read/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  ContactRoute: typeof ContactRoute
+  LifeArchitectureRoute: typeof LifeArchitectureRoute
+  QuranicReflectionsRoute: typeof QuranicReflectionsRoute
+  ResourcesRoute: typeof ResourcesRoute
+  SavedRoute: typeof SavedRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
+  YoungHeartsRoute: typeof YoungHeartsRoute
+  ReadSlugRoute: typeof ReadSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/young-hearts': {
+      id: '/young-hearts'
+      path: '/young-hearts'
+      fullPath: '/young-hearts'
+      preLoaderRoute: typeof YoungHeartsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tazkiyah-toolkit': {
+      id: '/tazkiyah-toolkit'
+      path: '/tazkiyah-toolkit'
+      fullPath: '/tazkiyah-toolkit'
+      preLoaderRoute: typeof TazkiyahToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quranic-reflections': {
+      id: '/quranic-reflections'
+      path: '/quranic-reflections'
+      fullPath: '/quranic-reflections'
+      preLoaderRoute: typeof QuranicReflectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/life-architecture': {
+      id: '/life-architecture'
+      path: '/life-architecture'
+      fullPath: '/life-architecture'
+      preLoaderRoute: typeof LifeArchitectureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +245,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/$slug': {
+      id: '/read/$slug'
+      path: '/read/$slug'
+      fullPath: '/read/$slug'
+      preLoaderRoute: typeof ReadSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  ContactRoute: ContactRoute,
+  LifeArchitectureRoute: LifeArchitectureRoute,
+  QuranicReflectionsRoute: QuranicReflectionsRoute,
+  ResourcesRoute: ResourcesRoute,
+  SavedRoute: SavedRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TazkiyahToolkitRoute: TazkiyahToolkitRoute,
+  YoungHeartsRoute: YoungHeartsRoute,
+  ReadSlugRoute: ReadSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

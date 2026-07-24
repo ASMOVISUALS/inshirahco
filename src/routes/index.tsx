@@ -1,24 +1,167 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { CONTENT, PILLARS, TESTIMONIALS } from "@/lib/content";
+import { ContentCard } from "@/components/ContentCard";
+import { LetterMark } from "@/components/LetterMark";
+import { MediaCarousel } from "@/components/MediaCarousel";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Inshirah — Islamic psychology, for the world of good" },
+      { name: "description", content: "A quiet publication of Qur'anic reflections, tazkiyah practices, and youth-facing writing on the slow work of the heart." },
+      { property: "og:title", content: "Inshirah — Islamic psychology, for the world of good" },
+      { property: "og:description", content: "Qur'anic reflections, tazkiyah practices, and honest writing on the slow work of the heart." },
+      { property: "og:url", content: "/" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const latest = CONTENT.slice(0, 3);
+  const media = CONTENT.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      {/* HERO */}
+      <section className="hero-radial relative overflow-hidden">
+        <span
+          aria-hidden
+          className="watermark-breathe pointer-events-none absolute left-1/2 top-[52%] font-arabic select-none"
+          style={{
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "min(48vw, 640px)",
+            lineHeight: 1,
+            color: "var(--heart)",
+            opacity: 0.07,
+            whiteSpace: "nowrap",
+          }}
+        >
+          انشراح
+        </span>
+
+        <div className="container-wide relative z-10 flex flex-col items-center justify-center py-28 text-center md:py-40">
+          <p className="font-arabic text-2xl md:text-3xl" style={{ color: "var(--heart)" }} dir="rtl">
+            انشراح
+          </p>
+          <h1 className="mt-4 font-display text-[3rem] leading-[1.02] tracking-tight md:text-[5.5rem] md:leading-[0.98]">
+            an expansion<br className="hidden md:block" /> of the chest.
+          </h1>
+          <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+            Slow writing on Qur'anic reflection, tazkiyah, and the quiet architecture of a life lived in remembrance.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/quranic-reflections" className="btn-primary">
+              Start reading <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link to="/about" className="btn-ghost">Our story</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* PILLARS */}
+      <section className="container-wide py-20 md:py-28">
+        <div className="mb-12 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+          <div className="max-w-xl">
+            <p className="eyebrow">Four rooms in one house</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">Where to begin</h2>
+          </div>
+          <p className="max-w-md text-muted-foreground">
+            Inshirah is organized around four quiet pillars. Wander freely — there is no wrong door to enter through.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {Object.values(PILLARS).map((p, idx) => {
+            const tint = (["heart", "tazkiyah", "heart-soft", "gold"] as const)[idx];
+            const isSoon = p.href === "/life-architecture";
+            return (
+              <Link key={p.href} to={p.href} className="card-soft group flex h-full flex-col justify-between !p-7">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <LetterMark letter={p.letter} tint={tint} size={54} />
+                    {isSoon && (
+                      <span className="rounded-pill px-3 py-1 text-[0.7rem] font-bold uppercase tracking-widest" style={{ background: "color-mix(in oklab, var(--gold-decorative) 20%, transparent)", color: "var(--gold)" }}>
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mt-6 text-2xl leading-tight">{p.label}</h3>
+                  <p className="mt-3 text-[0.98rem] leading-relaxed text-muted-foreground">{p.description}</p>
+                </div>
+                <span className="mt-6 inline-flex items-center gap-1 text-sm font-bold transition-colors group-hover:text-heart" style={{ color: "var(--heart)" }}>
+                  Explore <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* LATEST */}
+      <section className="container-wide py-8 md:py-16">
+        <div className="mb-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Latest writing</p>
+            <h2 className="mt-3 text-4xl md:text-5xl">Recently, from us to you</h2>
+          </div>
+          <Link to="/resources" className="hidden text-sm font-bold hover:underline md:inline-flex items-center gap-1" style={{ color: "var(--heart)" }}>
+            All writing <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {latest.map((item) => (
+            <ContentCard key={item.slug} item={item} />
+          ))}
+        </div>
+      </section>
+
+      {/* REFLECTION OF THE DAY */}
+      <section className="container-wide py-16 md:py-24">
+        <ReflectionOfTheDay />
+      </section>
+
+      {/* CAROUSEL */}
+      <section className="container-wide py-8 md:py-16">
+        <div className="mb-8">
+          <p className="eyebrow">Listen & watch</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">Voices from the project</h2>
+        </div>
+        <MediaCarousel items={media} />
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="container-wide py-16 md:py-24">
+        <div className="mb-10 max-w-xl">
+          <p className="eyebrow">Community voices</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">Notes from readers</h2>
+          <p className="mt-3 text-sm text-muted-foreground">Placeholder quotes — real reader notes will replace these as they come in.</p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {TESTIMONIALS.map((t, i) => (
+            <figure key={i} className="rounded-3xl border border-border bg-card p-7">
+              <blockquote className="font-display text-xl leading-snug" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
+                "{t.quote}"
+              </blockquote>
+              <figcaption className="mt-6 flex items-center gap-3">
+                <span className="grid h-9 w-9 place-items-center rounded-full font-arabic" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 60%, transparent)", color: "var(--tazkiyah)" }}>ق</span>
+                <span className="text-sm font-semibold">{t.name}</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* NEWSLETTER */}
+      <section className="container-wide pb-24">
+        <NewsletterSignup />
+      </section>
+    </>
   );
 }
