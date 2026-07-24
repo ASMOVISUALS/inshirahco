@@ -1,7 +1,19 @@
-import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { AdminPasswordGate, setPillarEditFlag } from "@/components/AdminPasswordGate";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/_authenticated/admin/pillars")({
   head: () => ({ meta: [{ title: "Pillars — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -21,7 +33,10 @@ interface Row {
 }
 
 function PillarsAdmin() {
-  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [gateSlug, setGateSlug] = useState<string | null>(null);
+
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin", "pillars"],
     queryFn: async () => {
@@ -30,62 +45,84 @@ function PillarsAdmin() {
       return (data ?? []) as Row[];
     },
   });
-  const [rows, setRows] = useState<Row[]>([]);
-  useEffect(() => { setRows(data); }, [data]);
-
-  const save = useMutation({
-    mutationFn: async (row: Row) => {
-      const { error } = await supabase.from("pillars").update({
-        label: row.label,
-        short_label: row.short_label,
-        arabic_letter: row.arabic_letter,
-        tint: row.tint,
-        description: row.description,
-        href: row.href,
-        sort_order: row.sort_order,
-        coming_soon: row.coming_soon,
-      }).eq("slug", row.slug);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
-      qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
-    },
-  });
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
-  const set = (i: number, k: keyof Row, v: string | number | boolean) => {
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
-  };
-
   return (
     <div className="grid gap-6">
-      {rows.map((r, i) => (
-        <div key={r.slug} className="rounded-3xl border border-border bg-card p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="font-mono text-xs text-muted-foreground">{r.slug}</p>
-            <button className="btn-primary !py-2 !px-4 !text-sm" disabled={save.isPending} onClick={() => save.mutate(rows[i])}>Save</button>
+      <div>
+        <h1 className="text-2xl font-semibold">Pillars</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Read-only overview. Click the pencil beside a row to edit it (password required).
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="flex min-w-max gap-3">
+          {/* edit column outside the table */}
+          <div className="flex flex-col gap-0 pt-[52px]">
+            {data.map((r) => (
+              <div key={r.slug} className="flex h-[57px] items-center">
+                <button
+                  onClick={() => setGateSlug(r.slug)}
+                  className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-heart hover:text-heart"
+                  aria-label={`Edit ${r.label}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <F label="Label"><input className={cls} value={r.label} onChange={(e) => set(i, "label", e.target.value)} /></F>
-            <F label="Short label"><input className={cls} value={r.short_label} onChange={(e) => set(i, "short_label", e.target.value)} /></F>
-            <F label="Arabic letter"><input className={cls} value={r.arabic_letter} onChange={(e) => set(i, "arabic_letter", e.target.value)} /></F>
-            <F label="Tint (heart, tazkiyah, heart-soft, gold, ink)"><input className={cls} value={r.tint} onChange={(e) => set(i, "tint", e.target.value)} /></F>
-            <F label="Href"><input className={cls} value={r.href} onChange={(e) => set(i, "href", e.target.value)} /></F>
-            <F label="Sort order"><input type="number" className={cls} value={r.sort_order} onChange={(e) => set(i, "sort_order", Number(e.target.value))} /></F>
+
+          <div className="flex-1 rounded-2xl border border-border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Label</TableHead>
+                  <TableHead>Short Label</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Arabic Letter</TableHead>
+                  <TableHead>Tint</TableHead>
+                  <TableHead>Href</TableHead>
+                  <TableHead className="text-right">Sort Order</TableHead>
+                  <TableHead className="min-w-[280px]">Description</TableHead>
+                  <TableHead className="text-center">Coming soon</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((r) => (
+                  <TableRow key={r.slug}>
+                    <TableCell className="font-semibold">{r.label}</TableCell>
+                    <TableCell>{r.short_label}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{r.slug}</TableCell>
+                    <TableCell className="text-lg">{r.arabic_letter}</TableCell>
+                    <TableCell>{r.tint}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.href}</TableCell>
+                    <TableCell className="text-right">{r.sort_order}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{r.description}</TableCell>
+                    <TableCell className="text-center">
+                      <Checkbox checked={r.coming_soon} disabled aria-label="Coming soon" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <F label="Description"><textarea rows={2} className={cls} value={r.description} onChange={(e) => set(i, "description", e.target.value)} /></F>
-          <label className="mt-2 inline-flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" checked={r.coming_soon} onChange={(e) => set(i, "coming_soon", e.target.checked)} /> Coming soon
-          </label>
         </div>
-      ))}
+      </div>
+
+      <AdminPasswordGate
+        open={!!gateSlug}
+        onOpenChange={(o) => !o && setGateSlug(null)}
+        email={user?.email ?? ""}
+        onVerified={() => {
+          if (!gateSlug) return;
+          setPillarEditFlag(gateSlug);
+          const slug = gateSlug;
+          setGateSlug(null);
+          navigate({ to: "/admin/pillars/$slug/edit", params: { slug } });
+        }}
+      />
     </div>
   );
-}
-
-const cls = "w-full rounded-2xl border border-input bg-background px-4 py-2.5 outline-none focus:border-heart";
-function F({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="mb-1.5 mt-3 block text-sm font-semibold">{label}</span>{children}</label>;
 }
