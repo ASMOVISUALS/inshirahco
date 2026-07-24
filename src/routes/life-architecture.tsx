@@ -118,11 +118,10 @@ function LifeArchitecture() {
 
       <section className="container-wide pb-24 md:pb-32">
         <div className="mb-12 max-w-xl">
-          <p className="eyebrow">{s("mentors_eyebrow", "The mentors")}</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">{s("mentors_title", "Small circle. Long conversations.")}</h2>
-          {s("mentors_description") && (
-            <p className="mt-3 text-sm text-muted-foreground">{s("mentors_description")}</p>
-          )}
+          <h2 className="text-4xl md:text-5xl">{s("mentors_title", "The Mentors")}</h2>
+          <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+            {s("mentors_description", "Meet your mentors and advisors!")}
+          </p>
         </div>
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
           {mentors.map((m, i) => (
@@ -140,6 +139,12 @@ function LifeArchitecture() {
               <h3 className="mt-6 text-2xl">{m.name}</h3>
               {m.title && (
                 <p className="mt-1.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground">{m.title}</p>
+              )}
+              {m.role && (
+                <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>
+              )}
+              {m.qualification && (
+                <p className="mt-1 text-sm italic text-muted-foreground">{m.qualification}</p>
               )}
             </div>
           ))}
