@@ -40,6 +40,7 @@ function EditArticle() {
       read_time: data.read_time,
       author_name: data.author_name,
       author_role: data.author_role ?? "",
+      read_time: data.read_time ?? "",
       tags: (data.tags ?? []).join(", "),
       body: JSON.stringify(data.body ?? [], null, 2),
       published: data.published,
