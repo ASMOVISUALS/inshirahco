@@ -31,6 +31,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBlock } from "@/lib/content";
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
+import { fetchAyah, SURAH_VERSE_COUNTS } from "@/lib/quran";
+
+function QuranFetcher({ onFetched }: { onFetched: (p: { arabic: string; text: string; source: string }) => void }) {
+  const [surah, setSurah] = useState("");
+  const [ayah, setAyah] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const maxAyah = (() => {
+    const n = parseInt(surah, 10);
+    return n >= 1 && n <= 114 ? SURAH_VERSE_COUNTS[n - 1] : null;
+  })();
+  const canFetch = !!surah && !!ayah && !loading;
+  const run = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetchAyah(parseInt(surah, 10), parseInt(ayah, 10));
+      onFetched({ arabic: res.arabic, text: res.translation, source: res.reference });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to fetch verse.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="mt-4 flex flex-wrap items-end gap-2 border-t pt-3 text-sm" style={{ borderColor: "color-mix(in oklab, var(--tazkiyah) 30%, transparent)" }}>
+      <div className="flex flex-col">
+        <label className="text-xs text-muted-foreground">Surah</label>
+        <input type="number" min={1} max={114} value={surah} onChange={(e) => setSurah(e.target.value)} placeholder="1–114" className="w-24 rounded-md border border-border bg-background px-2 py-1" />
+      </div>
+      <div className="flex flex-col">
+        <label className="text-xs text-muted-foreground">Ayah{maxAyah ? ` (1–${maxAyah})` : ""}</label>
+        <input type="number" min={1} max={maxAyah ?? undefined} value={ayah} onChange={(e) => setAyah(e.target.value)} placeholder="verse #" className="w-24 rounded-md border border-border bg-background px-2 py-1" />
+      </div>
+      <button type="button" disabled={!canFetch} onClick={run} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary disabled:opacity-50">
+        {loading ? "Fetching…" : "Fetch from Quran.com"}
+      </button>
+      {error ? <span className="text-xs text-destructive">{error}</span> : null}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
   head: () => ({ meta: [{ title: "Edit article — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -1074,6 +1115,7 @@ function EditableBlock({
         <AutoTextarea dir="rtl" className={`${base} font-arabic text-3xl leading-loose md:text-4xl`} placeholder="النص العربي (اختياري)" value={block.arabic ?? ""} onChange={(v) => set({ arabic: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ arabic: v } as Partial<ContentBlock>)} />
         <AutoTextarea className={`${base} mt-4 font-display text-xl italic md:text-2xl`} placeholder="Translation / quote" value={block.text} onChange={(v) => set({ text: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ text: v } as Partial<ContentBlock>)} />
         <input className={`${base} mt-3 text-sm text-muted-foreground`} placeholder="Source (e.g. Qur'an 94:5–6)" value={block.source ?? ""} onChange={(e) => set({ source: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ source: e.target.value } as Partial<ContentBlock>)} />
+        <QuranFetcher onFetched={(p) => commitPatch(p as Partial<ContentBlock>)} />
       </blockquote>
     );
   }
