@@ -795,7 +795,7 @@ function CategoryToolbar({
               <div
                 onMouseEnter={cancelClose}
                 onMouseLeave={scheduleClose}
-                className="absolute left-full top-0 z-50 ml-2 flex w-44 flex-col gap-1 rounded-2xl border border-border bg-card p-2 shadow-lg"
+                className="absolute left-full top-0 z-50 ml-2 flex w-44 flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-lg"
               >
                 {cat.items.map((it) => (
                   <button
@@ -807,14 +807,15 @@ function CategoryToolbar({
                       onPaletteDragStart(it.label);
                     }}
                     onDragEnd={onPaletteDragEnd}
-                    onClick={() => { onInsert(it); setOpenIdx(null); }}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition hover:bg-secondary"
+                    onClick={() => { onInsert(it); }}
+                    className="flex items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-foreground transition hover:bg-secondary"
                   >
                     <it.icon className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{it.label}</span>
                   </button>
                 ))}
               </div>
+
             )}
           </div>
         ))}
