@@ -80,7 +80,7 @@ function AdminSidebar() {
     path === "/admin" ? currentPath === "/admin" : currentPath === path || currentPath.startsWith(path + "/");
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="!top-[72px] !h-[calc(100svh-72px)]">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
