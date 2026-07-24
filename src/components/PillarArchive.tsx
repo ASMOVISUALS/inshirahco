@@ -1,20 +1,25 @@
 import { useMemo, useState } from "react";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import type { Pillar } from "@/lib/content";
-import { PILLARS, getContentByPillar } from "@/lib/content";
+import { articlesQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
+import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 interface Props {
   pillar: Pillar;
-  eyebrow?: string;
-  intro?: string;
   tint?: "heart" | "tazkiyah" | "heart-soft" | "gold";
 }
 
-export function PillarArchive({ pillar, eyebrow, intro, tint = "heart" }: Props) {
-  const meta = PILLARS[pillar];
-  const items = getContentByPillar(pillar);
+export function PillarArchive({ pillar, tint = "heart" }: Props) {
+  const pillars = usePillarMap();
+  const meta = pillarLabel(pillars, pillar);
+  const { data: all } = useSuspenseQuery(articlesQuery());
+  const { data: page } = useQuery(pageQuery(`pillar:${pillar}`));
+  const eyebrow = (page?.eyebrow as string) ?? "Pillar";
+  const intro = (page?.intro as string) ?? meta.description;
+  const items = useMemo(() => all.filter((c) => c.pillar === pillar), [all, pillar]);
   const allTags = useMemo(() => Array.from(new Set(items.flatMap((i) => i.tags))), [items]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
@@ -25,11 +30,11 @@ export function PillarArchive({ pillar, eyebrow, intro, tint = "heart" }: Props)
       <section className="hero-radial">
         <div className="container-wide py-20 md:py-28">
           <div className="flex items-start gap-6">
-            <LetterMark letter={meta.letter} tint={tint} size={72} />
+            <LetterMark letter={meta.arabic_letter} tint={tint} size={72} />
             <div className="max-w-3xl">
-              <p className="eyebrow">{eyebrow ?? "Pillar"}</p>
+              <p className="eyebrow">{eyebrow}</p>
               <h1 className="mt-3 text-5xl leading-tight md:text-6xl">{meta.label}</h1>
-              <p className="mt-5 text-lg leading-relaxed text-muted-foreground md:text-xl">{intro ?? meta.description}</p>
+              <p className="mt-5 text-lg leading-relaxed text-muted-foreground md:text-xl">{intro}</p>
             </div>
           </div>
         </div>
@@ -41,8 +46,8 @@ export function PillarArchive({ pillar, eyebrow, intro, tint = "heart" }: Props)
             <span className="mr-2 text-sm font-semibold text-muted-foreground">Filter:</span>
             <button
               onClick={() => setActiveTag(null)}
-              className={`rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors ${activeTag === null ? "border-heart bg-heart text-primary-foreground" : "border-border hover:bg-secondary"}`}
-              style={activeTag === null ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : undefined}
+              className="rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors"
+              style={activeTag === null ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}
             >
               All
             </button>

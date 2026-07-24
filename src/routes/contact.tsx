@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Heart } from "lucide-react";
+import { pageQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/contact")({
+  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },
   head: () => ({
     meta: [
       { title: "Contact & support — Inshirah" },
@@ -24,6 +27,8 @@ const schema = z.object({
 });
 
 function Contact() {
+  const { data: page = {} } = useQuery(pageQuery("contact"));
+  const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
@@ -38,7 +43,6 @@ function Contact() {
       return;
     }
     setErrors({});
-    // TODO: wire to backend
     setSent(true);
   };
 
@@ -46,10 +50,10 @@ function Contact() {
     <>
       <section className="hero-radial">
         <div className="container-wide py-20 md:py-28 text-center">
-          <p className="eyebrow">Say salaam</p>
-          <h1 className="mt-3 text-5xl leading-tight md:text-6xl">We'd love to hear from you</h1>
+          <p className="eyebrow">{s("eyebrow", "Say salaam")}</p>
+          <h1 className="mt-3 text-5xl leading-tight md:text-6xl">{s("title", "We'd love to hear from you")}</h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Questions, ideas, corrections, quiet notes — everything welcome. We read every message.
+            {s("description", "")}
           </p>
         </div>
       </section>
@@ -58,9 +62,9 @@ function Contact() {
         <div className="rounded-3xl border border-border bg-card p-8 md:p-10">
           {sent ? (
             <div className="text-center">
-              <p className="font-arabic text-5xl" style={{ color: "var(--heart)" }}>شكرًا</p>
-              <h2 className="mt-4 text-3xl">Your note reached us.</h2>
-              <p className="mt-3 text-muted-foreground">We'll write back, insha'Allah — when the reply can be a real one, not a template one.</p>
+              <p className="font-arabic text-5xl" style={{ color: "var(--heart)" }}>{s("success_arabic", "شكرًا")}</p>
+              <h2 className="mt-4 text-3xl">{s("success_title", "Your note reached us.")}</h2>
+              <p className="mt-3 text-muted-foreground">{s("success_description", "")}</p>
             </div>
           ) : (
             <form onSubmit={submit} noValidate className="flex flex-col gap-5">
@@ -97,11 +101,11 @@ function Contact() {
 
         <aside className="rounded-3xl p-8 md:p-10" style={{ background: "color-mix(in oklab, var(--heart-soft) 30%, var(--paper-warm))" }}>
           <Heart className="h-8 w-8" strokeWidth={1.6} style={{ color: "var(--heart)" }} />
-          <h2 className="mt-4 text-3xl leading-tight">Support this project</h2>
+          <h2 className="mt-4 text-3xl leading-tight">{s("support_title", "Support this project")}</h2>
           <p className="mt-3 text-[1rem] leading-relaxed" style={{ color: "var(--ink)" }}>
-            Inshirah is a passion project, offered freely and read by more people than we ever expected. If it has meant something to you — a du'a for the team, sharing an article with a friend, or (in time) supporting the work materially — all of it matters.
+            {s("support_body", "")}
           </p>
-          <p className="mt-4 text-sm font-semibold text-muted-foreground">Live giving options are coming soon. For now, thank you for being here.</p>
+          <p className="mt-4 text-sm font-semibold text-muted-foreground">{s("support_footnote", "")}</p>
         </aside>
       </section>
     </>

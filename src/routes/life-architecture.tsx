@@ -1,10 +1,37 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { pageQuery } from "@/lib/queries";
+
+interface Preview { icon?: string; title: string; description: string; tag?: string }
+
+const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+  compass: Compass,
+  users: Users,
+  mountain: Mountain,
+  sparkles: Sparkles,
+  book: BookOpen,
+  calendar: Calendar,
+};
+
+const DEFAULT_PREVIEWS: Preview[] = [
+  { icon: "users", tag: "Cohorts", title: "Mentor-led courses", description: "Small cohorts walking through purpose, work, and long-term direction with a mentor who knows your name." },
+  { icon: "mountain", tag: "Retreats", title: "In-person retreats", description: "A few days away from the noise — reflection, halaqas, and quiet planning in landscapes that let the chest expand." },
+  { icon: "calendar", tag: "Gatherings", title: "Exclusive events", description: "Intimate salons and dinners with scholars, founders, and practitioners exploring the architecture of a life well-lived." },
+];
+
+const DEFAULT_MENTORS: Mentor[] = [
+  { name: "Mentor 1", title: "Scholar & Educator", role: "Lead Mentor", qualification: "PhD, Islamic Studies" },
+  { name: "Mentor 2", title: "Psychologist & Coach", role: "Advisor", qualification: "MSc, Clinical Psychology" },
+  { name: "Mentor 3", title: "Founder & Strategist", role: "Advisor", qualification: "MBA, Strategy" },
+];
 
 export const Route = createFileRoute("/life-architecture")({
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(pageQuery("life-architecture"));
+  },
   head: () => ({
     meta: [
       { title: "Life Architecture — Coming soon | Inshirah" },
@@ -18,92 +45,111 @@ export const Route = createFileRoute("/life-architecture")({
   component: LifeArchitecture,
 });
 
-const FAQ = [
-  { q: "What will the course actually cover?", a: "Placeholder. We're shaping a curriculum around vocation, long-term decision-making, spiritual grounding, and the practical scaffolding of a life you can sustain. Expect readings, mentor conversations, and reflective work — not lectures alone." },
-  { q: "Who is it for?", a: "Placeholder. Adults — early-to-mid career, or in a season of transition — who want to build with intention rather than react to circumstance. No prior background required, just a willingness to sit with hard questions." },
-  { q: "Will it cost money?", a: "Placeholder. Yes, eventually — sustainably priced, with a portion of seats reserved on a means-adjusted basis. Details will land with the waitlist announcement." },
-  { q: "When does it launch?", a: "Placeholder. When it's ready and not before. Join the waitlist to be the first to hear when a cohort opens." },
-];
+interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
+  const { data: page = {} } = useQuery(pageQuery("life-architecture"));
+  const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+  const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+  const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
+  const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
+
   return (
     <>
       <section className="hero-radial">
         <div className="container-wide py-24 md:py-32">
           <div className="flex flex-col items-start gap-6">
             <span className="rounded-pill px-4 py-1.5 text-xs font-bold uppercase tracking-widest" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>
-              Coming soon
+              {s("badge", "Coming soon")}
             </span>
             <div className="flex items-start gap-5">
               <LetterMark letter="ح" tint="gold" size={72} />
               <div>
-                <p className="eyebrow">Pillar 04 · Architecture</p>
-                <h1 className="mt-2 text-5xl leading-tight md:text-7xl">Life Architecture</h1>
+                <p className="eyebrow">{s("eyebrow", "Pillar 04 · Architecture")}</p>
+                <h1 className="mt-2 text-5xl leading-tight md:text-7xl">{s("title", "Life Architecture")}</h1>
               </div>
             </div>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-              A mentor-led course on building a life with intention — vocation, direction, and the long, slow work of aligning what you do with who you're becoming. In development. Join the waitlist for the first cohort.
+              {s("description", "")}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Waitlist */}
       <section className="container-wide -mt-8 pb-16">
         <NewsletterSignup
-          heading="Be first when the door opens"
-          description="A single email when the first cohort is announced. No marketing sequences, no upsells."
-          cta="Join the waitlist"
+          heading={s("waitlist_heading", "Be first when the door opens")}
+          description={s("waitlist_description", "")}
+          cta={s("waitlist_cta", "Join the waitlist")}
         />
       </section>
 
-      {/* Mentors */}
       <section className="container-wide py-16 md:py-24">
-        <div className="mb-10 max-w-xl">
-          <p className="eyebrow">The mentors</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">Small circle. Long conversations.</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Mentor profiles are placeholders — the confirmed circle will be introduced with the waitlist announcement.</p>
+        <div className="mb-12 max-w-2xl">
+          <p className="eyebrow">{s("previews_eyebrow", "What to look forward to")}</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">{s("previews_title", "The shape of what's coming")}</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {s("previews_description", "Life Architecture is a slow, deliberate programme. Here's a glimpse of the rooms we're building.")}
+          </p>
         </div>
-        <div className="grid gap-5 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-3xl border border-border bg-card p-7">
-              <div className="grid h-16 w-16 place-items-center rounded-full font-arabic text-3xl" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>م</div>
-              <h3 className="mt-5 text-xl">Mentor {i}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Placeholder bio. A short paragraph on the mentor's background, the kind of questions they hold well, and what they bring to the circle.</p>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {previews.map((p, i) => {
+            const Icon = ICONS[p.icon ?? "sparkles"] ?? Sparkles;
+            return (
+              <div key={i} className="group relative flex flex-col gap-4 rounded-3xl border border-border bg-card p-7 transition-transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="grid h-12 w-12 place-items-center rounded-2xl"
+                    style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.8} />
+                  </span>
+                  {p.tag && (
+                    <span className="eyebrow" style={{ color: "var(--gold)" }}>{p.tag}</span>
+                  )}
+                </div>
+                <h3 className="text-xl leading-snug md:text-2xl">{p.title}</h3>
+                <p className="text-[0.95rem] leading-relaxed text-muted-foreground">{p.description}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="container-wide pb-24 md:pb-32">
+        <div className="mb-12 max-w-xl">
+          <h2 className="text-4xl md:text-5xl">{s("mentors_title", "The Mentors")}</h2>
+          <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+            {s("mentors_description", "Meet your mentors and advisors!")}
+          </p>
+        </div>
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
+          {mentors.map((m, i) => (
+            <div key={i} className="flex flex-col items-center text-center">
+              <div
+                className="grid h-40 w-40 place-items-center overflow-hidden rounded-full ring-4 ring-[color:var(--paper-warm)]"
+                style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}
+              >
+                {m.image ? (
+                  <img src={m.image} alt={m.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="font-arabic text-6xl">م</span>
+                )}
+              </div>
+              <h3 className="mt-6 text-2xl">{m.name}</h3>
+              {m.title && (
+                <p className="mt-1.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground">{m.title}</p>
+              )}
+              {m.role && (
+                <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>
+              )}
+              {m.qualification && (
+                <p className="mt-1 text-sm italic text-muted-foreground">{m.qualification}</p>
+              )}
             </div>
           ))}
         </div>
       </section>
-
-      {/* FAQ */}
-      <section className="container-wide py-8 md:py-16">
-        <div className="mb-10 max-w-xl">
-          <p className="eyebrow">Questions we're asked most</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">A few honest answers</h2>
-        </div>
-        <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-card">
-          {FAQ.map((f, i) => (
-            <FaqItem key={i} q={f.q} a={f.a} last={i === FAQ.length - 1} />
-          ))}
-        </div>
-      </section>
     </>
-  );
-}
-
-function FaqItem({ q, a, last }: { q: string; a: string; last?: boolean }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={last ? "" : "border-b border-border"}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-6 px-6 py-5 text-left hover:bg-secondary/60"
-      >
-        <span className="font-display text-lg md:text-xl" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>{q}</span>
-        <ChevronDown className={`h-5 w-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
-      </button>
-      {open && <div className="px-6 pb-6 text-[1rem] leading-relaxed text-muted-foreground">{a}</div>}
-    </div>
   );
 }

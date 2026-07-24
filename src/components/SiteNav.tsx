@@ -1,29 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
-import { PILLARS, RESOURCE_TYPES } from "@/lib/content";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
+import { useAuth } from "@/hooks/use-auth";
+import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
+import { usePillars, useFormats } from "@/hooks/use-cms";
+import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
-
-const NAV_PILLARS = [
-  PILLARS["quranic-reflections"],
-  PILLARS["tazkiyah-toolkit"],
-  PILLARS["young-hearts"],
-  PILLARS["life-architecture"],
-];
-
-const RESOURCE_LINKS: Array<{ label: string; type: keyof typeof RESOURCE_TYPES; letter: string; tint: "heart" | "tazkiyah" | "heart-soft" | "gold" | "ink" }> = [
-  { label: "Videos", type: "video", letter: "ف", tint: "heart" },
-  { label: "Podcasts", type: "podcast", letter: "ص", tint: "tazkiyah" },
-  { label: "Blog posts", type: "blog", letter: "و", tint: "heart-soft" },
-  { label: "Articles", type: "article", letter: "م", tint: "ink" },
-  { label: "Books", type: "book", letter: "ك", tint: "gold" },
-  { label: "Courses", type: "course", letter: "د", tint: "heart" },
-  { label: "Tadabbur", type: "tadabbur", letter: "ن", tint: "tazkiyah" },
-  { label: "Worksheets", type: "worksheet", letter: "ع", tint: "heart-soft" },
-];
 
 export function SiteNav() {
   const [openMega, setOpenMega] = useState(false);
@@ -32,7 +18,24 @@ export function SiteNav() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
   const { slugs } = useBookmarks();
+  const { user } = useAuth();
+  const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
+  const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
+  const pillars = usePillars();
+  const formats = useFormats();
+  const navigate = useNavigate();
   const megaRef = useRef<HTMLDivElement>(null);
+
+  const aboutLabel = (nav.about_label as string) ?? "About";
+  const contactLabel = (nav.contact_label as string) ?? "Contact";
+  const resourcesLabel = (nav.resources_label as string) ?? "Resources";
+  const resourcesEyebrow = (nav.resources_eyebrow as string) ?? "Every resource, one library";
+  const browseAllLabel = (nav.browse_all_label as string) ?? "Browse all resources →";
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -60,14 +63,14 @@ export function SiteNav() {
           <Logo />
 
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-            {NAV_PILLARS.slice(0, 4).map((p) => (
+            {pillars.map((p) => (
               <Link
-                key={p.href}
+                key={p.slug}
                 to={p.href}
                 className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ style: { color: "var(--heart)" } }}
               >
-                {p.short}
+                {p.short_label}
               </Link>
             ))}
 
@@ -79,26 +82,26 @@ export function SiteNav() {
                 onClick={() => setOpenMega((v) => !v)}
                 className="inline-flex items-center gap-1 rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
               >
-                Resources <ChevronDown className={`h-4 w-4 transition-transform ${openMega ? "rotate-180" : ""}`} strokeWidth={2} />
+                {resourcesLabel} <ChevronDown className={`h-4 w-4 transition-transform ${openMega ? "rotate-180" : ""}`} strokeWidth={2} />
               </button>
               {openMega && (
                 <div
                   role="menu"
                   className="fade-up absolute right-0 top-[calc(100%+10px)] w-[640px] rounded-3xl border border-border bg-popover p-6 shadow-2xl"
                 >
-                  <p className="eyebrow mb-4">Every resource, one library</p>
+                  <p className="eyebrow mb-4">{resourcesEyebrow}</p>
                   <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                    {RESOURCE_LINKS.map((r) => (
+                    {formats.map((r) => (
                       <Link
-                        key={r.type}
+                        key={r.slug}
                         to="/resources"
-                        search={{ type: r.type }}
+                        search={{ type: r.slug }}
                         onClick={() => setOpenMega(false)}
                         className="group flex flex-col items-start gap-2 rounded-2xl p-3 hover:bg-secondary"
                         role="menuitem"
                       >
-                        <LetterMark letter={r.letter} tint={r.tint} size={38} />
-                        <span className="text-sm font-bold text-foreground">{r.label}</span>
+                        <LetterMark letter={r.arabic_letter} tint={r.tint as "heart" | "tazkiyah" | "heart-soft" | "gold" | "ink"} size={38} />
+                        <span className="text-sm font-bold text-foreground">{r.plural}</span>
                       </Link>
                     ))}
                   </div>
@@ -108,7 +111,7 @@ export function SiteNav() {
                     className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-heart hover:underline"
                     style={{ color: "var(--heart)" }}
                   >
-                    Browse all resources →
+                    {browseAllLabel}
                   </Link>
                 </div>
               )}
@@ -119,7 +122,7 @@ export function SiteNav() {
               className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ style: { color: "var(--heart)" } }}
             >
-              About
+              {aboutLabel}
             </Link>
           </nav>
 
@@ -153,13 +156,27 @@ export function SiteNav() {
               {theme === "dark" ? <Sun className="h-4.5 w-4.5" strokeWidth={1.8} /> : <Moon className="h-4.5 w-4.5" strokeWidth={1.8} />}
             </button>
 
-            <Link
-              to="/join"
-              className="ml-2 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm"
-            >
-              Join
-            </Link>
-
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Link to="/admin" aria-label="Admin" className="hidden md:grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-secondary">
+                    <Shield className="h-4.5 w-4.5" strokeWidth={1.8} />
+                  </Link>
+                )}
+                <button type="button" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
+                  <LogOut className="h-4 w-4" strokeWidth={1.8} /> Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="hidden md:inline-flex rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
+                  Sign in
+                </Link>
+                <Link to="/join" className="ml-1 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm">
+                  Join
+                </Link>
+              </>
+            )}
 
             <button
               type="button"
@@ -173,7 +190,6 @@ export function SiteNav() {
         </div>
       </header>
 
-      {/* Mobile sheet */}
       {openMobile && (
         <div className="fixed inset-0 z-[90] lg:hidden" role="dialog" aria-modal="true">
           <button aria-label="Close menu" className="absolute inset-0" style={{ background: "color-mix(in oklab, var(--ink) 55%, transparent)" }} onClick={() => setOpenMobile(false)} />
@@ -185,8 +201,8 @@ export function SiteNav() {
               </button>
             </div>
             <nav className="mt-8 flex flex-col gap-1" aria-label="Mobile primary">
-              {NAV_PILLARS.map((p) => (
-                <Link key={p.href} to={p.href} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
+              {pillars.map((p) => (
+                <Link key={p.slug} to={p.href} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
                   {p.label}
                 </Link>
               ))}
@@ -196,23 +212,35 @@ export function SiteNav() {
                 className="flex items-center justify-between rounded-2xl px-4 py-3 text-left text-lg font-semibold hover:bg-secondary"
                 aria-expanded={openMobileResources}
               >
-                Resources <ChevronDown className={`h-4 w-4 transition-transform ${openMobileResources ? "rotate-180" : ""}`} />
+                {resourcesLabel} <ChevronDown className={`h-4 w-4 transition-transform ${openMobileResources ? "rotate-180" : ""}`} />
               </button>
               {openMobileResources && (
                 <div className="mb-2 grid grid-cols-2 gap-1 px-2">
-                  {RESOURCE_LINKS.map((r) => (
-                    <Link key={r.type} to="/resources" search={{ type: r.type }} onClick={() => setOpenMobile(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-secondary">
-                      <LetterMark letter={r.letter} tint={r.tint} size={28} />
-                      {r.label}
+                  {formats.map((r) => (
+                    <Link key={r.slug} to="/resources" search={{ type: r.slug }} onClick={() => setOpenMobile(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-secondary">
+                      <LetterMark letter={r.arabic_letter} tint={r.tint as "heart" | "tazkiyah" | "heart-soft" | "gold" | "ink"} size={28} />
+                      {r.plural}
                     </Link>
                   ))}
                 </div>
               )}
-              <Link to="/about" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">About</Link>
-              <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Contact</Link>
+              <Link to="/about" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{aboutLabel}</Link>
+              <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{contactLabel}</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>
-            <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary mt-6 justify-center">Join</Link>
+            {user ? (
+              <div className="mt-6 flex flex-col gap-2">
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Admin</Link>
+                )}
+                <button type="button" onClick={() => { setOpenMobile(false); signOut(); }} className="btn-primary justify-center">Sign out</button>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col gap-2">
+                <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
+                <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
+              </div>
+            )}
           </div>
         </div>
       )}

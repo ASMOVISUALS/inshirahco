@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
+import { supabase } from "@/integrations/supabase/client";
+import { siteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -52,11 +54,14 @@ function JoinPage() {
   const [gender, setGender] = useState<"male" | "female" | "prefer_not_to_say" | "">("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const progress = useMemo(() => (done ? 100 : (step / 3) * 100), [step, done]);
 
-  const goNext = () => {
+  const goNext = async () => {
     setErrors({});
+    setServerError(null);
     if (step === 1) {
       const r = emailSchema.safeParse({ email });
       if (!r.success) return setErrors({ email: r.error.issues[0].message });
@@ -76,7 +81,17 @@ function JoinPage() {
         r.error.issues.forEach((i) => { e[i.path[0] as string] = i.message; });
         return setErrors(e);
       }
-      // TODO: wire to backend later.
+      setSubmitting(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: siteUrl("/"),
+          data: { name, dob, gender },
+        },
+      });
+      setSubmitting(false);
+      if (error) return setServerError(error.message);
       setDone(true);
     }
   };
@@ -223,6 +238,9 @@ function JoinPage() {
                   </>
                 )}
 
+                {serverError && (
+                  <p role="alert" className="text-sm" style={{ color: "var(--heart)" }}>{serverError}</p>
+                )}
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <button
                     type="button"
@@ -232,11 +250,16 @@ function JoinPage() {
                     <ArrowLeft className="h-4 w-4" strokeWidth={1.8} />
                     {step === 1 ? "Cancel" : "Back"}
                   </button>
-                  <button type="submit" className="btn-primary inline-flex items-center gap-2">
-                    {step === 3 ? "Create account" : "Continue"}
-                    {step !== 3 && <ArrowRight className="h-4 w-4" strokeWidth={1.8} />}
+                  <button type="submit" disabled={submitting} className="btn-primary inline-flex items-center gap-2">
+                    {submitting ? "Creating…" : step === 3 ? "Create account" : "Continue"}
+                    {step !== 3 && !submitting && <ArrowRight className="h-4 w-4" strokeWidth={1.8} />}
                   </button>
                 </div>
+                {step === 1 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Already have an account? <Link to="/auth" className="font-semibold underline" style={{ color: "var(--heart)" }}>Sign in</Link>
+                  </p>
+                )}
               </form>
             )}
           </div>

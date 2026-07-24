@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
-import { CONTENT, PILLARS, RESOURCE_TYPES } from "@/lib/content";
+import { articlesQuery } from "@/lib/queries";
+import { usePillarMap, useFormatMap, pillarLabel, formatLabel } from "@/hooks/use-cms";
 
 interface Props {
   open: boolean;
@@ -11,6 +13,9 @@ interface Props {
 export function SearchOverlay({ open, onClose }: Props) {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const { data: content = [] } = useQuery(articlesQuery());
+  const pillars = usePillarMap();
+  const formats = useFormatMap();
 
   useEffect(() => {
     if (!open) return;
@@ -31,17 +36,17 @@ export function SearchOverlay({ open, onClose }: Props) {
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return CONTENT.slice(0, 6);
-    return CONTENT.filter((c) => {
+    if (!query) return content.slice(0, 6);
+    return content.filter((c) => {
       return (
         c.title.toLowerCase().includes(query) ||
         c.description.toLowerCase().includes(query) ||
         c.tags.some((t) => t.toLowerCase().includes(query)) ||
-        PILLARS[c.pillar].label.toLowerCase().includes(query) ||
-        RESOURCE_TYPES[c.type].label.toLowerCase().includes(query)
+        pillarLabel(pillars, c.pillar).label.toLowerCase().includes(query) ||
+        formatLabel(formats, c.type).label.toLowerCase().includes(query)
       );
     }).slice(0, 10);
-  }, [q]);
+  }, [q, content, pillars, formats]);
 
   if (!open) return null;
 
@@ -91,7 +96,7 @@ export function SearchOverlay({ open, onClose }: Props) {
                 onClick={() => { onClose(); navigate({ to: "/read/$slug", params: { slug: c.slug } }); }}
                 className="flex flex-col gap-1 rounded-2xl px-4 py-3 hover:bg-secondary"
               >
-                <span className="eyebrow">{PILLARS[c.pillar].short} · {RESOURCE_TYPES[c.type].label}</span>
+                <span className="eyebrow">{pillarLabel(pillars, c.pillar).short_label} · {formatLabel(formats, c.type).label}</span>
                 <span className="font-display text-lg">{c.title}</span>
                 <span className="text-sm text-muted-foreground">{c.description}</span>
               </Link>

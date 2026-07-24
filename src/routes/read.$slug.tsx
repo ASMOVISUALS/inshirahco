@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { Bookmark, Copy, Check, Download } from "lucide-react";
-import { getContentBySlug, getRelated, PILLARS, RESOURCE_TYPES } from "@/lib/content";
+import { PILLARS, RESOURCE_TYPES, type ContentItem } from "@/lib/content";
+import { articleBySlugQuery, articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
 
 export const Route = createFileRoute("/read/$slug")({
-  loader: ({ params }) => {
-    const item = getContentBySlug(params.slug);
+  ssr: false,
+  loader: async ({ params, context }) => {
+    const item = await context.queryClient.ensureQueryData(articleBySlugQuery(params.slug));
     if (!item) throw notFound();
     return { item };
   },
@@ -52,14 +55,20 @@ export const Route = createFileRoute("/read/$slug")({
       <Link to="/resources" className="btn-primary mt-6">Browse resources</Link>
     </div>
   ),
+  errorComponent: () => (
+    <div className="container-wide py-24 text-center">
+      <h1 className="text-4xl">Something went sideways</h1>
+      <Link to="/resources" className="btn-primary mt-6">Browse resources</Link>
+    </div>
+  ),
 });
 
 function Detail() {
-  const data = Route.useLoaderData() as { item: import("@/lib/content").ContentItem };
-  const item = data.item;
+  const { item } = Route.useLoaderData() as { item: ContentItem };
   const pillar = PILLARS[item.pillar];
   const type = RESOURCE_TYPES[item.type];
-  const related = getRelated(item);
+  const { data: all = [] } = useQuery(articlesQuery());
+  const related = all.filter((c) => c.pillar === item.pillar && c.slug !== item.slug).slice(0, 3);
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
   const [progress, setProgress] = useState(0);
@@ -90,7 +99,6 @@ function Detail() {
 
   return (
     <>
-      {/* Progress bar */}
       <div
         className="fixed left-0 top-0 z-[80] h-[3px] transition-all"
         style={{ width: `${progress}%`, background: "var(--heart)" }}
@@ -140,7 +148,6 @@ function Detail() {
           )}
         </header>
 
-        {/* Body */}
         <div className="container-wide max-w-3xl pb-16">
           <div className="prose-body space-y-6 text-[1.14rem] leading-[1.75] md:text-[1.18rem]">
             {item.body?.map((block, i) => {
@@ -172,7 +179,6 @@ function Detail() {
             })}
           </div>
 
-          {/* Share */}
           <div className="mt-12 flex flex-wrap items-center gap-3 rounded-3xl border border-border bg-card p-5">
             <span className="text-sm font-bold">Share</span>
             <button onClick={copyLink} className="btn-ghost !py-2 !px-4 !text-sm">
@@ -196,7 +202,6 @@ function Detail() {
         </div>
       </article>
 
-      {/* Related */}
       {related.length > 0 && (
         <section className="container-wide py-16 md:py-20">
           <div className="mb-10">
