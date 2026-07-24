@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email." }).max(255),
@@ -10,6 +11,7 @@ interface Props {
   description?: string;
   cta?: string;
   variant?: "default" | "inline" | "dark";
+  source?: string;
 }
 
 export function NewsletterSignup({
@@ -17,12 +19,14 @@ export function NewsletterSignup({
   description = "A short letter every so often — a reflection, a resource, and nothing else. No noise.",
   cta = "Join the letter",
   variant = "default",
+  source = "site",
 }: Props) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = schema.safeParse({ email });
     if (!parsed.success) {
@@ -30,7 +34,15 @@ export function NewsletterSignup({
       return;
     }
     setError(null);
-    // TODO: wire to real backend later.
+    setSubmitting(true);
+    const { error: dbError } = await supabase
+      .from("newsletter_signups")
+      .insert({ email: parsed.data.email.toLowerCase(), source });
+    setSubmitting(false);
+    if (dbError && !/duplicate|unique/i.test(dbError.message)) {
+      setError("Something went wrong. Please try again.");
+      return;
+    }
     setStatus("success");
     setEmail("");
   };
@@ -72,8 +84,8 @@ export function NewsletterSignup({
               aria-invalid={!!error}
               aria-describedby={error ? "newsletter-error" : undefined}
             />
-            <button type="submit" className="btn-primary whitespace-nowrap">
-              {cta}
+            <button type="submit" disabled={submitting} className="btn-primary whitespace-nowrap">
+              {submitting ? "Sending…" : cta}
             </button>
           </form>
         )}

@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
-import { REFLECTION_OF_THE_DAY } from "@/lib/content";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { reflectionsQuery } from "@/lib/queries";
 
 export function ReflectionOfTheDay() {
-  const [i, setI] = useState(0);
+  const { data = [] } = useQuery(reflectionsQuery());
 
-  useEffect(() => {
+  const r = useMemo(() => {
+    if (data.length === 0) return null;
     const day = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-    setI(day % REFLECTION_OF_THE_DAY.length);
-  }, []);
+    return data[day % data.length];
+  }, [data]);
 
-  const r = REFLECTION_OF_THE_DAY[i];
+  if (!r) return null;
+
   return (
     <aside
       aria-label="Reflection of the day"
@@ -21,9 +24,9 @@ export function ReflectionOfTheDay() {
         {r.arabic}
       </p>
       <p className="mx-auto mt-6 max-w-lg font-display text-xl italic" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
-        "{r.en}"
+        "{r.translation}"
       </p>
-      <p className="mt-3 text-sm font-semibold text-muted-foreground">— {r.ref}</p>
+      <p className="mt-3 text-sm font-semibold text-muted-foreground">— {r.reference}</p>
     </aside>
   );
 }

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { Pillar } from "@/lib/content";
-import { PILLARS, getContentByPillar } from "@/lib/content";
+import { PILLARS } from "@/lib/content";
+import { articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
@@ -14,7 +16,8 @@ interface Props {
 
 export function PillarArchive({ pillar, eyebrow, intro, tint = "heart" }: Props) {
   const meta = PILLARS[pillar];
-  const items = getContentByPillar(pillar);
+  const { data: all } = useSuspenseQuery(articlesQuery());
+  const items = useMemo(() => all.filter((c) => c.pillar === pillar), [all, pillar]);
   const allTags = useMemo(() => Array.from(new Set(items.flatMap((i) => i.tags))), [items]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
@@ -41,8 +44,8 @@ export function PillarArchive({ pillar, eyebrow, intro, tint = "heart" }: Props)
             <span className="mr-2 text-sm font-semibold text-muted-foreground">Filter:</span>
             <button
               onClick={() => setActiveTag(null)}
-              className={`rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors ${activeTag === null ? "border-heart bg-heart text-primary-foreground" : "border-border hover:bg-secondary"}`}
-              style={activeTag === null ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : undefined}
+              className="rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors"
+              style={activeTag === null ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}
             >
               All
             </button>

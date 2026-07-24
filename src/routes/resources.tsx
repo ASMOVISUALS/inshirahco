@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { z } from "zod";
-import { CONTENT, PILLARS, RESOURCE_TYPES } from "@/lib/content";
+import { PILLARS, RESOURCE_TYPES } from "@/lib/content";
 import type { Pillar, ResourceType } from "@/lib/content";
+import { articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 
 const searchSchema = z.object({
@@ -12,7 +14,9 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/resources")({
+  ssr: false,
   validateSearch: (s) => searchSchema.parse(s),
+  loader: ({ context }) => { context.queryClient.ensureQueryData(articlesQuery()); },
   head: () => ({
     meta: [
       { title: "Resources — Inshirah" },
@@ -27,13 +31,14 @@ export const Route = createFileRoute("/resources")({
 });
 
 function Resources() {
+  const { data: content } = useSuspenseQuery(articlesQuery());
   const search = Route.useSearch();
   const [type, setType] = useState<ResourceType | "all">((search.type as ResourceType) || "all");
   const [pillar, setPillar] = useState<Pillar | "all">((search.pillar as Pillar) || "all");
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
-    return CONTENT.filter((c) => {
+    return content.filter((c) => {
       if (type !== "all" && c.type !== type) return false;
       if (pillar !== "all" && c.pillar !== pillar) return false;
       if (q) {
@@ -42,7 +47,7 @@ function Resources() {
       }
       return true;
     });
-  }, [type, pillar, q]);
+  }, [content, type, pillar, q]);
 
   const anyFilter = type !== "all" || pillar !== "all" || q.length > 0;
 
