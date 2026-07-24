@@ -57,8 +57,9 @@ const P_QUOTE: PaletteItem = { kind: "plain_quote", label: "Quote", icon: Quote,
 const P_ARABIC: PaletteItem = { kind: "arabic_large", label: "Large Arabic", icon: Languages, make: () => ({ kind: "arabic_large", arabic: "", english: "" }) };
 const P_CALLOUT: PaletteItem = { kind: "callout", label: "Callout", icon: Lightbulb, make: () => ({ kind: "callout", text: "" }) };
 const P_DIVIDER: PaletteItem = { kind: "divider", label: "Divider", icon: Minus, make: () => ({ kind: "divider" }) };
-const P_BULLETS: PaletteItem = { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [""], ordered: false }) };
-const P_NUMBERED: PaletteItem = { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [""], ordered: true }) };
+const P_BULLETS: PaletteItem = { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [], ordered: false }) };
+const P_NUMBERED: PaletteItem = { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [], ordered: true }) };
+
 const P_IMAGE: PaletteItem = { kind: "image", label: "Image", icon: ImageIcon, make: () => ({ kind: "image", src: "", alt: "", caption: "", width: 1 }) };
 const P_VIDEO: PaletteItem = { kind: "video", label: "Video", icon: VideoIcon, make: () => ({ kind: "video", src: "", caption: "", width: 1 }) };
 const P_AUDIO: PaletteItem = { kind: "audio", label: "Audio", icon: AudioLines, make: () => ({ kind: "audio", src: "", caption: "" }) };
@@ -1134,9 +1135,10 @@ function ListEditor({
   onSet: (patch: Partial<ContentBlock>) => void;
   onCommit: (patch: Partial<ContentBlock>) => void;
 }) {
-  const items = block.items.length ? block.items : [""];
+  const items = block.items;
   const Tag = block.ordered ? "ol" : "ul";
   const markerCls = block.ordered ? "list-decimal" : "list-disc";
+
 
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const focusReq = useRef<{ i: number; caret?: number } | null>(null);
@@ -1154,9 +1156,9 @@ function ListEditor({
   });
 
   const update = (next: string[], persist = true) => {
-    const safe = next.length ? next : [""];
-    (persist ? onCommit : onSet)({ items: safe } as Partial<ContentBlock>);
+    (persist ? onCommit : onSet)({ items: next } as Partial<ContentBlock>);
   };
+
 
   const changeAt = (i: number, v: string) => {
     const next = [...items];
@@ -1171,11 +1173,11 @@ function ListEditor({
       next.splice(i + 1, 0, "");
       focusReq.current = { i: i + 1, caret: 0 };
       update(next);
-    } else if (e.key === "Backspace" && items[i] === "" && items.length > 1) {
+    } else if (e.key === "Backspace" && items[i] === "") {
       e.preventDefault();
       const next = items.filter((_, idx) => idx !== i);
-      const target = Math.max(0, i - 1);
-      focusReq.current = { i: target };
+      const target = i - 1;
+      if (target >= 0) focusReq.current = { i: target };
       update(next);
     }
   };
@@ -1194,24 +1196,24 @@ function ListEditor({
             ref={(el) => { refs.current[i] = el; }}
             className="w-full bg-transparent outline-none"
             value={it}
-            placeholder={i === 0 ? "Type a list item…" : ""}
             onChange={(e) => changeAt(i, e.target.value)}
             onBlur={() => onCommit({ items } as Partial<ContentBlock>)}
             onKeyDown={(e) => handleKey(i, e)}
           />
         </li>
       ))}
-      <li className="list-none opacity-50">
+      <li>
         <input
-          className="w-full bg-transparent italic outline-none placeholder:text-muted-foreground"
+          className="w-full bg-transparent outline-none placeholder:text-muted-foreground/60"
           value=""
-          placeholder="empty"
+          placeholder={items.length === 0 ? "Type a list item…" : "empty"}
           onChange={(e) => activateGhost(e.target.value)}
         />
       </li>
     </Tag>
   );
 }
+
 
 
 /* ---------------- Image editor with resize handles ---------------- */
