@@ -1173,11 +1173,11 @@ function ListEditor({
       next.splice(i + 1, 0, "");
       focusReq.current = { i: i + 1, caret: 0 };
       update(next);
-    } else if (e.key === "Backspace" && items[i] === "" && items.length > 1) {
+    } else if (e.key === "Backspace" && items[i] === "") {
       e.preventDefault();
       const next = items.filter((_, idx) => idx !== i);
-      const target = Math.max(0, i - 1);
-      focusReq.current = { i: target };
+      const target = i - 1;
+      if (target >= 0) focusReq.current = { i: target };
       update(next);
     }
   };
@@ -1196,24 +1196,24 @@ function ListEditor({
             ref={(el) => { refs.current[i] = el; }}
             className="w-full bg-transparent outline-none"
             value={it}
-            placeholder={i === 0 ? "Type a list item…" : ""}
             onChange={(e) => changeAt(i, e.target.value)}
             onBlur={() => onCommit({ items } as Partial<ContentBlock>)}
             onKeyDown={(e) => handleKey(i, e)}
           />
         </li>
       ))}
-      <li className="list-none opacity-50">
+      <li>
         <input
-          className="w-full bg-transparent italic outline-none placeholder:text-muted-foreground"
+          className="w-full bg-transparent outline-none placeholder:text-muted-foreground/60"
           value=""
-          placeholder="empty"
+          placeholder={items.length === 0 ? "Type a list item…" : "empty"}
           onChange={(e) => activateGhost(e.target.value)}
         />
       </li>
     </Tag>
   );
 }
+
 
 
 /* ---------------- Image editor with resize handles ---------------- */
