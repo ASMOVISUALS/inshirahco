@@ -1,52 +1,53 @@
-## Goal
-Enhance the Quran quote block in the article editor so authors can enter a Surah number and Ayah number, and have the Arabic + English translation auto-populate from a public Quran API.
+## Pillars admin: table view + password-gated edit
 
-## Feasibility
-Yes — this is straightforward. Quran.com's public API (`api.quran.com/api/v4`) is free, requires no auth, supports CORS, and returns both Arabic (Uthmani script) and English translations by chapter:verse key.
+### 1. Rework `/admin/pillars` as a read-only table
 
-Endpoints we'll use:
-- `GET https://api.quran.com/api/v4/verses/by_key/{surah}:{ayah}?language=en&fields=text_uthmani&translations=131`
-  - `translations=131` = Dr. Mustafa Khattab, The Clear Quran (widely used default; configurable later)
-- Response gives `text_uthmani` (Arabic) and `translations[0].text` (English, may contain footnote HTML — we'll strip tags).
+Replace the stacked card list in `src/routes/_authenticated/admin/pillars.tsx` with a horizontally scrollable table (wraps in an `overflow-x-auto` container so it fits at full desktop but scrolls on narrower widths).
 
-## UX in the editor
-Current Quran block has: Arabic text, translation, reference (e.g. "Qur'an 94:5–6").
+Columns, in order:
+1. Label
+2. Short Label
+3. Slug
+4. Arabic Letter
+5. Tint
+6. Href
+7. Sort Order
+8. Description
+9. Coming soon (checkbox, disabled — display only)
 
-Add to the block's edit UI (only visible while the block is empty or via a small "Fetch" affordance):
-1. Two small numeric inputs at the bottom: **Surah** (1–114) and **Ayah** (1–286).
-2. A **Fetch** button.
-3. On click:
-   - Validate ranges (basic bounds; ayah upper-bound looked up from a static surah→verse-count map so we can show inline errors without a second API call).
-   - Call the API, populate Arabic + translation, auto-set reference to `Qur'an {surah}:{ayah}`.
-   - Show a loading state; on error show inline message and keep manual fields editable.
-4. After population, all three text fields remain editable (author can tweak translation or reference format).
-5. A small "Re-fetch" link stays available in case they change the numbers.
+To the left of each row, **outside** the table, sits a pencil edit button (circular icon button matching the existing admin style). Clicking it opens a password confirmation modal (see step 2). No inline editing anywhere on this page.
 
-Ranged ayahs (e.g. 94:5–6) are out of scope for v1 — single ayah only. We can extend later with a second "to ayah" field that concatenates.
+### 2. Password re-auth modal
 
-## Technical changes
+A small modal component (new file `src/components/AdminPasswordGate.tsx`) that:
+- Shows the current admin's email (read-only) and a single password field.
+- On submit, calls `supabase.auth.signInWithPassword({ email, password })` to verify — no session change of consequence since it's the same user.
+- On success, navigates to `/admin/pillars/$slug/edit` with a short-lived in-memory flag (React state / `sessionStorage` key like `pillar-edit-verified:<slug>` with a timestamp bounded to ~60s just to survive the redirect) that the edit route checks on mount.
+- On failure, shows an inline error and stays open.
+- Re-auth is required **every** time the pencil is clicked (per your answer).
 
-**1. New helper: `src/lib/quran.ts`**
-- `SURAH_VERSE_COUNTS: number[]` (length 114) for client-side validation.
-- `async function fetchAyah(surah: number, ayah: number): Promise<{ arabic: string; translation: string; reference: string }>`
-  - Fetches from `api.quran.com/api/v4/verses/by_key/...`.
-  - Strips `<sup>…</sup>` footnote markers from translation text.
-  - Throws typed error on network/validation failure.
+### 3. New edit route `/admin/pillars/$slug/edit`
 
-**2. Edit `src/lib/article-blocks.tsx`**
-- No schema change needed — `QuranBlock` already has `arabic`, `translation`, `reference`.
+New file `src/routes/_authenticated/admin/pillars.$slug.edit.tsx`.
 
-**3. Edit `src/routes/_authenticated/admin/articles/$id.tsx`**
-- In the Quran block editor UI, add the Surah/Ayah inputs + Fetch button at the bottom of the block panel.
-- Wire to `fetchAyah`, update block state via existing update path (so undo/redo captures it as one edit).
-- Loading spinner on the button; inline error text below on failure.
+On mount:
+- Reads the sessionStorage verification flag. If missing/expired, redirects back to `/admin/pillars` (so the URL can't be visited directly without going through the password gate).
+- Clears the flag immediately after reading it (single-use).
+- Loads the pillar row by slug from Supabase.
 
-**4. No DB migration, no new dependencies.** Uses native `fetch`.
+Renders an editable form with the same fields shown in the table (Label, Short Label, Slug read-only, Arabic Letter, Tint, Href, Sort Order, Description textarea, Coming soon checkbox) plus:
+- **Back** button (top-left) → returns to `/admin/pillars` table view. If the form is dirty, confirm before leaving.
+- **Cancel** button → resets the form to the loaded values (does not navigate).
+- **Save** button → updates the row via Supabase, invalidates `["admin","pillars"]` and `["cms","pillars"]` queries, and shows a success toast/confirmation banner. Stays on the edit page after save (per your requirement); shows an error toast on failure.
 
-## Out of scope
-- Verse ranges (5–6).
-- Choosing a different English translator (hard-code Clear Quran for now; can expose in site settings later).
-- Caching / offline.
+### Technical notes
 
-## Open question
-Confirm Clear Quran (Khattab, translation id 131) as the default English translation, or prefer Sahih International (id 20)?
+- The password check does not grant any elevated DB permission — RLS already restricts updates to admins. It's a UX-level "confirm it's really you" gate. Making it a real security boundary would require a server function; call this out only if you want that instead.
+- Verification flag survives the redirect via `sessionStorage` (a single React state can't cross a navigation). It's single-use and time-bounded so a stale tab can't reuse it.
+- Table styling uses existing tokens (`border-border`, `bg-card`, etc.) and shadcn table primitives already present in the project.
+
+### Files
+
+- Edit: `src/routes/_authenticated/admin/pillars.tsx` (table + pencil buttons + password modal trigger)
+- New: `src/components/AdminPasswordGate.tsx` (modal)
+- New: `src/routes/_authenticated/admin/pillars.$slug.edit.tsx` (edit form route)
