@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
 
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin/articles/")({
 
 function ArticlesList() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin-articles"],
     queryFn: async () => {
@@ -33,7 +35,7 @@ function ArticlesList() {
           description: "",
           pillar: "quranic-reflections",
           type: "article",
-          read_time: "5 min",
+          read_time: "1 min",
           author_name: "Inshirah",
           tags: [],
           body: [],
@@ -44,7 +46,10 @@ function ArticlesList() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-articles"] }),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      if (data?.id) navigate({ to: "/admin/articles/$id", params: { id: data.id } });
+    },
   });
 
   const togglePublish = useMutation({
@@ -75,7 +80,7 @@ function ArticlesList() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-display">Articles</h2>
-        <button onClick={() => createNew.mutate()} className="btn-primary">New article</button>
+        <button onClick={() => createNew.mutate()} className="btn-primary">Add an article</button>
       </div>
       {isLoading ? (
         <p className="text-muted-foreground">Loading…</p>
@@ -106,6 +111,14 @@ function ArticlesList() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
+                    <Link
+                      to="/admin/articles/$id"
+                      params={{ id: a.id }}
+                      aria-label="Edit article"
+                      className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-secondary"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Link>
                     <button onClick={() => togglePublish.mutate({ id: a.id, published: !a.published })} className="mr-2 text-sm font-semibold hover:underline" style={{ color: "var(--heart)" }}>
                       {a.published ? "Unpublish" : "Publish"}
                     </button>

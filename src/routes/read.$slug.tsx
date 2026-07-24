@@ -154,6 +154,35 @@ function Detail() {
               if (block.kind === "h2") {
                 return <h2 key={i} className="mt-12 text-3xl md:text-4xl">{block.text}</h2>;
               }
+              if (block.kind === "h3") {
+                return <h3 key={i} className="mt-8 text-2xl md:text-3xl">{block.text}</h3>;
+              }
+              if (block.kind === "divider") {
+                return <hr key={i} className="my-10 border-t border-border" />;
+              }
+              if (block.kind === "callout") {
+                return (
+                  <aside key={i} className="my-8 rounded-3xl border p-6" style={{ background: "color-mix(in oklab, var(--gold) 12%, var(--paper-warm))", borderColor: "color-mix(in oklab, var(--gold) 45%, transparent)" }}>
+                    <p className="font-display text-lg italic md:text-xl">{block.text}</p>
+                  </aside>
+                );
+              }
+              if (block.kind === "list") {
+                const Tag = block.ordered ? "ol" : "ul";
+                return (
+                  <Tag key={i} className={`my-4 ${block.ordered ? "list-decimal" : "list-disc"} space-y-2 pl-6`}>
+                    {block.items.map((it, j) => <li key={j}>{it}</li>)}
+                  </Tag>
+                );
+              }
+              if (block.kind === "image") {
+                return (
+                  <figure key={i} className="my-8">
+                    <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />
+                    {block.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</figcaption>}
+                  </figure>
+                );
+              }
               if (block.kind === "quote") {
                 return (
                   <blockquote

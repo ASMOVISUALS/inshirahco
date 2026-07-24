@@ -21,7 +21,12 @@ export type ResourceType =
 export type ContentBlock =
   | { kind: "p"; text: string }
   | { kind: "h2"; text: string }
-  | { kind: "quote"; text: string; arabic?: string; source?: string };
+  | { kind: "h3"; text: string }
+  | { kind: "quote"; text: string; arabic?: string; source?: string }
+  | { kind: "callout"; text: string }
+  | { kind: "list"; items: string[]; ordered?: boolean }
+  | { kind: "image"; src: string; alt?: string; caption?: string }
+  | { kind: "divider" };
 
 export interface ContentItem {
   slug: string;
