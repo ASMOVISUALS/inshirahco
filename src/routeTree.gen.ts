@@ -16,6 +16,7 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
 import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
+import { Route as JoinRouteImport } from './routes/join'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -56,6 +57,11 @@ const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
   path: '/life-architecture',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
+  '/join': typeof JoinRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
   '/resources': typeof ResourcesRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/join'
     | '/life-architecture'
     | '/quranic-reflections'
     | '/resources'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/join'
     | '/life-architecture'
     | '/quranic-reflections'
     | '/resources'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/contact'
+    | '/join'
     | '/life-architecture'
     | '/quranic-reflections'
     | '/resources'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
+  JoinRoute: typeof JoinRoute
   LifeArchitectureRoute: typeof LifeArchitectureRoute
   QuranicReflectionsRoute: typeof QuranicReflectionsRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LifeArchitectureRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
+  JoinRoute: JoinRoute,
   LifeArchitectureRoute: LifeArchitectureRoute,
   QuranicReflectionsRoute: QuranicReflectionsRoute,
   ResourcesRoute: ResourcesRoute,
@@ -271,13 +292,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
