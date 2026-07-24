@@ -154,11 +154,12 @@ export function SiteNav() {
             </button>
 
             <Link
-              to="/life-architecture"
+              to="/join"
               className="ml-2 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm"
             >
               Join
             </Link>
+
 
             <button
               type="button"
@@ -211,7 +212,7 @@ export function SiteNav() {
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Contact</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>
-            <Link to="/life-architecture" onClick={() => setOpenMobile(false)} className="btn-primary mt-6 justify-center">Join the letter</Link>
+            <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary mt-6 justify-center">Join</Link>
           </div>
         </div>
       )}
