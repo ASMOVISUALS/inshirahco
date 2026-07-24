@@ -45,7 +45,7 @@ export const Route = createFileRoute("/life-architecture")({
   component: LifeArchitecture,
 });
 
-interface Mentor { name: string; title?: string; bio?: string; image?: string }
+interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
   const { data: page = {} } = useQuery(pageQuery("life-architecture"));
