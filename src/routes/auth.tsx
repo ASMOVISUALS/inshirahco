@@ -70,7 +70,7 @@ function AuthPage() {
       if (!parsed.success) return setError(parsed.error.issues[0].message);
       setSubmitting(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: siteUrl("/reset-password"),
       });
       setSubmitting(false);
       if (error) return setError(error.message);
