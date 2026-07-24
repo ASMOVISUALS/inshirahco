@@ -31,7 +31,7 @@ const resetSchema = z.object({
 function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [mode, setMode] = useState<"signin" | "forgot">("signin");
+  const [mode, setMode] = useState<"signin" | "forgot" | "magic">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +53,17 @@ function AuthPage() {
       setSubmitting(false);
       if (error) return setError(error.message);
       navigate({ to: "/" });
+    } else if (mode === "magic") {
+      const parsed = resetSchema.safeParse({ email });
+      if (!parsed.success) return setError(parsed.error.issues[0].message);
+      setSubmitting(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      setSubmitting(false);
+      if (error) return setError(error.message);
+      setNotice("Check your inbox for a sign-in link.");
     } else {
       const parsed = resetSchema.safeParse({ email });
       if (!parsed.success) return setError(parsed.error.issues[0].message);
