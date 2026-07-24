@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
+import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { pageQuery, faqsQuery } from "@/lib/queries";
+import { pageQuery } from "@/lib/queries";
 
 interface Preview { icon?: string; title: string; description: string; tag?: string }
 
@@ -23,12 +22,15 @@ const DEFAULT_PREVIEWS: Preview[] = [
   { icon: "calendar", tag: "Gatherings", title: "Exclusive events", description: "Intimate salons and dinners with scholars, founders, and practitioners exploring the architecture of a life well-lived." },
 ];
 
-
+const DEFAULT_MENTORS: Mentor[] = [
+  { name: "Mentor 1", title: "Scholar & Educator" },
+  { name: "Mentor 2", title: "Psychologist & Coach" },
+  { name: "Mentor 3", title: "Founder & Strategist" },
+];
 
 export const Route = createFileRoute("/life-architecture")({
   loader: ({ context }) => {
     context.queryClient.ensureQueryData(pageQuery("life-architecture"));
-    context.queryClient.ensureQueryData(faqsQuery("life-architecture"));
   },
   head: () => ({
     meta: [
@@ -43,15 +45,14 @@ export const Route = createFileRoute("/life-architecture")({
   component: LifeArchitecture,
 });
 
-interface Mentor { name: string; bio: string }
+interface Mentor { name: string; title?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
   const { data: page = {} } = useQuery(pageQuery("life-architecture"));
-  const { data: faqs = [] } = useQuery(faqsQuery("life-architecture"));
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
-  const mentors = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+  const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
+  const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
   const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
-
 
   return (
     <>
@@ -115,57 +116,35 @@ function LifeArchitecture() {
         </div>
       </section>
 
-
-
-      {mentors.length > 0 && (
-        <section className="container-wide py-16 md:py-24">
-          <div className="mb-10 max-w-xl">
-            <p className="eyebrow">{s("mentors_eyebrow", "The mentors")}</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">{s("mentors_title", "Small circle. Long conversations.")}</h2>
-            <p className="mt-3 text-sm text-muted-foreground">{s("mentors_description", "")}</p>
-          </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            {mentors.map((m, i) => (
-              <div key={i} className="rounded-3xl border border-border bg-card p-7">
-                <div className="grid h-16 w-16 place-items-center rounded-full font-arabic text-3xl" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>م</div>
-                <h3 className="mt-5 text-xl">{m.name}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{m.bio}</p>
+      <section className="container-wide pb-24 md:pb-32">
+        <div className="mb-12 max-w-xl">
+          <p className="eyebrow">{s("mentors_eyebrow", "The mentors")}</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">{s("mentors_title", "Small circle. Long conversations.")}</h2>
+          {s("mentors_description") && (
+            <p className="mt-3 text-sm text-muted-foreground">{s("mentors_description")}</p>
+          )}
+        </div>
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
+          {mentors.map((m, i) => (
+            <div key={i} className="flex flex-col items-center text-center">
+              <div
+                className="grid h-40 w-40 place-items-center overflow-hidden rounded-full ring-4 ring-[color:var(--paper-warm)]"
+                style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}
+              >
+                {m.image ? (
+                  <img src={m.image} alt={m.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="font-arabic text-6xl">م</span>
+                )}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {faqs.length > 0 && (
-        <section className="container-wide py-8 md:py-16">
-          <div className="mb-10 max-w-xl">
-            <p className="eyebrow">{s("faq_eyebrow", "Questions we're asked most")}</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">{s("faq_title", "A few honest answers")}</h2>
-          </div>
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-card">
-            {faqs.map((f, i) => (
-              <FaqItem key={f.id} q={f.question} a={f.answer} last={i === faqs.length - 1} />
-            ))}
-          </div>
-        </section>
-      )}
+              <h3 className="mt-6 text-2xl">{m.name}</h3>
+              {m.title && (
+                <p className="mt-1.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground">{m.title}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
     </>
-  );
-}
-
-function FaqItem({ q, a, last }: { q: string; a: string; last?: boolean }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={last ? "" : "border-b border-border"}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-6 px-6 py-5 text-left hover:bg-secondary/60"
-      >
-        <span className="font-display text-lg md:text-xl" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>{q}</span>
-        <ChevronDown className={`h-5 w-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={1.8} />
-      </button>
-      {open && <div className="px-6 pb-6 text-[1rem] leading-relaxed text-muted-foreground">{a}</div>}
-    </div>
   );
 }
