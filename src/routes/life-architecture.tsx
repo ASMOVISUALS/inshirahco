@@ -85,6 +85,40 @@ function LifeArchitecture() {
         />
       </section>
 
+      <section className="container-wide py-16 md:py-24">
+        <div className="mb-12 max-w-2xl">
+          <p className="eyebrow">{s("previews_eyebrow", "What to look forward to")}</p>
+          <h2 className="mt-3 text-4xl md:text-5xl">{s("previews_title", "The shape of what's coming")}</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {s("previews_description", "Life Architecture is a slow, deliberate programme. Here's a glimpse of the rooms we're building.")}
+          </p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {previews.map((p, i) => {
+            const Icon = ICONS[p.icon ?? "sparkles"] ?? Sparkles;
+            return (
+              <div key={i} className="group relative flex flex-col gap-4 rounded-3xl border border-border bg-card p-7 transition-transform hover:-translate-y-1">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="grid h-12 w-12 place-items-center rounded-2xl"
+                    style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.8} />
+                  </span>
+                  {p.tag && (
+                    <span className="eyebrow" style={{ color: "var(--gold)" }}>{p.tag}</span>
+                  )}
+                </div>
+                <h3 className="text-xl leading-snug md:text-2xl">{p.title}</h3>
+                <p className="text-[0.95rem] leading-relaxed text-muted-foreground">{p.description}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+
+
       {mentors.length > 0 && (
         <section className="container-wide py-16 md:py-24">
           <div className="mb-10 max-w-xl">
