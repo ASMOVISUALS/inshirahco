@@ -23,9 +23,9 @@ const DEFAULT_PREVIEWS: Preview[] = [
 ];
 
 const DEFAULT_MENTORS: Mentor[] = [
-  { name: "Mentor 1", title: "Scholar & Educator" },
-  { name: "Mentor 2", title: "Psychologist & Coach" },
-  { name: "Mentor 3", title: "Founder & Strategist" },
+  { name: "Mentor 1", title: "Scholar & Educator", role: "Lead Mentor", qualification: "PhD, Islamic Studies" },
+  { name: "Mentor 2", title: "Psychologist & Coach", role: "Advisor", qualification: "MSc, Clinical Psychology" },
+  { name: "Mentor 3", title: "Founder & Strategist", role: "Advisor", qualification: "MBA, Strategy" },
 ];
 
 export const Route = createFileRoute("/life-architecture")({
