@@ -18,6 +18,7 @@ import { Route as LifeArchitectureRouteImport } from './routes/life-architecture
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReadSlugRouteImport } from './routes/read.$slug'
 
 const YoungHeartsRoute = YoungHeartsRouteImport.update({
   id: '/young-hearts',
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReadSlugRoute = ReadSlugRouteImport.update({
+  id: '/read/$slug',
+  path: '/read/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
+  '/read/$slug': typeof ReadSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
+    | '/read/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
+    | '/read/$slug'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
+    | '/read/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
   YoungHeartsRoute: typeof YoungHeartsRoute
+  ReadSlugRoute: typeof ReadSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/read/$slug': {
+      id: '/read/$slug'
+      path: '/read/$slug'
+      fullPath: '/read/$slug'
+      preLoaderRoute: typeof ReadSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   TazkiyahToolkitRoute: TazkiyahToolkitRoute,
   YoungHeartsRoute: YoungHeartsRoute,
+  ReadSlugRoute: ReadSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

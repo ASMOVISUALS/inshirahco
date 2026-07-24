@@ -55,7 +55,8 @@ export const Route = createFileRoute("/read/$slug")({
 });
 
 function Detail() {
-  const { item } = Route.useLoaderData();
+  const data = Route.useLoaderData() as { item: import("@/lib/content").ContentItem };
+  const item = data.item;
   const pillar = PILLARS[item.pillar];
   const type = RESOURCE_TYPES[item.type];
   const related = getRelated(item);
