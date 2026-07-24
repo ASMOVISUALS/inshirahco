@@ -42,6 +42,12 @@ function Home() {
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
 
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
+
   return (
     <>
       <section className="hero-radial relative overflow-hidden">
