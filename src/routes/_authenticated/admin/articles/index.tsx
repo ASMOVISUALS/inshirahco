@@ -111,6 +111,14 @@ function ArticlesList() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
+                    <Link
+                      to="/admin/articles/$id"
+                      params={{ id: a.id }}
+                      aria-label="Edit article"
+                      className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border hover:bg-secondary"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Link>
                     <button onClick={() => togglePublish.mutate({ id: a.id, published: !a.published })} className="mr-2 text-sm font-semibold hover:underline" style={{ color: "var(--heart)" }}>
                       {a.published ? "Unpublish" : "Publish"}
                     </button>
