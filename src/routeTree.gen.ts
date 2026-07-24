@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
+import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
+import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
 import { Route as IndexRouteImport } from './routes/index'
 
+const YoungHeartsRoute = YoungHeartsRouteImport.update({
+  id: '/young-hearts',
+  path: '/young-hearts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
+  id: '/tazkiyah-toolkit',
+  path: '/tazkiyah-toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuranicReflectionsRoute = QuranicReflectionsRouteImport.update({
+  id: '/quranic-reflections',
+  path: '/quranic-reflections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
+  id: '/life-architecture',
+  path: '/life-architecture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,88 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/life-architecture': typeof LifeArchitectureRoute
+  '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
+  '/young-hearts': typeof YoungHeartsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
+  id:
+    | '__root__'
+    | '/'
+    | '/life-architecture'
+    | '/quranic-reflections'
+    | '/tazkiyah-toolkit'
+    | '/young-hearts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LifeArchitectureRoute: typeof LifeArchitectureRoute
+  QuranicReflectionsRoute: typeof QuranicReflectionsRoute
+  TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
+  YoungHeartsRoute: typeof YoungHeartsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/young-hearts': {
+      id: '/young-hearts'
+      path: '/young-hearts'
+      fullPath: '/young-hearts'
+      preLoaderRoute: typeof YoungHeartsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tazkiyah-toolkit': {
+      id: '/tazkiyah-toolkit'
+      path: '/tazkiyah-toolkit'
+      fullPath: '/tazkiyah-toolkit'
+      preLoaderRoute: typeof TazkiyahToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quranic-reflections': {
+      id: '/quranic-reflections'
+      path: '/quranic-reflections'
+      fullPath: '/quranic-reflections'
+      preLoaderRoute: typeof QuranicReflectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/life-architecture': {
+      id: '/life-architecture'
+      path: '/life-architecture'
+      fullPath: '/life-architecture'
+      preLoaderRoute: typeof LifeArchitectureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +137,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LifeArchitectureRoute: LifeArchitectureRoute,
+  QuranicReflectionsRoute: QuranicReflectionsRoute,
+  TazkiyahToolkitRoute: TazkiyahToolkitRoute,
+  YoungHeartsRoute: YoungHeartsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
