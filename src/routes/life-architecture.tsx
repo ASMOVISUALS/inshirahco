@@ -23,9 +23,9 @@ const DEFAULT_PREVIEWS: Preview[] = [
 ];
 
 const DEFAULT_MENTORS: Mentor[] = [
-  { name: "Mentor 1", title: "Scholar & Educator" },
-  { name: "Mentor 2", title: "Psychologist & Coach" },
-  { name: "Mentor 3", title: "Founder & Strategist" },
+  { name: "Mentor 1", title: "Scholar & Educator", role: "Lead Mentor", qualification: "PhD, Islamic Studies" },
+  { name: "Mentor 2", title: "Psychologist & Coach", role: "Advisor", qualification: "MSc, Clinical Psychology" },
+  { name: "Mentor 3", title: "Founder & Strategist", role: "Advisor", qualification: "MBA, Strategy" },
 ];
 
 export const Route = createFileRoute("/life-architecture")({
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/life-architecture")({
   component: LifeArchitecture,
 });
 
-interface Mentor { name: string; title?: string; bio?: string; image?: string }
+interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
   const { data: page = {} } = useQuery(pageQuery("life-architecture"));
@@ -118,11 +118,10 @@ function LifeArchitecture() {
 
       <section className="container-wide pb-24 md:pb-32">
         <div className="mb-12 max-w-xl">
-          <p className="eyebrow">{s("mentors_eyebrow", "The mentors")}</p>
-          <h2 className="mt-3 text-4xl md:text-5xl">{s("mentors_title", "Small circle. Long conversations.")}</h2>
-          {s("mentors_description") && (
-            <p className="mt-3 text-sm text-muted-foreground">{s("mentors_description")}</p>
-          )}
+          <h2 className="text-4xl md:text-5xl">{s("mentors_title", "The Mentors")}</h2>
+          <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+            {s("mentors_description", "Meet your mentors and advisors!")}
+          </p>
         </div>
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
           {mentors.map((m, i) => (
@@ -140,6 +139,12 @@ function LifeArchitecture() {
               <h3 className="mt-6 text-2xl">{m.name}</h3>
               {m.title && (
                 <p className="mt-1.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground">{m.title}</p>
+              )}
+              {m.role && (
+                <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>
+              )}
+              {m.qualification && (
+                <p className="mt-1 text-sm italic text-muted-foreground">{m.qualification}</p>
               )}
             </div>
           ))}
