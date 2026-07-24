@@ -26,9 +26,10 @@ export type ContentBlock =
   | { kind: "plain_quote"; text: string; source?: string }
   | { kind: "callout"; text: string }
   | { kind: "list"; items: string[]; ordered?: boolean }
-  | { kind: "image"; src: string; alt?: string; caption?: string }
+  | { kind: "image"; src: string; alt?: string; caption?: string; width?: number }
   | { kind: "divider" }
-  | { kind: "video"; src: string; caption?: string }
+  | { kind: "video"; src: string; caption?: string; width?: number }
+
   | { kind: "audio"; src: string; caption?: string }
   | { kind: "hyperlink"; url: string; label: string; description?: string }
   | { kind: "recommended"; slug: string }
