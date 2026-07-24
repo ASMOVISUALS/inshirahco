@@ -1,41 +1,52 @@
-## Diagnosis
+## Goal
+Enhance the Quran quote block in the article editor so authors can enter a Surah number and Ayah number, and have the Arabic + English translation auto-populate from a public Quran API.
 
-The mentors section reads from the `pages` row `life-architecture` in Supabase. That row still has the old copy and old mentor entries:
+## Feasibility
+Yes — this is straightforward. Quran.com's public API (`api.quran.com/api/v4`) is free, requires no auth, supports CORS, and returns both Arabic (Uthmani script) and English translations by chapter:verse key.
 
-- `mentors_title`: "Small circle. Long conversations."
-- `mentors_description`: "Mentor profiles are placeholders…"
-- `mentors_eyebrow`: "The mentors" (still rendered by the old code before your last edit; already removed in code)
-- `mentors[]`: only `name` + `bio`, no `title`/`role`/`qualification`
+Endpoints we'll use:
+- `GET https://api.quran.com/api/v4/verses/by_key/{surah}:{ayah}?language=en&fields=text_uthmani&translations=131`
+  - `translations=131` = Dr. Mustafa Khattab, The Clear Quran (widely used default; configurable later)
+- Response gives `text_uthmani` (Arabic) and `translations[0].text` (English, may contain footnote HTML — we'll strip tags).
 
-The frontend fallbacks I added only apply when the field is missing. Because the DB has values, they override the new defaults on every load — which is why the update appears briefly (before hydration), then reverts once the query resolves.
+## UX in the editor
+Current Quran block has: Arabic text, translation, reference (e.g. "Qur'an 94:5–6").
 
-## Fix
+Add to the block's edit UI (only visible while the block is empty or via a small "Fetch" affordance):
+1. Two small numeric inputs at the bottom: **Surah** (1–114) and **Ayah** (1–286).
+2. A **Fetch** button.
+3. On click:
+   - Validate ranges (basic bounds; ayah upper-bound looked up from a static surah→verse-count map so we can show inline errors without a second API call).
+   - Call the API, populate Arabic + translation, auto-set reference to `Qur'an {surah}:{ayah}`.
+   - Show a loading state; on error show inline message and keep manual fields editable.
+4. After population, all three text fields remain editable (author can tweak translation or reference format).
+5. A small "Re-fetch" link stays available in case they change the numbers.
 
-One migration that updates the `pages.content` JSON for `key = 'life-architecture'`:
+Ranged ayahs (e.g. 94:5–6) are out of scope for v1 — single ayah only. We can extend later with a second "to ayah" field that concatenates.
 
-1. Set `mentors_title` → `"The Mentors"`
-2. Set `mentors_description` → `"Meet your mentors and advisors!"`
-3. Remove `mentors_eyebrow` (no longer used)
-4. Replace `mentors` array with three entries carrying `name`, `title`, `role`, `qualification` (matching the new defaults)
+## Technical changes
 
-No code changes needed — the component already renders these fields.
+**1. New helper: `src/lib/quran.ts`**
+- `SURAH_VERSE_COUNTS: number[]` (length 114) for client-side validation.
+- `async function fetchAyah(surah: number, ayah: number): Promise<{ arabic: string; translation: string; reference: string }>`
+  - Fetches from `api.quran.com/api/v4/verses/by_key/...`.
+  - Strips `<sup>…</sup>` footnote markers from translation text.
+  - Throws typed error on network/validation failure.
 
-## Technical
+**2. Edit `src/lib/article-blocks.tsx`**
+- No schema change needed — `QuranBlock` already has `arabic`, `translation`, `reference`.
 
-```sql
-UPDATE public.pages
-SET content = content
-  - 'mentors_eyebrow'
-  || jsonb_build_object(
-    'mentors_title', 'The Mentors',
-    'mentors_description', 'Meet your mentors and advisors!',
-    'mentors', jsonb_build_array(
-      jsonb_build_object('name','Mentor 1','title','Scholar & Educator','role','Lead Mentor','qualification','PhD, Islamic Studies'),
-      jsonb_build_object('name','Mentor 2','title','Psychologist & Coach','role','Advisor','qualification','MSc, Clinical Psychology'),
-      jsonb_build_object('name','Mentor 3','title','Founder & Strategist','role','Advisor','qualification','MBA, Strategy')
-    )
-  )
-WHERE key = 'life-architecture';
-```
+**3. Edit `src/routes/_authenticated/admin/articles/$id.tsx`**
+- In the Quran block editor UI, add the Surah/Ayah inputs + Fetch button at the bottom of the block panel.
+- Wire to `fetchAyah`, update block state via existing update path (so undo/redo captures it as one edit).
+- Loading spinner on the button; inline error text below on failure.
 
-After this runs, refreshing the page will keep the new layout because the DB now matches. You can further edit mentor names/titles from `/admin` at any time.
+**4. No DB migration, no new dependencies.** Uses native `fetch`.
+
+## Out of scope
+- Verse ranges (5–6).
+- Choosing a different English translator (hard-code Clear Quran for now; can expose in site settings later).
+- Caching / offline.
+
+## Open question
+Confirm Clear Quran (Khattab, translation id 131) as the default English translation, or prefer Sahih International (id 20)?
