@@ -80,9 +80,8 @@ function ArticlesList() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-display">Articles</h2>
-        <button onClick={() => createNew.mutate()} className="btn-primary">New article</button>
+        <button onClick={() => createNew.mutate()} className="btn-primary">Add an article</button>
       </div>
-      {isLoading ? (
         <p className="text-muted-foreground">Loading…</p>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-border">
