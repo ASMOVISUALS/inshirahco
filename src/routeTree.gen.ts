@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
 import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
 import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const YoungHeartsRoute = YoungHeartsRouteImport.update({
@@ -25,6 +29,16 @@ const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
   path: '/tazkiyah-toolkit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuranicReflectionsRoute = QuranicReflectionsRouteImport.update({
   id: '/quranic-reflections',
   path: '/quranic-reflections',
@@ -35,6 +49,16 @@ const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
   path: '/life-architecture',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,23 +67,35 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/life-architecture': typeof LifeArchitectureRoute
   '/quranic-reflections': typeof QuranicReflectionsRoute
+  '/resources': typeof ResourcesRoute
+  '/saved': typeof SavedRoute
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
 }
@@ -67,30 +103,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/contact'
     | '/life-architecture'
     | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/contact'
     | '/life-architecture'
     | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/contact'
     | '/life-architecture'
     | '/quranic-reflections'
+    | '/resources'
+    | '/saved'
     | '/tazkiyah-toolkit'
     | '/young-hearts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  ContactRoute: typeof ContactRoute
   LifeArchitectureRoute: typeof LifeArchitectureRoute
   QuranicReflectionsRoute: typeof QuranicReflectionsRoute
+  ResourcesRoute: typeof ResourcesRoute
+  SavedRoute: typeof SavedRoute
   TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
   YoungHeartsRoute: typeof YoungHeartsRoute
 }
@@ -111,6 +163,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TazkiyahToolkitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quranic-reflections': {
       id: '/quranic-reflections'
       path: '/quranic-reflections'
@@ -125,6 +191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LifeArchitectureRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -137,8 +217,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  ContactRoute: ContactRoute,
   LifeArchitectureRoute: LifeArchitectureRoute,
   QuranicReflectionsRoute: QuranicReflectionsRoute,
+  ResourcesRoute: ResourcesRoute,
+  SavedRoute: SavedRoute,
   TazkiyahToolkitRoute: TazkiyahToolkitRoute,
   YoungHeartsRoute: YoungHeartsRoute,
 }
