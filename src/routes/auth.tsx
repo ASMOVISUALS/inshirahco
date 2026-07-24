@@ -31,7 +31,7 @@ const resetSchema = z.object({
 function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [mode, setMode] = useState<"signin" | "forgot">("signin");
+  const [mode, setMode] = useState<"signin" | "forgot" | "magic">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +53,17 @@ function AuthPage() {
       setSubmitting(false);
       if (error) return setError(error.message);
       navigate({ to: "/" });
+    } else if (mode === "magic") {
+      const parsed = resetSchema.safeParse({ email });
+      if (!parsed.success) return setError(parsed.error.issues[0].message);
+      setSubmitting(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      setSubmitting(false);
+      if (error) return setError(error.message);
+      setNotice("Check your inbox for a sign-in link.");
     } else {
       const parsed = resetSchema.safeParse({ email });
       if (!parsed.success) return setError(parsed.error.issues[0].message);
@@ -73,9 +84,9 @@ function AuthPage() {
           <div className="flex items-center gap-4">
             <LetterMark letter="ش" tint="heart" size={56} />
             <div>
-              <p className="eyebrow">{mode === "signin" ? "Welcome back" : "Reset password"}</p>
+              <p className="eyebrow">{mode === "signin" ? "Welcome back" : mode === "magic" ? "Magic link" : "Reset password"}</p>
               <h1 className="mt-1 text-4xl leading-tight md:text-5xl">
-                {mode === "signin" ? "Sign in" : "Forgot password"}
+                {mode === "signin" ? "Sign in" : mode === "magic" ? "Email me a link" : "Forgot password"}
               </h1>
             </div>
           </div>
@@ -105,8 +116,19 @@ function AuthPage() {
             {notice && <p className="text-sm" style={{ color: "var(--tazkiyah)" }}>{notice}</p>}
 
             <button type="submit" disabled={submitting} className="btn-primary justify-center">
-              {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : "Send reset link"}
+              {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "magic" ? "Send magic link" : "Send reset link"}
             </button>
+
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={() => { setMode("magic"); setError(null); setNotice(null); }}
+                className="text-sm font-semibold underline underline-offset-4 self-center"
+                style={{ color: "var(--heart)" }}
+              >
+                Email me a magic link instead
+              </button>
+            )}
 
             <div className="flex items-center justify-between text-sm">
               <button
