@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Heart } from "lucide-react";
 import { pageQuery } from "@/lib/queries";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },
@@ -45,6 +46,11 @@ function Contact() {
     setErrors({});
     setSent(true);
   };
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
 
   return (
     <>

@@ -4,6 +4,7 @@ import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-r
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { pageQuery } from "@/lib/queries";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 
 interface Preview { icon?: string; title: string; description: string; tag?: string }
 
@@ -53,6 +54,11 @@ function LifeArchitecture() {
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
   const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
 
   return (
     <>

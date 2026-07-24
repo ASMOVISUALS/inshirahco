@@ -8,6 +8,7 @@ import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 import { usePillars } from "@/hooks/use-cms";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -40,6 +41,12 @@ function Home() {
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
 
   return (
     <>
