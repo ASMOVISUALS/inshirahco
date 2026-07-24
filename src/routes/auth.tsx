@@ -4,6 +4,7 @@ import { z } from "zod";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { siteUrl } from "@/lib/site-url";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
