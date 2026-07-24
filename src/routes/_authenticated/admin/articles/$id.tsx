@@ -57,8 +57,9 @@ const P_QUOTE: PaletteItem = { kind: "plain_quote", label: "Quote", icon: Quote,
 const P_ARABIC: PaletteItem = { kind: "arabic_large", label: "Large Arabic", icon: Languages, make: () => ({ kind: "arabic_large", arabic: "", english: "" }) };
 const P_CALLOUT: PaletteItem = { kind: "callout", label: "Callout", icon: Lightbulb, make: () => ({ kind: "callout", text: "" }) };
 const P_DIVIDER: PaletteItem = { kind: "divider", label: "Divider", icon: Minus, make: () => ({ kind: "divider" }) };
-const P_BULLETS: PaletteItem = { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [""], ordered: false }) };
-const P_NUMBERED: PaletteItem = { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [""], ordered: true }) };
+const P_BULLETS: PaletteItem = { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [], ordered: false }) };
+const P_NUMBERED: PaletteItem = { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [], ordered: true }) };
+
 const P_IMAGE: PaletteItem = { kind: "image", label: "Image", icon: ImageIcon, make: () => ({ kind: "image", src: "", alt: "", caption: "", width: 1 }) };
 const P_VIDEO: PaletteItem = { kind: "video", label: "Video", icon: VideoIcon, make: () => ({ kind: "video", src: "", caption: "", width: 1 }) };
 const P_AUDIO: PaletteItem = { kind: "audio", label: "Audio", icon: AudioLines, make: () => ({ kind: "audio", src: "", caption: "" }) };
