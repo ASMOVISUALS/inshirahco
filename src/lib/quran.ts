@@ -14,19 +14,7 @@ export type FetchedAyah = {
   reference: string;
 };
 
-function stripHtml(input: string): string {
-  return input
-    .replace(/<sup[^>]*>.*?<\/sup>/gi, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-export async function fetchAyah(
-  surah: number,
-  ayah: number,
-  translationId = 131,
-): Promise<FetchedAyah> {
+export async function fetchAyah(surah: number, ayah: number): Promise<FetchedAyah> {
   if (!Number.isInteger(surah) || surah < 1 || surah > 114) {
     throw new Error("Surah must be between 1 and 114.");
   }
@@ -35,23 +23,23 @@ export async function fetchAyah(
     throw new Error(`Ayah must be between 1 and ${maxAyah} for this surah.`);
   }
 
-  const url = `https://api.quran.com/api/v4/verses/by_key/${surah}:${ayah}?language=en&fields=text_uthmani&translations=${translationId}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Quran.com API error (${res.status}).`);
+  // quranapi.pages.dev returns Dr. Mustafa Khattab's "The Clear Quran"
+  // as the `english` field, plus Uthmani Arabic as `arabic1`.
+  const res = await fetch(`https://quranapi.pages.dev/api/${surah}/${ayah}.json`);
+  if (!res.ok) throw new Error(`Quran API error (${res.status}).`);
   const json = (await res.json()) as {
-    verse?: {
-      text_uthmani?: string;
-      translations?: Array<{ text?: string }>;
-    };
+    arabic1?: string;
+    arabic2?: string;
+    english?: string;
   };
-  const verse = json.verse;
-  const arabic = verse?.text_uthmani?.trim();
-  const translationRaw = verse?.translations?.[0]?.text ?? "";
+
+  const arabic = (json.arabic1 ?? json.arabic2 ?? "").trim();
+  const translation = (json.english ?? "").trim();
   if (!arabic) throw new Error("No Arabic text returned.");
 
   return {
     arabic,
-    translation: stripHtml(translationRaw),
+    translation,
     reference: `Qur'an ${surah}:${ayah}`,
   };
 }
