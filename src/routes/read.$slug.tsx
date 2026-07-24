@@ -129,7 +129,11 @@ function Detail() {
 
           <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-3">
-              <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              {authorProfile?.avatar_url ? (
+                <img src={authorProfile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              )}
               <div>
                 <p className="font-bold">{item.author.name}</p>
                 {item.author.role && <p className="text-xs text-muted-foreground">{item.author.role}</p>}
