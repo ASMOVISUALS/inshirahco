@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -24,8 +24,8 @@ import {
   Link as LinkIcon,
   BookOpen,
   Languages,
-  Columns as ColumnsIcon,
-  Plus,
+  ExternalLink,
+  Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBlock } from "@/lib/content";
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
   component: EditArticle,
 });
 
-/* ---------------- Block palette ---------------- */
+/* ---------------- Block palette (categorized) ---------------- */
 
 type BlockKind = ContentBlock["kind"];
 
@@ -48,27 +48,43 @@ interface PaletteItem {
   make: () => ContentBlock;
 }
 
-const BLOCK_PALETTE: PaletteItem[] = [
-  { kind: "p", label: "Paragraph", icon: TypeIcon, make: () => ({ kind: "p", text: "" }) },
-  { kind: "h2", label: "Heading", icon: Heading1, make: () => ({ kind: "h2", text: "" }) },
-  { kind: "h3", label: "Subheading", icon: Heading2, make: () => ({ kind: "h3", text: "" }) },
-  { kind: "quote", label: "Qur'an quote", icon: Quote, make: () => ({ kind: "quote", text: "", arabic: "", source: "" }) },
-  { kind: "plain_quote", label: "Quote", icon: Quote, make: () => ({ kind: "plain_quote", text: "", source: "" }) },
-  { kind: "arabic_large", label: "Large Arabic", icon: Languages, make: () => ({ kind: "arabic_large", arabic: "", english: "" }) },
-  { kind: "callout", label: "Callout", icon: Lightbulb, make: () => ({ kind: "callout", text: "" }) },
-  { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [""], ordered: false }) },
-  { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [""], ordered: true }) },
-  { kind: "image", label: "Image", icon: ImageIcon, make: () => ({ kind: "image", src: "", alt: "", caption: "" }) },
-  { kind: "video", label: "Video", icon: VideoIcon, make: () => ({ kind: "video", src: "", caption: "" }) },
-  { kind: "audio", label: "Audio", icon: AudioLines, make: () => ({ kind: "audio", src: "", caption: "" }) },
-  { kind: "hyperlink", label: "Link card", icon: LinkIcon, make: () => ({ kind: "hyperlink", url: "", label: "", description: "" }) },
-  { kind: "recommended", label: "Recommended", icon: BookOpen, make: () => ({ kind: "recommended", slug: "" }) },
-  { kind: "columns", label: "Columns", icon: ColumnsIcon, make: () => ({ kind: "columns", items: [{ kind: "p", text: "" }, { kind: "p", text: "" }] }) },
-  { kind: "divider", label: "Divider", icon: Minus, make: () => ({ kind: "divider" }) },
+const P_PARAGRAPH: PaletteItem = { kind: "p", label: "Paragraph", icon: TypeIcon, make: () => ({ kind: "p", text: "" }) };
+const P_H2: PaletteItem = { kind: "h2", label: "Heading", icon: Heading1, make: () => ({ kind: "h2", text: "" }) };
+const P_H3: PaletteItem = { kind: "h3", label: "Subheading", icon: Heading2, make: () => ({ kind: "h3", text: "" }) };
+const P_QURAN: PaletteItem = { kind: "quote", label: "Qur'an quote", icon: Quote, make: () => ({ kind: "quote", text: "", arabic: "", source: "" }) };
+const P_QUOTE: PaletteItem = { kind: "plain_quote", label: "Quote", icon: Quote, make: () => ({ kind: "plain_quote", text: "", source: "" }) };
+const P_ARABIC: PaletteItem = { kind: "arabic_large", label: "Large Arabic", icon: Languages, make: () => ({ kind: "arabic_large", arabic: "", english: "" }) };
+const P_CALLOUT: PaletteItem = { kind: "callout", label: "Callout", icon: Lightbulb, make: () => ({ kind: "callout", text: "" }) };
+const P_DIVIDER: PaletteItem = { kind: "divider", label: "Divider", icon: Minus, make: () => ({ kind: "divider" }) };
+const P_BULLETS: PaletteItem = { kind: "list", label: "Bullet list", icon: ListIcon, make: () => ({ kind: "list", items: [""], ordered: false }) };
+const P_NUMBERED: PaletteItem = { kind: "list", label: "Numbered list", icon: ListOrdered, make: () => ({ kind: "list", items: [""], ordered: true }) };
+const P_IMAGE: PaletteItem = { kind: "image", label: "Image", icon: ImageIcon, make: () => ({ kind: "image", src: "", alt: "", caption: "", width: 1 }) };
+const P_VIDEO: PaletteItem = { kind: "video", label: "Video", icon: VideoIcon, make: () => ({ kind: "video", src: "", caption: "", width: 1 }) };
+const P_AUDIO: PaletteItem = { kind: "audio", label: "Audio", icon: AudioLines, make: () => ({ kind: "audio", src: "", caption: "" }) };
+const P_LINK: PaletteItem = { kind: "hyperlink", label: "Link card", icon: LinkIcon, make: () => ({ kind: "hyperlink", url: "", label: "", description: "" }) };
+const P_RECOMMENDED: PaletteItem = { kind: "recommended", label: "Recommended", icon: BookOpen, make: () => ({ kind: "recommended", slug: "" }) };
+
+const ALL_PALETTE: PaletteItem[] = [
+  P_PARAGRAPH, P_H2, P_H3, P_QURAN, P_QUOTE, P_ARABIC, P_CALLOUT, P_DIVIDER,
+  P_BULLETS, P_NUMBERED, P_IMAGE, P_VIDEO, P_AUDIO, P_LINK, P_RECOMMENDED,
+];
+
+interface Category {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: PaletteItem[];
+}
+
+const CATEGORIES: Category[] = [
+  { label: "Text", icon: TypeIcon, items: [P_PARAGRAPH, P_H2, P_H3] },
+  { label: "Blocks", icon: Quote, items: [P_QURAN, P_QUOTE, P_ARABIC, P_CALLOUT, P_DIVIDER] },
+  { label: "Lists", icon: ListIcon, items: [P_BULLETS, P_NUMBERED] },
+  { label: "Media", icon: ImageIcon, items: [P_IMAGE, P_VIDEO, P_AUDIO] },
+  { label: "Links", icon: LinkIcon, items: [P_LINK, P_RECOMMENDED] },
 ];
 
 function makeByLabel(label: string): ContentBlock | null {
-  const p = BLOCK_PALETTE.find((b) => b.label === label);
+  const p = ALL_PALETTE.find((b) => b.label === label);
   return p ? p.make() : null;
 }
 
@@ -407,8 +423,6 @@ interface HistoryState<T> {
 
 function useHistory<T>(initial: T) {
   const [state, setState] = useState<HistoryState<T>>({ past: [], present: initial, future: [] });
-  const stateRef = useRef(state);
-  stateRef.current = state;
 
   const set = useCallback((next: T | ((prev: T) => T)) => {
     setState((s) => {
@@ -422,15 +436,6 @@ function useHistory<T>(initial: T) {
       const value = typeof next === "function" ? (next as (p: T) => T)(s.present) : next;
       if (JSON.stringify(value) === JSON.stringify(s.present)) return s;
       return { past: [...s.past, s.present], present: value, future: [] };
-    });
-  }, []);
-
-  const commitCurrent = useCallback(() => {
-    setState((s) => {
-      // snapshot current present if it differs from the last past entry
-      const last = s.past[s.past.length - 1];
-      if (last !== undefined && JSON.stringify(last) === JSON.stringify(s.present)) return s;
-      return { ...s, past: [...s.past, s.present], future: [] };
     });
   }, []);
 
@@ -454,7 +459,6 @@ function useHistory<T>(initial: T) {
     value: state.present,
     set,
     commit,
-    commitCurrent,
     undo,
     redo,
     canUndo: state.past.length > 0,
@@ -462,7 +466,7 @@ function useHistory<T>(initial: T) {
   };
 }
 
-/* ---------------- Body editing suite ---------------- */
+/* ---------------- Editor settings ---------------- */
 
 interface EditorSettings {
   max_columns: number;
@@ -470,7 +474,7 @@ interface EditorSettings {
 }
 
 const DEFAULT_SETTINGS: EditorSettings = {
-  max_columns: 4,
+  max_columns: 3,
   columnable_kinds: ["arabic_large", "image", "p"],
 };
 
@@ -483,10 +487,25 @@ function useEditorSettings(): EditorSettings {
     },
   });
   return {
-    max_columns: data?.max_columns ?? DEFAULT_SETTINGS.max_columns,
+    max_columns: Math.min(3, data?.max_columns ?? DEFAULT_SETTINGS.max_columns),
     columnable_kinds: data?.columnable_kinds ?? DEFAULT_SETTINGS.columnable_kinds,
   };
 }
+
+/* ---------------- Drag payload types ---------------- */
+
+// Drop target types:
+//  - "before": insert new/moved block before index i (vertical, top-level)
+//  - "after": after last block (vertical, top-level)
+//  - "col-left" / "col-right": columnize with block at index i (or insert into existing columns)
+
+type DropTarget =
+  | { kind: "before"; index: number }
+  | { kind: "col-left"; index: number }
+  | { kind: "col-right"; index: number }
+  | { kind: "col-inside"; index: number; at: number }; // insert as column at position `at` within columns block
+
+/* ---------------- Body editor ---------------- */
 
 function BodyEditor({
   blocks: initial, onCancel, onSave, saving,
@@ -499,12 +518,11 @@ function BodyEditor({
   const settings = useEditorSettings();
   const history = useHistory<ContentBlock[]>(initial);
   const blocks = history.value;
-  const [focused, setFocused] = useState<string | null>(null); // path key like "2" or "2.1"
-  const dragFrom = useRef<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+  const dragSource = useRef<{ kind: "palette"; label: string } | { kind: "reorder"; path: number[] } | null>(null);
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
-  // Structural ops always commit
-  const insertTop = (b: ContentBlock, at?: number) => {
+  const insertAtTop = (b: ContentBlock, at?: number) => {
     history.commit((prev) => {
       const idx = typeof at === "number" ? at : prev.length;
       const next = [...prev];
@@ -513,25 +531,92 @@ function BodyEditor({
     });
   };
 
-  const removeTop = (i: number) => {
-    history.commit((prev) => prev.filter((_, idx) => idx !== i));
+  const removeAtPath = (path: number[]) => {
+    history.commit((prev) => removePath(prev, path));
     setFocused(null);
   };
 
-  const moveTop = (from: number, to: number) => {
-    if (from === to) return;
-    history.commit((prev) => {
-      const next = [...prev];
-      const [x] = next.splice(from, 1);
-      next.splice(to > from ? to - 1 : to, 0, x);
-      return next;
-    });
-  };
-
-  // Update at path — used by inline text edits (uses `set`, not `commit`)
   const updateAt = (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => {
     const fn = opts?.commit ? history.commit : history.set;
     fn((prev) => applyUpdate(prev, path, patch));
+  };
+
+  // Handles drop-target actions
+  const handleDrop = (target: DropTarget) => {
+    const src = dragSource.current;
+    dragSource.current = null;
+    setDropTarget(null);
+    if (!src) return;
+
+    // Get the block being placed (either new or a move)
+    let placingBlock: ContentBlock | null = null;
+    let removeFrom: number[] | null = null;
+    if (src.kind === "palette") {
+      placingBlock = makeByLabel(src.label);
+    } else {
+      placingBlock = getAtPath(blocks, src.path);
+      removeFrom = src.path;
+    }
+    if (!placingBlock) return;
+
+    history.commit((prev) => {
+      let next = prev;
+      // Remove first (if moving)
+      if (removeFrom) next = removePath(next, removeFrom);
+
+      // Recompute target index if removal was above
+      const adjustIdx = (idx: number) => {
+        if (!removeFrom || removeFrom.length !== 1) return idx;
+        return removeFrom[0] < idx ? idx - 1 : idx;
+      };
+
+      if (target.kind === "before") {
+        const at = adjustIdx(target.index);
+        const copy = [...next];
+        copy.splice(at, 0, placingBlock!);
+        return copy;
+      }
+      if (target.kind === "col-left" || target.kind === "col-right") {
+        const at = adjustIdx(target.index);
+        const existing = next[at];
+        if (!existing) return next;
+        // Can we columnize?
+        if (!isColumnable(placingBlock!, settings) || !canJoin(existing, placingBlock!, settings)) {
+          // Fallback: just insert before/after vertically
+          const copy = [...next];
+          copy.splice(target.kind === "col-left" ? at : at + 1, 0, placingBlock!);
+          return copy;
+        }
+        if (existing.kind === "columns") {
+          if (existing.items.length >= settings.max_columns) return next;
+          const insertAt = target.kind === "col-left" ? 0 : existing.items.length;
+          const items = [...existing.items];
+          items.splice(insertAt, 0, placingBlock!);
+          const copy = [...next];
+          copy[at] = { ...existing, items };
+          return copy;
+        }
+        const items: ContentBlock[] = target.kind === "col-left"
+          ? [placingBlock!, existing]
+          : [existing, placingBlock!];
+        const copy = [...next];
+        copy[at] = { kind: "columns", items };
+        return copy;
+      }
+      if (target.kind === "col-inside") {
+        const at = adjustIdx(target.index);
+        const existing = next[at];
+        if (!existing || existing.kind !== "columns") return next;
+        if (!isColumnable(placingBlock!, settings)) return next;
+        if (existing.items.length >= settings.max_columns) return next;
+        const items = [...existing.items];
+        items.splice(target.at, 0, placingBlock!);
+        const copy = [...next];
+        copy[at] = { ...existing, items };
+        return copy;
+      }
+      return next;
+    });
   };
 
   // Keyboard undo/redo
@@ -546,11 +631,12 @@ function BodyEditor({
     return () => window.removeEventListener("keydown", onKey);
   }, [history]);
 
-  // Click-off to blur
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       const el = e.target as HTMLElement;
-      if (!el.closest("[data-block]") && !el.closest("[data-palette]")) setFocused(null);
+      if (!el.closest("[data-block]") && !el.closest("[data-palette]") && !el.closest("[data-keep-focus]")) {
+        setFocused(null);
+      }
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
@@ -575,41 +661,25 @@ function BodyEditor({
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside data-palette className="w-20 shrink-0 overflow-y-auto border-r border-border bg-card py-3">
-          <div className="flex flex-col items-center gap-1">
-            {BLOCK_PALETTE.map((p) => (
-              <button
-                key={p.label}
-                title={p.label}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("application/x-palette", p.label);
-                  e.dataTransfer.effectAllowed = "copy";
-                }}
-                onClick={() => insertTop(p.make())}
-                className="group flex h-14 w-16 flex-col items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground"
-              >
-                <p.icon className="h-4 w-4" />
-                <span className="mt-1 text-[9px] font-semibold leading-tight text-center px-1">{p.label}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
+        <CategoryToolbar
+          onInsert={(item) => insertAtTop(item.make())}
+          onPaletteDragStart={(label) => { dragSource.current = { kind: "palette", label }; }}
+          onPaletteDragEnd={() => { dragSource.current = null; setDropTarget(null); }}
+        />
 
         <div className="flex-1 overflow-auto">
           <div className="prose-body mx-auto max-w-3xl space-y-1 px-6 py-10 text-[1.14rem] leading-[1.75] md:text-[1.18rem]">
             {blocks.length === 0 && (
-              <EmptyDrop onDrop={(label) => { const b = makeByLabel(label); if (b) insertTop(b, 0); }} />
+              <EmptyDrop onDrop={(label) => { const b = makeByLabel(label); if (b) insertAtTop(b, 0); }} />
             )}
 
             {blocks.map((block, i) => (
               <div key={i}>
-                <DropZone
-                  active={dragOver === i}
-                  onEnter={() => setDragOver(i)}
-                  onLeave={() => setDragOver(null)}
-                  onDropPalette={(label) => { const b = makeByLabel(label); if (b) insertTop(b, i); setDragOver(null); }}
-                  onDropReorder={() => { if (dragFrom.current !== null) moveTop(dragFrom.current, i); dragFrom.current = null; setDragOver(null); }}
+                <VDropZone
+                  active={dropTarget?.kind === "before" && dropTarget.index === i}
+                  onEnter={() => setDropTarget({ kind: "before", index: i })}
+                  onLeave={() => setDropTarget(null)}
+                  onDrop={() => handleDrop({ kind: "before", index: i })}
                 />
                 <BlockRow
                   block={block}
@@ -617,28 +687,139 @@ function BodyEditor({
                   focused={focused}
                   setFocused={setFocused}
                   onUpdate={updateAt}
-                  onRemove={() => removeTop(i)}
-                  onDragStart={() => { dragFrom.current = i; }}
-                  onDragEnd={() => { dragFrom.current = null; setDragOver(null); }}
+                  onRemove={() => removeAtPath([i])}
+                  onDragStart={() => { dragSource.current = { kind: "reorder", path: [i] }; }}
+                  onDragEnd={() => { dragSource.current = null; setDropTarget(null); }}
                   settings={settings}
-                  commit={history.commit}
+                  dropTarget={dropTarget}
+                  setDropTarget={setDropTarget}
+                  onDrop={handleDrop}
+                  dragSource={dragSource}
                 />
               </div>
             ))}
 
             {blocks.length > 0 && (
-              <DropZone
-                active={dragOver === blocks.length}
-                onEnter={() => setDragOver(blocks.length)}
-                onLeave={() => setDragOver(null)}
-                onDropPalette={(label) => { const b = makeByLabel(label); if (b) insertTop(b); setDragOver(null); }}
-                onDropReorder={() => { if (dragFrom.current !== null) moveTop(dragFrom.current, blocks.length); dragFrom.current = null; setDragOver(null); }}
+              <VDropZone
+                active={dropTarget?.kind === "before" && dropTarget.index === blocks.length}
+                onEnter={() => setDropTarget({ kind: "before", index: blocks.length })}
+                onLeave={() => setDropTarget(null)}
+                onDrop={() => handleDrop({ kind: "before", index: blocks.length })}
               />
             )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function isColumnable(b: ContentBlock, s: EditorSettings): boolean {
+  if (b.kind === "columns") return false;
+  return s.columnable_kinds.includes(b.kind);
+}
+
+function canJoin(existing: ContentBlock, incoming: ContentBlock, s: EditorSettings): boolean {
+  if (existing.kind === "columns") {
+    return existing.items.length < s.max_columns && isColumnable(incoming, s);
+  }
+  return isColumnable(existing, s) && isColumnable(incoming, s);
+}
+
+function getAtPath(blocks: ContentBlock[], path: number[]): ContentBlock | null {
+  if (path.length === 0) return null;
+  const [i, ...rest] = path;
+  const b = blocks[i];
+  if (!b) return null;
+  if (rest.length === 0) return b;
+  if (b.kind === "columns") return getAtPath(b.items, rest);
+  return null;
+}
+
+function removePath(blocks: ContentBlock[], path: number[]): ContentBlock[] {
+  if (path.length === 0) return blocks;
+  const [i, ...rest] = path;
+  if (rest.length === 0) return blocks.filter((_, idx) => idx !== i);
+  return blocks.map((b, idx) => {
+    if (idx !== i) return b;
+    if (b.kind === "columns") {
+      const items = removePath(b.items, rest);
+      // Collapse columns of length <= 1
+      if (items.length === 0) return b; // shouldn't happen; keep
+      if (items.length === 1) return items[0];
+      return { ...b, items };
+    }
+    return b;
+  });
+}
+
+/* ---------------- Category toolbar with hover flyouts ---------------- */
+
+function CategoryToolbar({
+  onInsert, onPaletteDragStart, onPaletteDragEnd,
+}: {
+  onInsert: (item: PaletteItem) => void;
+  onPaletteDragStart: (label: string) => void;
+  onPaletteDragEnd: () => void;
+}) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const closeTimer = useRef<number | null>(null);
+
+  const scheduleClose = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpenIdx(null), 150);
+  };
+  const cancelClose = () => {
+    if (closeTimer.current) { window.clearTimeout(closeTimer.current); closeTimer.current = null; }
+  };
+
+  return (
+    <aside data-palette className="relative w-20 shrink-0 overflow-visible border-r border-border bg-card py-3">
+      <div className="flex flex-col items-center gap-1">
+        {CATEGORIES.map((cat, i) => (
+          <div
+            key={cat.label}
+            className="relative"
+            onMouseEnter={() => { cancelClose(); setOpenIdx(i); }}
+            onMouseLeave={scheduleClose}
+          >
+            <button
+              className={`group flex h-14 w-16 flex-col items-center justify-center rounded-xl transition ${openIdx === i ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+              onClick={() => setOpenIdx(openIdx === i ? null : i)}
+            >
+              <cat.icon className="h-4 w-4" />
+              <span className="mt-1 text-[10px] font-semibold leading-tight">{cat.label}</span>
+            </button>
+
+            {openIdx === i && (
+              <div
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+                className="absolute left-full top-0 z-50 ml-2 flex w-44 flex-col gap-1 rounded-2xl border border-border bg-card p-2 shadow-lg"
+              >
+                {cat.items.map((it) => (
+                  <button
+                    key={it.label}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("application/x-palette", it.label);
+                      e.dataTransfer.effectAllowed = "copy";
+                      onPaletteDragStart(it.label);
+                    }}
+                    onDragEnd={onPaletteDragEnd}
+                    onClick={() => { onInsert(it); setOpenIdx(null); }}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground transition hover:bg-secondary"
+                  >
+                    <it.icon className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{it.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 }
 
@@ -656,7 +837,7 @@ function HistoryButton({ icon: Icon, label, disabled, onClick }: { icon: React.C
   );
 }
 
-/* ---------------- Recursive path update ---------------- */
+/* ---------------- Path helpers ---------------- */
 
 function applyUpdate(blocks: ContentBlock[], path: number[], patch: Partial<ContentBlock>): ContentBlock[] {
   if (path.length === 0) return blocks;
@@ -671,75 +852,23 @@ function applyUpdate(blocks: ContentBlock[], path: number[], patch: Partial<Cont
   });
 }
 
-/* ---------------- Block row wrapper (with grip + trash) ---------------- */
+/* ---------------- Vertical drop zone ---------------- */
 
-function BlockRow({
-  block, path, focused, setFocused, onUpdate, onRemove, onDragStart, onDragEnd, settings, commit,
+function VDropZone({
+  active, onEnter, onLeave, onDrop,
 }: {
-  block: ContentBlock;
-  path: number[];
-  focused: string | null;
-  setFocused: (v: string | null) => void;
-  onUpdate: (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => void;
-  onRemove: () => void;
-  onDragStart?: (path: number[]) => void;
-  onDragEnd?: () => void;
-  settings: EditorSettings;
-  commit: (next: ContentBlock[] | ((prev: ContentBlock[]) => ContentBlock[])) => void;
+  active: boolean;
+  onEnter: () => void;
+  onLeave: () => void;
+  onDrop: () => void;
 }) {
-  const key = path.join(".");
-  const isFocused = focused === key;
-
   return (
     <div
-      data-block
-      onClick={(e) => { e.stopPropagation(); setFocused(key); }}
-      className={`group relative rounded-xl px-4 py-2 transition ${isFocused ? "ring-2 ring-heart bg-heart/5" : "hover:ring-1 hover:ring-border"}`}
-    >
-      {/* Drag grip */}
-      {path.length === 1 && (
-        <button
-          draggable
-          onDragStart={(e) => {
-            onDragStart?.(path);
-            e.dataTransfer.setData("application/x-reorder", "1");
-            e.dataTransfer.effectAllowed = "move";
-          }}
-          onDragEnd={() => onDragEnd?.()}
-          className="absolute -left-8 top-1/2 -translate-y-1/2 cursor-grab text-muted-foreground opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
-          aria-label="Drag to reorder"
-          onClick={(e) => e.stopPropagation()}
-          title="Drag to reorder"
-        >
-          <GripVertical className="h-5 w-5" />
-        </button>
-      )}
-
-      {/* Trash (always on hover) */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        className="absolute -right-10 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full border text-white opacity-0 shadow-sm transition group-hover:opacity-100 hover:!bg-heart hover:!border-heart"
-        style={{ background: "var(--tazkiyah)", borderColor: "var(--tazkiyah)" }}
-        aria-label="Remove block"
-        title="Remove block"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
-
-      {isFocused ? (
-        <EditableBlock
-          block={block}
-          path={path}
-          onUpdate={onUpdate}
-          settings={settings}
-          focused={focused}
-          setFocused={setFocused}
-          commit={commit}
-        />
-      ) : (
-        <RenderBlock block={block} />
-      )}
-    </div>
+      onDragOver={(e) => { e.preventDefault(); onEnter(); }}
+      onDragLeave={onLeave}
+      onDrop={(e) => { e.preventDefault(); onDrop(); }}
+      className={`my-1 h-2 rounded-full transition ${active ? "bg-heart" : "bg-transparent"}`}
+    />
   );
 }
 
@@ -757,42 +886,166 @@ function EmptyDrop({ onDrop }: { onDrop: (label: string) => void }) {
   );
 }
 
-function DropZone({
-  active, onEnter, onLeave, onDropPalette, onDropReorder,
+/* ---------------- Block row (with side drop targets for auto-columning) ---------------- */
+
+function BlockRow({
+  block, path, focused, setFocused, onUpdate, onRemove, onDragStart, onDragEnd, settings,
+  dropTarget, setDropTarget, onDrop, dragSource,
 }: {
-  active: boolean;
-  onEnter: () => void;
-  onLeave: () => void;
-  onDropPalette: (label: string) => void;
-  onDropReorder: () => void;
+  block: ContentBlock;
+  path: number[];
+  focused: string | null;
+  setFocused: (v: string | null) => void;
+  onUpdate: (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => void;
+  onRemove: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  settings: EditorSettings;
+  dropTarget: DropTarget | null;
+  setDropTarget: (t: DropTarget | null) => void;
+  onDrop: (t: DropTarget) => void;
+  dragSource: React.MutableRefObject<{ kind: "palette"; label: string } | { kind: "reorder"; path: number[] } | null>;
 }) {
+  const key = path.join(".");
+  const isFocused = focused === key;
+  const index = path[0];
+  const isTopLevel = path.length === 1;
+
+  const showColZones = isTopLevel && (
+    block.kind === "columns"
+      ? block.items.length < settings.max_columns
+      : isColumnable(block, settings)
+  );
+
   return (
     <div
-      onDragOver={(e) => { e.preventDefault(); onEnter(); }}
-      onDragLeave={onLeave}
-      onDrop={(e) => {
-        e.preventDefault();
-        const label = e.dataTransfer.getData("application/x-palette");
-        if (label) { onDropPalette(label); return; }
-        onDropReorder();
-      }}
-      className={`my-1 h-2 rounded-full transition ${active ? "bg-heart" : "bg-transparent"}`}
-    />
+      data-block
+      onClick={(e) => { e.stopPropagation(); setFocused(key); }}
+      className={`group relative rounded-xl px-4 py-2 transition ${isFocused ? "ring-2 ring-heart bg-heart/5" : "hover:ring-1 hover:ring-border"}`}
+    >
+      {/* Left column drop zone */}
+      {showColZones && (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            const src = dragSource.current;
+            if (!src) return;
+            setDropTarget({ kind: "col-left", index });
+          }}
+          onDragLeave={() => { if (dropTarget?.kind === "col-left" && dropTarget.index === index) setDropTarget(null); }}
+          onDrop={(e) => { e.preventDefault(); onDrop({ kind: "col-left", index }); }}
+          className={`absolute left-0 top-0 h-full w-3 rounded-l-xl transition ${dropTarget?.kind === "col-left" && dropTarget.index === index ? "bg-heart/70" : ""}`}
+        />
+      )}
+      {showColZones && (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            const src = dragSource.current;
+            if (!src) return;
+            setDropTarget({ kind: "col-right", index });
+          }}
+          onDragLeave={() => { if (dropTarget?.kind === "col-right" && dropTarget.index === index) setDropTarget(null); }}
+          onDrop={(e) => { e.preventDefault(); onDrop({ kind: "col-right", index }); }}
+          className={`absolute right-0 top-0 h-full w-3 rounded-r-xl transition ${dropTarget?.kind === "col-right" && dropTarget.index === index ? "bg-heart/70" : ""}`}
+        />
+      )}
+
+      {/* Drag grip */}
+      {path.length === 1 && (
+        <button
+          draggable
+          onDragStart={(e) => {
+            onDragStart?.();
+            e.dataTransfer.setData("application/x-reorder", "1");
+            e.dataTransfer.effectAllowed = "move";
+          }}
+          onDragEnd={() => onDragEnd?.()}
+          className="absolute -left-8 top-1/2 -translate-y-1/2 cursor-grab text-muted-foreground opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
+          aria-label="Drag to reorder"
+          onClick={(e) => e.stopPropagation()}
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-5 w-5" />
+        </button>
+      )}
+
+      {/* Trash */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        className="absolute -right-10 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full border text-white opacity-0 shadow-sm transition group-hover:opacity-100 hover:!bg-heart hover:!border-heart"
+        style={{ background: "var(--tazkiyah)", borderColor: "var(--tazkiyah)" }}
+        aria-label="Remove block"
+        title="Remove block"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+
+      {block.kind === "columns" ? (
+        <ColumnsView
+          block={block}
+          path={path}
+          focused={focused}
+          setFocused={setFocused}
+          onUpdate={onUpdate}
+          settings={settings}
+        />
+      ) : isFocused ? (
+        <EditableBlock block={block} path={path} onUpdate={onUpdate} />
+      ) : (
+        <RenderBlock block={block} />
+      )}
+    </div>
   );
 }
 
-/* ---------------- Editable block (matches published look) ---------------- */
+/* ---------------- Columns view (no add-column UI; wraps children) ---------------- */
+
+function ColumnsView({
+  block, path, focused, setFocused, onUpdate, settings,
+}: {
+  block: Extract<ContentBlock, { kind: "columns" }>;
+  path: number[];
+  focused: string | null;
+  setFocused: (v: string | null) => void;
+  onUpdate: (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => void;
+  settings: EditorSettings;
+}) {
+  const count = Math.max(1, Math.min(settings.max_columns, block.items.length));
+  const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : "md:grid-cols-3";
+
+  return (
+    <div className={`grid gap-4 ${gridCls}`}>
+      {block.items.map((child, i) => {
+        const childPath = [...path, i];
+        const childKey = childPath.join(".");
+        const isChildFocused = focused === childKey;
+        return (
+          <div
+            key={i}
+            onClick={(e) => { e.stopPropagation(); setFocused(childKey); }}
+            className={`min-w-0 rounded-lg p-1 [&_img]:!my-0 [&>*]:!my-0 ${isChildFocused ? "ring-2 ring-heart bg-heart/5" : "hover:ring-1 hover:ring-border/60"}`}
+          >
+            {isChildFocused ? (
+              <EditableBlock block={child} path={childPath} onUpdate={onUpdate} />
+            ) : (
+              <RenderBlock block={child} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------------- Editable block ---------------- */
 
 function EditableBlock({
-  block, path, onUpdate, settings, focused, setFocused, commit,
+  block, path, onUpdate,
 }: {
   block: ContentBlock;
   path: number[];
   onUpdate: (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => void;
-  settings: EditorSettings;
-  focused: string | null;
-  setFocused: (v: string | null) => void;
-  commit: (next: ContentBlock[] | ((prev: ContentBlock[]) => ContentBlock[])) => void;
 }) {
   const base = "w-full bg-transparent outline-none";
   const set = (patch: Partial<ContentBlock>) => onUpdate(path, patch);
@@ -840,58 +1093,13 @@ function EditableBlock({
     );
   }
   if (block.kind === "list") {
-    const Tag = block.ordered ? "ol" : "ul";
-    return (
-      <Tag className={`${block.ordered ? "list-decimal" : "list-disc"} space-y-2 pl-6`}>
-        {block.items.map((it, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <input
-              className={`${base} flex-1`}
-              placeholder="Item"
-              value={it}
-              onChange={(e) => {
-                const items = block.items.slice(); items[i] = e.target.value;
-                set({ items } as Partial<ContentBlock>);
-              }}
-              onBlur={(e) => {
-                const items = block.items.slice(); items[i] = e.target.value;
-                commitPatch({ items } as Partial<ContentBlock>);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  const items = [...block.items]; items.splice(i + 1, 0, "");
-                  commitPatch({ items } as Partial<ContentBlock>);
-                }
-              }}
-            />
-            <button type="button" onClick={() => commitPatch({ items: block.items.filter((_, j) => j !== i) } as Partial<ContentBlock>)} className="text-xs text-muted-foreground hover:text-heart" aria-label="Remove item">×</button>
-          </li>
-        ))}
-        <li className="list-none">
-          <button type="button" onClick={() => commitPatch({ items: [...block.items, ""] } as Partial<ContentBlock>)} className="text-xs font-semibold hover:underline" style={{ color: "var(--heart)" }}>+ Add item</button>
-        </li>
-      </Tag>
-    );
+    return <ListEditor block={block} onSet={set} onCommit={commitPatch} />;
   }
   if (block.kind === "image") {
-    return (
-      <figure className="space-y-2">
-        {block.src && <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />}
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-sm`} placeholder="Image URL" value={block.src} onChange={(e) => set({ src: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ src: e.target.value } as Partial<ContentBlock>)} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-sm`} placeholder="Alt text" value={block.alt ?? ""} onChange={(e) => set({ alt: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ alt: e.target.value } as Partial<ContentBlock>)} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-center text-sm text-muted-foreground`} placeholder="Caption (optional)" value={block.caption ?? ""} onChange={(e) => set({ caption: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ caption: e.target.value } as Partial<ContentBlock>)} />
-      </figure>
-    );
+    return <ImageEditor block={block} onSet={set} onCommit={commitPatch} />;
   }
   if (block.kind === "video") {
-    return (
-      <figure className="space-y-2">
-        <RenderBlock block={block} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-sm`} placeholder="YouTube / Vimeo / MP4 URL" value={block.src} onChange={(e) => set({ src: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ src: e.target.value } as Partial<ContentBlock>)} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-center text-sm text-muted-foreground`} placeholder="Caption (optional)" value={block.caption ?? ""} onChange={(e) => set({ caption: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ caption: e.target.value } as Partial<ContentBlock>)} />
-      </figure>
-    );
+    return <VideoEditor block={block} onSet={set} onCommit={commitPatch} />;
   }
   if (block.kind === "audio") {
     return (
@@ -903,145 +1111,319 @@ function EditableBlock({
     );
   }
   if (block.kind === "hyperlink") {
-    return (
-      <div className="space-y-2 rounded-2xl border border-border bg-card p-5">
-        <input className={`${base} font-display text-lg font-semibold`} style={{ color: "var(--heart)" }} placeholder="Link title" value={block.label} onChange={(e) => set({ label: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ label: e.target.value } as Partial<ContentBlock>)} />
-        <AutoTextarea className={`${base} text-sm text-muted-foreground`} placeholder="Description (optional)" value={block.description ?? ""} onChange={(v) => set({ description: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ description: v } as Partial<ContentBlock>)} rows={1} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground`} placeholder="https://…" value={block.url} onChange={(e) => set({ url: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ url: e.target.value } as Partial<ContentBlock>)} />
-      </div>
-    );
+    return <LinkCardEditor block={block} onSet={set} onCommit={commitPatch} />;
   }
   if (block.kind === "recommended") {
-    return (
-      <div className="space-y-2">
-        <RenderBlock block={block} />
-        <input className={`${base} rounded-md border border-dashed border-border px-2 py-1 text-sm`} placeholder="Article slug (e.g. finding-quiet)" value={block.slug} onChange={(e) => set({ slug: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ slug: e.target.value } as Partial<ContentBlock>)} />
-      </div>
-    );
+    return <RecommendedEditor block={block} onCommit={commitPatch} />;
   }
   if (block.kind === "divider") {
     return <hr className="border-t border-border" />;
   }
-  if (block.kind === "columns") {
-    return (
-      <ColumnEditor
-        block={block}
-        path={path}
-        onUpdate={onUpdate}
-        settings={settings}
-        focused={focused}
-        setFocused={setFocused}
-        commit={commit}
-      />
-    );
-  }
   return null;
 }
 
-/* ---------------- Column editor ---------------- */
+/* ---------------- List editor (native line-break flow) ---------------- */
 
-function ColumnEditor({
-  block, path, onUpdate, settings, focused, setFocused, commit,
+function ListEditor({
+  block, onSet, onCommit,
 }: {
-  block: Extract<ContentBlock, { kind: "columns" }>;
-  path: number[];
-  onUpdate: (path: number[], patch: Partial<ContentBlock>, opts?: { commit?: boolean }) => void;
-  settings: EditorSettings;
-  focused: string | null;
-  setFocused: (v: string | null) => void;
-  commit: (next: ContentBlock[] | ((prev: ContentBlock[]) => ContentBlock[])) => void;
+  block: Extract<ContentBlock, { kind: "list" }>;
+  onSet: (patch: Partial<ContentBlock>) => void;
+  onCommit: (patch: Partial<ContentBlock>) => void;
 }) {
-  const count = block.items.length;
-  const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : count === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
+  const text = block.items.join("\n");
+  const Tag = block.ordered ? "ol" : "ul";
+  const markerCls = block.ordered ? "list-decimal" : "list-disc";
 
-  const addCol = () => {
-    if (count >= settings.max_columns) return;
-    onUpdate(path, { items: [...block.items, { kind: "p", text: "" }] } as Partial<ContentBlock>, { commit: true });
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current; if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
   };
-  const removeCol = (i: number) => {
-    if (count <= 1) return;
-    onUpdate(path, { items: block.items.filter((_, j) => j !== i) } as Partial<ContentBlock>, { commit: true });
-  };
-  const changeKind = (i: number, kindLabel: string) => {
-    const made = makeByLabel(kindLabel);
-    if (!made) return;
-    const items = block.items.slice();
-    items[i] = made;
-    onUpdate(path, { items } as Partial<ContentBlock>, { commit: true });
-  };
+  useEffect(() => { resize(); }, [text]);
 
-  const columnable = BLOCK_PALETTE.filter((p) => settings.columnable_kinds.includes(p.kind));
+  const commitLines = (v: string) => {
+    const items = v.split("\n").map((s) => s.replace(/\r$/, ""));
+    onCommit({ items: items.length ? items : [""] } as Partial<ContentBlock>);
+  };
 
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-        <span className="font-bold uppercase tracking-widest">{count} column{count > 1 ? "s" : ""}</span>
-        <button
-          type="button"
-          onClick={addCol}
-          disabled={count >= settings.max_columns}
-          className="inline-flex items-center gap-1 rounded-pill border border-border px-2 py-1 hover:bg-secondary disabled:opacity-40"
+    <Tag className={`${markerCls} space-y-2 pl-6`}>
+      {/* Fake bullet items to preserve markers visually */}
+      {block.items.map((it, i) => (
+        <li key={i} className="min-h-[1.5em]">
+          <span className="invisible">{it || "."}</span>
+        </li>
+      ))}
+      <li className="list-none -mt-[calc(1.75em*var(--n))]" style={{ ["--n" as never]: block.items.length } as React.CSSProperties}>
+        <textarea
+          ref={ref}
+          className="w-full resize-none overflow-hidden bg-transparent outline-none"
+          value={text}
+          placeholder="Type a list item, press Enter for the next…"
+          onChange={(e) => onSet({ items: e.target.value.split("\n") } as Partial<ContentBlock>)}
+          onBlur={(e) => commitLines(e.target.value)}
+        />
+      </li>
+    </Tag>
+  );
+}
+
+/* ---------------- Image editor with resize handles ---------------- */
+
+function ImageEditor({
+  block, onSet, onCommit,
+}: {
+  block: Extract<ContentBlock, { kind: "image" }>;
+  onSet: (patch: Partial<ContentBlock>) => void;
+  onCommit: (patch: Partial<ContentBlock>) => void;
+}) {
+  const width = typeof block.width === "number" ? block.width : 1;
+  return (
+    <figure className="space-y-2">
+      {block.src ? (
+        <ResizableMedia
+          width={width}
+          onChange={(w) => onSet({ width: w } as Partial<ContentBlock>)}
+          onCommit={(w) => onCommit({ width: w } as Partial<ContentBlock>)}
         >
-          <Plus className="h-3 w-3" /> Add column
-        </button>
-      </div>
-      <div className={`grid gap-4 ${gridCls}`}>
-        {block.items.map((child, i) => {
-          const childPath = [...path, i];
-          const childKey = childPath.join(".");
-          const isChildFocused = focused === childKey;
-          return (
-            <div key={i} className={`group/col relative min-w-0 rounded-xl border border-dashed p-3 transition ${isChildFocused ? "border-heart" : "border-border/60"}`}>
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <select
-                  className="rounded-md border border-input bg-background px-2 py-0.5 text-xs"
-                  value={paletteLabelFor(child)}
-                  onChange={(e) => changeKind(i, e.target.value)}
-                >
-                  {columnable.map((p) => <option key={p.label} value={p.label}>{p.label}</option>)}
-                </select>
-                {count > 1 && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); removeCol(i); }}
-                    className="text-xs text-muted-foreground hover:text-heart"
-                    aria-label="Remove column"
-                    title="Remove column"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-              <div
-                onClick={(e) => { e.stopPropagation(); setFocused(childKey); }}
-                className={`min-w-0 rounded-lg p-1 [&_img]:!my-0 [&>*]:!my-0 ${isChildFocused ? "ring-2 ring-heart bg-heart/5" : ""}`}
-              >
-                {isChildFocused ? (
-                  <EditableBlock
-                    block={child}
-                    path={childPath}
-                    onUpdate={onUpdate}
-                    settings={settings}
-                    focused={focused}
-                    setFocused={setFocused}
-                    commit={commit}
-                  />
-                ) : (
-                  <RenderBlock block={child} />
-                )}
-              </div>
-            </div>
-          );
-        })}
+          <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />
+        </ResizableMedia>
+      ) : (
+        <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">No image URL</div>
+      )}
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-sm outline-none" placeholder="Image URL" value={block.src} onChange={(e) => onSet({ src: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ src: e.target.value } as Partial<ContentBlock>)} />
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-sm outline-none" placeholder="Alt text" value={block.alt ?? ""} onChange={(e) => onSet({ alt: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ alt: e.target.value } as Partial<ContentBlock>)} />
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-center text-sm text-muted-foreground outline-none" placeholder="Caption (optional)" value={block.caption ?? ""} onChange={(e) => onSet({ caption: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ caption: e.target.value } as Partial<ContentBlock>)} />
+    </figure>
+  );
+}
+
+/* ---------------- Video editor with resize handles ---------------- */
+
+function VideoEditor({
+  block, onSet, onCommit,
+}: {
+  block: Extract<ContentBlock, { kind: "video" }>;
+  onSet: (patch: Partial<ContentBlock>) => void;
+  onCommit: (patch: Partial<ContentBlock>) => void;
+}) {
+  const width = typeof block.width === "number" ? block.width : 1;
+  return (
+    <figure className="space-y-2">
+      {block.src ? (
+        <ResizableMedia
+          width={width}
+          onChange={(w) => onSet({ width: w } as Partial<ContentBlock>)}
+          onCommit={(w) => onCommit({ width: w } as Partial<ContentBlock>)}
+        >
+          <div className="pointer-events-none">
+            <RenderBlock block={{ ...block, width: 1 }} />
+          </div>
+        </ResizableMedia>
+      ) : (
+        <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">No video URL</div>
+      )}
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-sm outline-none" placeholder="YouTube / Vimeo / MP4 URL" value={block.src} onChange={(e) => onSet({ src: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ src: e.target.value } as Partial<ContentBlock>)} />
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-center text-sm text-muted-foreground outline-none" placeholder="Caption (optional)" value={block.caption ?? ""} onChange={(e) => onSet({ caption: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ caption: e.target.value } as Partial<ContentBlock>)} />
+    </figure>
+  );
+}
+
+/* ---------------- Resizable wrapper (corner handles) ---------------- */
+
+function ResizableMedia({
+  width, onChange, onCommit, children,
+}: {
+  width: number;
+  onChange: (w: number) => void;
+  onCommit: (w: number) => void;
+  children: React.ReactNode;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef<{ startX: number; startWidth: number; parentWidth: number; anchor: "l" | "r" } | null>(null);
+
+  const onDown = (anchor: "tl" | "tr" | "bl" | "br") => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const parent = wrapRef.current?.parentElement;
+    if (!parent) return;
+    dragging.current = {
+      startX: e.clientX,
+      startWidth: width,
+      parentWidth: parent.getBoundingClientRect().width,
+      anchor: anchor === "tl" || anchor === "bl" ? "l" : "r",
+    };
+    const move = (ev: MouseEvent) => {
+      if (!dragging.current) return;
+      const d = ev.clientX - dragging.current.startX;
+      const delta = (dragging.current.anchor === "r" ? d : -d) / dragging.current.parentWidth;
+      const next = Math.max(0.33, Math.min(1, dragging.current.startWidth + delta * 2));
+      onChange(next);
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      if (dragging.current) {
+        const parent2 = wrapRef.current?.parentElement;
+        if (parent2) {
+          // Commit current width
+          const style = wrapRef.current?.style.width;
+          const pct = style ? parseFloat(style) / 100 : width;
+          onCommit(isFinite(pct) ? pct : width);
+        }
+      }
+      dragging.current = null;
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
+  const pct = Math.round(width * 100);
+
+  return (
+    <div className="flex justify-center">
+      <div ref={wrapRef} className="relative" style={{ width: `${pct}%` }}>
+        {children}
+        <Handle pos="tl" onMouseDown={onDown("tl")} />
+        <Handle pos="tr" onMouseDown={onDown("tr")} />
+        <Handle pos="bl" onMouseDown={onDown("bl")} />
+        <Handle pos="br" onMouseDown={onDown("br")} />
       </div>
     </div>
   );
 }
 
-function paletteLabelFor(block: ContentBlock): string {
-  // pick the first palette entry whose kind matches
-  const match = BLOCK_PALETTE.find((p) => p.kind === block.kind);
-  return match?.label ?? "Paragraph";
+function Handle({ pos, onMouseDown }: { pos: "tl" | "tr" | "bl" | "br"; onMouseDown: (e: React.MouseEvent) => void }) {
+  const posCls = {
+    tl: "-top-2 -left-2 cursor-nwse-resize",
+    tr: "-top-2 -right-2 cursor-nesw-resize",
+    bl: "-bottom-2 -left-2 cursor-nesw-resize",
+    br: "-bottom-2 -right-2 cursor-nwse-resize",
+  }[pos];
+  return (
+    <div
+      data-keep-focus
+      onMouseDown={onMouseDown}
+      className={`absolute z-10 h-4 w-4 rounded-full border-2 border-white shadow ${posCls}`}
+      style={{ background: "var(--heart)" }}
+    />
+  );
+}
+
+/* ---------------- Link card editor (no navigation on click) ---------------- */
+
+function LinkCardEditor({
+  block, onSet, onCommit,
+}: {
+  block: Extract<ContentBlock, { kind: "hyperlink" }>;
+  onSet: (patch: Partial<ContentBlock>) => void;
+  onCommit: (patch: Partial<ContentBlock>) => void;
+}) {
+  const testLink = () => {
+    const url = block.url && block.url.trim() ? block.url : "#";
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <div className="relative space-y-2 rounded-2xl border border-border bg-card p-5">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); testLink(); }}
+        className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-pill border border-border px-2.5 py-1 text-xs font-semibold hover:bg-secondary"
+      >
+        <ExternalLink className="h-3 w-3" /> Test link
+      </button>
+      <input className="w-full bg-transparent font-display text-lg font-semibold outline-none" style={{ color: "var(--heart)" }} placeholder="Link title" value={block.label} onChange={(e) => onSet({ label: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ label: e.target.value } as Partial<ContentBlock>)} />
+      <AutoTextarea className="w-full bg-transparent text-sm text-muted-foreground outline-none" placeholder="Description (optional)" value={block.description ?? ""} onChange={(v) => onSet({ description: v } as Partial<ContentBlock>)} onCommit={(v) => onCommit({ description: v } as Partial<ContentBlock>)} rows={1} />
+      <input className="w-full rounded-md border border-dashed border-border bg-transparent px-2 py-1 text-xs text-muted-foreground outline-none" placeholder="https://…" value={block.url} onChange={(e) => onSet({ url: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => onCommit({ url: e.target.value } as Partial<ContentBlock>)} />
+    </div>
+  );
+}
+
+/* ---------------- Recommended editor (search dropdown) ---------------- */
+
+const MAX_SEARCH_RESULTS = 8;
+
+function RecommendedEditor({
+  block, onCommit,
+}: {
+  block: Extract<ContentBlock, { kind: "recommended" }>;
+  onCommit: (patch: Partial<ContentBlock>) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const trimmed = query.trim();
+  const { data: results = [] } = useQuery({
+    queryKey: ["admin-article-search", trimmed],
+    enabled: trimmed.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("articles")
+        .select("slug,title,pillar")
+        .ilike("title", `%${trimmed}%`)
+        .eq("published", true)
+        .limit(MAX_SEARCH_RESULTS);
+      return data ?? [];
+    },
+  });
+
+  const { data: selected } = useQuery({
+    queryKey: ["admin-article-selected", block.slug],
+    enabled: !!block.slug,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("articles")
+        .select("slug,title,pillar,description")
+        .eq("slug", block.slug)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  return (
+    <div className="space-y-3">
+      {selected ? (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="eyebrow">Recommended · {selected.pillar.replace(/-/g, " ")}</p>
+          <h4 className="mt-2 font-display text-xl">{selected.title}</h4>
+          {selected.description && <p className="mt-1 text-sm text-muted-foreground">{selected.description}</p>}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+          No article selected
+        </div>
+      )}
+      <div className="relative" data-keep-focus>
+        <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-transparent px-2 py-1">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            className="w-full bg-transparent text-sm outline-none"
+            placeholder="Search articles by title…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        {trimmed.length > 0 && (
+          <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-2xl border border-border bg-card shadow-lg">
+            {results.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-muted-foreground">No matches</li>
+            ) : results.map((r) => (
+              <li key={r.slug}>
+                <button
+                  type="button"
+                  onClick={() => { onCommit({ slug: r.slug } as Partial<ContentBlock>); setQuery(""); }}
+                  className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-secondary"
+                >
+                  <span className="font-semibold">{r.title}</span>
+                  <span className="text-xs text-muted-foreground">{r.pillar.replace(/-/g, " ")} · {r.slug}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* ---------------- AutoTextarea ---------------- */

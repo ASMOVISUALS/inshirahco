@@ -139,9 +139,10 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </Tag>
       );
     }
-    case "image":
+    case "image": {
+      const w = typeof block.width === "number" ? Math.max(0.33, Math.min(1, block.width)) : 1;
       return (
-        <figure className="my-8">
+        <figure className="my-8" style={{ width: `${Math.round(w * 100)}%`, marginLeft: "auto", marginRight: "auto" }}>
           {block.src ? (
             <img src={block.src} alt={block.alt ?? ""} className="w-full rounded-2xl" />
           ) : (
@@ -152,6 +153,8 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
           {block.caption && <figcaption className="mt-2 text-center text-sm text-muted-foreground">{block.caption}</figcaption>}
         </figure>
       );
+    }
+
     case "quote":
       return (
         <blockquote className="my-10 rounded-3xl border-l-4 p-8" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}>
@@ -179,8 +182,9 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
       );
     case "video": {
       const { embed, type } = toEmbedUrl(block.src);
+      const w = typeof block.width === "number" ? Math.max(0.33, Math.min(1, block.width)) : 1;
       return (
-        <figure className="my-8">
+        <figure className="my-8" style={{ width: `${Math.round(w * 100)}%`, marginLeft: "auto", marginRight: "auto" }}>
           {!block.src ? (
             <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">No video URL</div>
           ) : type === "youtube" || type === "vimeo" ? (
@@ -194,6 +198,7 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </figure>
       );
     }
+
     case "audio":
       return (
         <figure className="my-6 rounded-2xl border border-border bg-card p-4">
@@ -243,9 +248,10 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
         </div>
       );
     case "columns": {
-      const count = Math.max(1, Math.min(4, block.items.length));
-      const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : count === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
+      const count = Math.max(1, Math.min(3, block.items.length));
+      const gridCls = count === 1 ? "grid-cols-1" : count === 2 ? "md:grid-cols-2" : "md:grid-cols-3";
       return (
+
         <div className={`my-8 grid gap-6 ${gridCls}`}>
           {block.items.map((child, i) => (
             <div key={i} className="min-w-0 [&_img]:!my-0 [&>*]:!my-0">
