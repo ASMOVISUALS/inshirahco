@@ -8,6 +8,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/read/$slug")({
   ssr: false,
