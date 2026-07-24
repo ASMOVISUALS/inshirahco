@@ -1,12 +1,49 @@
 import { useEffect } from "react";
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { hasAdminRoleQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  LayoutDashboard,
+  FileText,
+  Sparkles,
+  MessageSquareQuote,
+  Mail,
+  Columns3,
+  LayoutTemplate,
+  FileStack,
+  HelpCircle,
+  Settings,
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
+
+const topItems = [
+  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+  { title: "Articles", url: "/admin/articles", icon: FileText },
+  { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
+  { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
+  { title: "Newsletter", url: "/admin/newsletter", icon: Mail },
+  { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
+  { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
+  { title: "Pages", url: "/admin/pages", icon: FileStack },
+  { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
+];
 
 function AdminLayout() {
   const { user } = useAuth();
@@ -25,39 +62,64 @@ function AdminLayout() {
   }
 
   return (
-    <div className="container-wide py-12">
-      <header className="mb-10 flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="eyebrow">Admin</p>
-          <h1 className="mt-2 text-4xl md:text-5xl">Inshirah control room</h1>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="flex h-14 items-center gap-3 border-b border-border px-4">
+            <SidebarTrigger />
+            <div>
+              <p className="eyebrow text-xs">Admin</p>
+              <h1 className="text-lg font-display leading-none">Inshirah control room</h1>
+            </div>
+          </header>
+          <main className="flex-1 p-8">
+            <Outlet />
+          </main>
         </div>
-        <nav className="flex flex-wrap gap-2 text-sm font-semibold">
-          <AdminLink to="/admin">Dashboard</AdminLink>
-          <AdminLink to="/admin/articles">Articles</AdminLink>
-          <AdminLink to="/admin/reflections">Reflections</AdminLink>
-          <AdminLink to="/admin/testimonials">Testimonials</AdminLink>
-          <AdminLink to="/admin/newsletter">Newsletter</AdminLink>
-          <AdminLink to="/admin/pillars">Pillars</AdminLink>
-          <AdminLink to="/admin/formats">Formats</AdminLink>
-          <AdminLink to="/admin/pages">Pages</AdminLink>
-          <AdminLink to="/admin/faqs">FAQs</AdminLink>
-          <AdminLink to="/admin/settings">Settings</AdminLink>
-        </nav>
-      </header>
-      <Outlet />
-    </div>
+      </div>
+    </SidebarProvider>
   );
 }
 
-function AdminLink({ to, children }: { to: string; children: React.ReactNode }) {
+function AdminSidebar() {
+  const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const isActive = (path: string) =>
+    path === "/admin" ? currentPath === "/admin" : currentPath === path || currentPath.startsWith(path + "/");
+
   return (
-    <Link
-      to={to}
-      className="rounded-pill border border-border px-4 py-2 hover:bg-secondary"
-      activeProps={{ style: { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } }}
-      activeOptions={{ exact: true }}
-    >
-      {children}
-    </Link>
+    <Sidebar collapsible="icon">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {topItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/settings")} tooltip="Settings">
+              <Link to="/admin/settings">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
