@@ -4,6 +4,7 @@ import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-r
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { pageQuery } from "@/lib/queries";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 
 interface Preview { icon?: string; title: string; description: string; tag?: string }
 
