@@ -86,7 +86,7 @@ function JoinPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: siteUrl("/"),
           data: { name, dob, gender },
         },
       });
