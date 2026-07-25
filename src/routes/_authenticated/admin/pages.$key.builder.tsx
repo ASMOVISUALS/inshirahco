@@ -59,12 +59,17 @@ function PageBuilderRoute() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [dirty, setDirty] = useState(false);
   const [activeCat, setActiveCat] = useState<string | null>(BLOCK_CATEGORIES[0]?.key ?? null);
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
 
   useEffect(() => {
     if (row && !seeded) {
       setBlocks(initialBlocks);
       setHistory([initialBlocks]);
       setHistoryIdx(0);
+      const content = (row.content ?? {}) as Record<string, unknown>;
+      setSeoTitle(typeof content.seo_title === "string" ? content.seo_title : "");
+      setSeoDesc(typeof content.seo_description === "string" ? content.seo_description : "");
       // If blocks were seeded (not already saved), mark dirty so user knows to save
       const saved = isBlockArray(row.content?.blocks) && (row.content?.blocks as Block[]).length > 0;
       setDirty(!saved && initialBlocks.length > 0);
