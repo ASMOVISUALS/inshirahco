@@ -4,6 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, LayoutTemplate, Lock, Unlock, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlockArray } from "@/lib/page-blocks";
+import { AdminPasswordGate } from "@/components/AdminPasswordGate";
+import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/_authenticated/admin/pages/")({
   head: () => ({ meta: [{ title: "Pages — Admin" }, { name: "robots", content: "noindex" }] }),
