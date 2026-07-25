@@ -23,7 +23,7 @@ interface PageRow {
   slug: string;
   title: string;
   is_published: boolean;
-  is_locked: boolean;
+  status: PageStatus;
   content: Record<string, unknown>;
 }
 
@@ -34,9 +34,10 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,is_locked,content")
+        .select("key,slug,title,is_published,status,content")
         .order("key");
       if (error) throw error;
+
       return (data ?? []) as PageRow[];
     },
   });
