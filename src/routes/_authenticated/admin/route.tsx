@@ -36,15 +36,35 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const dashboardItem = { title: "Dashboard", url: "/admin", icon: LayoutDashboard };
-const topItems = [
-  { title: "Articles", url: "/admin/articles", icon: FileText },
-  { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
-  { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
-  { title: "Newsletter", url: "/admin/newsletter", icon: Mail },
-  { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
-  { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
-  { title: "Pages", url: "/admin/pages", icon: FileStack },
-  { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
+const sections: { label: string; items: { title: string; url: string; icon: typeof FileText }[] }[] = [
+  {
+    label: "Content",
+    items: [
+      { title: "Articles", url: "/admin/articles", icon: FileText },
+      { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Audience",
+    items: [
+      { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
+      { title: "Newsletter", url: "/admin/newsletter", icon: Mail },
+    ],
+  },
+  {
+    label: "Structure",
+    items: [
+      { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
+      { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
+      { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
+    ],
+  },
+  {
+    label: "Dev",
+    items: [
+      { title: "Pages", url: "/admin/pages", icon: FileStack },
+    ],
+  },
 ];
 
 function AdminLayout() {
@@ -104,23 +124,25 @@ function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <Separator className="mx-2 w-auto" />
-        <SidebarGroup>
-          <SidebarGroupLabel>Manage</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {topItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {sections.map((section) => (
+          <SidebarGroup key={section.label}>
+            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.items.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
