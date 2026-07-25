@@ -234,9 +234,10 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
                   <td className="px-4 py-3 font-mono text-xs font-semibold">{key}</td>
                   <td className="px-4 py-3">
                     {Array.isArray(value) || (typeof value === "object" && value !== null) ? (
-                      <pre className="overflow-x-auto rounded-md border border-dashed border-border bg-background/50 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-dashed border-border bg-background/50 px-3 py-2 font-mono text-[11px] text-muted-foreground">
                         {JSON.stringify(value, null, 2)}
                       </pre>
+
                     ) : (
                       <textarea
                         rows={Math.min(6, Math.max(1, String(value ?? "").split("\n").length))}
