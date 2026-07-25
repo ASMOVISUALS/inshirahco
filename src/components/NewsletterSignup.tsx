@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { newslettersQuery, type NewsletterRow } from "@/lib/queries";
+import { substituteVars, useTemplateVars } from "@/lib/template-vars";
 
 const schema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email." }).max(255),
@@ -12,6 +15,8 @@ interface Props {
   cta?: string;
   variant?: "default" | "inline" | "dark";
   source?: string;
+  /** Explicit newsletter id. Falls back to the default newsletter when omitted. */
+  newsletterId?: string;
 }
 
 export function NewsletterSignup({
@@ -20,7 +25,21 @@ export function NewsletterSignup({
   cta = "Join the letter",
   variant = "default",
   source = "site",
+  newsletterId,
 }: Props) {
+  const vars = useTemplateVars();
+  const heading_r = substituteVars(heading, vars);
+  const description_r = substituteVars(description, vars);
+  const cta_r = substituteVars(cta, vars);
+
+  const { data: newsletters = [] } = useQuery(newslettersQuery());
+  const [resolvedId, setResolvedId] = useState<string | null>(newsletterId ?? null);
+  useEffect(() => {
+    if (newsletterId) { setResolvedId(newsletterId); return; }
+    const def = newsletters.find((n: NewsletterRow) => n.is_default) ?? newsletters[0];
+    if (def) setResolvedId(def.id);
+  }, [newsletterId, newsletters]);
+
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success">("idle");
@@ -33,11 +52,15 @@ export function NewsletterSignup({
       setError(parsed.error.issues[0]?.message ?? "Invalid email.");
       return;
     }
+    if (!resolvedId) {
+      setError("No newsletter is configured yet.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     const { error: dbError } = await supabase
       .from("newsletter_signups")
-      .insert({ email: parsed.data.email.toLowerCase(), source });
+      .insert({ email: parsed.data.email.toLowerCase(), source, newsletter_id: resolvedId });
     setSubmitting(false);
     if (dbError && !/duplicate|unique/i.test(dbError.message)) {
       setError("Something went wrong. Please try again.");
@@ -59,9 +82,9 @@ export function NewsletterSignup({
     <section className={container} style={dark ? { background: "color-mix(in oklab, var(--ink) 92%, black)", color: "var(--paper)" } : undefined}>
       <div className="max-w-xl">
         <p className="eyebrow mb-3" style={dark ? { color: "var(--gold-decorative)" } : undefined}>Newsletter</p>
-        <h3 className="text-3xl md:text-4xl leading-tight" style={dark ? { color: "var(--paper)" } : undefined}>{heading}</h3>
+        <h3 className="text-3xl md:text-4xl leading-tight" style={dark ? { color: "var(--paper)" } : undefined}>{heading_r}</h3>
         <p className={`mt-3 text-[1.02rem] leading-relaxed ${dark ? "" : "text-muted-foreground"}`} style={dark ? { color: "color-mix(in oklab, var(--paper) 78%, transparent)" } : undefined}>
-          {description}
+          {description_r}
         </p>
 
         {status === "success" ? (
@@ -85,7 +108,7 @@ export function NewsletterSignup({
               aria-describedby={error ? "newsletter-error" : undefined}
             />
             <button type="submit" disabled={submitting} className="btn-primary whitespace-nowrap">
-              {submitting ? "Sending…" : cta}
+              {submitting ? "Sending…" : cta_r}
             </button>
           </form>
         )}
