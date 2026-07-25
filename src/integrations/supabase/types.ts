@@ -143,6 +143,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          newsletter_id: string
           source: string | null
         }
         Insert: {
@@ -150,6 +151,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          newsletter_id: string
           source?: string | null
         }
         Update: {
@@ -157,7 +159,46 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          newsletter_id?: string
           source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_signups_newsletter_id_fkey"
+            columns: ["newsletter_id"]
+            isOneToOne: false
+            referencedRelation: "newsletters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletters: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -169,6 +210,7 @@ export type Database = {
           is_published: boolean
           key: string
           slug: string | null
+          status: Database["public"]["Enums"]["page_status"]
           template: string
           title: string | null
           updated_at: string
@@ -180,6 +222,7 @@ export type Database = {
           is_published?: boolean
           key: string
           slug?: string | null
+          status?: Database["public"]["Enums"]["page_status"]
           template?: string
           title?: string | null
           updated_at?: string
@@ -191,6 +234,7 @@ export type Database = {
           is_published?: boolean
           key?: string
           slug?: string | null
+          status?: Database["public"]["Enums"]["page_status"]
           template?: string
           title?: string | null
           updated_at?: string
@@ -435,6 +479,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member"
       gender_type: "male" | "female" | "prefer_not_to_say"
+      page_status: "published" | "hidden" | "coming_soon"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -564,6 +609,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "member"],
       gender_type: ["male", "female", "prefer_not_to_say"],
+      page_status: ["published", "hidden", "coming_soon"],
     },
   },
 } as const
