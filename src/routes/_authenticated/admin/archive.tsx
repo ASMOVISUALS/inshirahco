@@ -41,10 +41,10 @@ function ArchivePage() {
               type="button"
               onClick={() => setActive(isActive ? null : c.id)}
               className={
-                "font-display leading-none transition-all duration-200 " +
+                "font-display leading-none text-3xl md:text-4xl transition-all duration-200 " +
                 (isActive
-                  ? "text-4xl md:text-5xl text-heart [text-shadow:0_0_24px_color-mix(in_oklab,var(--heart)_55%,transparent)] underline decoration-heart decoration-2 underline-offset-8"
-                  : "text-3xl md:text-4xl text-muted-foreground hover:text-foreground")
+                  ? "text-heart [text-shadow:0_0_24px_color-mix(in_oklab,var(--heart)_60%,transparent),0_0_48px_color-mix(in_oklab,var(--heart)_35%,transparent)]"
+                  : "text-muted-foreground hover:text-foreground")
               }
               aria-pressed={isActive}
             >
