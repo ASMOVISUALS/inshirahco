@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { pageBySlugQuery } from "@/lib/queries";
 import { PageRenderer, readBlocks } from "@/lib/page-blocks";
+import { HiddenPage } from "@/components/HiddenPage";
 
 // Reserved slugs that have their own route files
 const RESERVED = new Set([
