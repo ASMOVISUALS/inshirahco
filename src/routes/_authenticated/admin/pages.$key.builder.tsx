@@ -244,7 +244,30 @@ function PageBuilderRoute() {
           {selected ? (
             <BlockInspector key={selected.id} block={selected} onChange={(props) => updateBlock(selected.id, props)} />
           ) : (
-            <p className="text-xs text-muted-foreground">Select a block from the list to edit its properties.</p>
+            <div className="flex flex-col gap-4">
+              <div className="rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold">Page settings</div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold">SEO title</label>
+                <input
+                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  value={seoTitle}
+                  onChange={(e) => { setSeoTitle(e.target.value); setDirty(true); }}
+                  placeholder={row.title}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">Shown in browser tab and search results. Falls back to page title.</p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold">SEO description</label>
+                <textarea
+                  rows={4}
+                  className="w-full resize-y rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  value={seoDesc}
+                  onChange={(e) => { setSeoDesc(e.target.value); setDirty(true); }}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">One or two sentences describing the page for search & social previews.</p>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Select a block above to edit its properties.</p>
+            </div>
           )}
         </div>
       </div>
