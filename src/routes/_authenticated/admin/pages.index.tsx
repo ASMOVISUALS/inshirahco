@@ -313,7 +313,7 @@ function PagesAdmin() {
 
 
 function Section({
-  label, rows, activeKey, onSelect, onStatus, onDelete, note,
+  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, note,
 }: {
   label: string;
   rows: PageRow[];
@@ -321,6 +321,8 @@ function Section({
   onSelect: (k: string | null) => void;
   onStatus: ((row: PageRow) => void) | null;
   onDelete: ((row: PageRow) => void) | null;
+  onRestore: ((row: PageRow) => void) | null;
+  onPurge: ((row: PageRow) => void) | null;
   note?: string;
 }) {
   return (
@@ -329,32 +331,39 @@ function Section({
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
       </div>
-      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {rows.map((r) => (
-          <PageTile
-            key={r.key}
-            row={r}
-            active={activeKey === r.key}
-            onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
-            onStatus={onStatus ? () => onStatus(r) : null}
-            onDelete={onDelete ? () => onDelete(r) : null}
-          />
-        ))}
-      </div>
+      {rows.length > 0 && (
+        <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {rows.map((r) => (
+            <PageTile
+              key={r.key}
+              row={r}
+              active={activeKey === r.key}
+              onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
+              onStatus={onStatus ? () => onStatus(r) : null}
+              onDelete={onDelete ? () => onDelete(r) : null}
+              onRestore={onRestore ? () => onRestore(r) : null}
+              onPurge={onPurge ? () => onPurge(r) : null}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
 function PageTile({
-  row, active, onSelect, onStatus, onDelete,
+  row, active, onSelect, onStatus, onDelete, onRestore, onPurge,
 }: {
   row: PageRow;
   active: boolean;
   onSelect: () => void;
   onStatus: (() => void) | null;
   onDelete: (() => void) | null;
+  onRestore: (() => void) | null;
+  onPurge: (() => void) | null;
 }) {
   const statusMeta =
+    row.archived_at ? { label: "Archived", icon: Archive, color: "var(--muted-foreground)" } :
     row.status === "published" ? { label: "Published", icon: Eye, color: "var(--ink)" } :
     row.status === "hidden" ? { label: "Hidden", icon: EyeOff, color: "var(--heart)" } :
     { label: "Coming soon", icon: Clock, color: "var(--gold)" };
@@ -365,7 +374,7 @@ function PageTile({
       onClick={(e) => { e.stopPropagation(); onSelect(); }}
       className={`flex cursor-pointer flex-col self-start rounded-2xl border bg-card p-4 transition-all ${
         active ? "border-heart shadow-md ring-1 ring-heart/30" : "border-border hover:border-heart/60 hover:shadow-sm"
-      }`}
+      } ${row.archived_at ? "opacity-80" : ""}`}
     >
       <div className="flex min-h-[88px] flex-col gap-1.5">
         <h3 className="text-base font-bold leading-tight">{row.title || row.slug}</h3>
@@ -389,28 +398,50 @@ function PageTile({
               <StatusIcon className="h-3 w-3" /> Status
             </button>
           )}
-          <Link
-            to="/admin/pages/$key/builder"
-            params={{ key: row.key }}
-            className="inline-flex items-center gap-1 rounded-md bg-heart px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90"
-          >
-            <LayoutTemplate className="h-3 w-3" /> Builder
-          </Link>
-          <a
-            href={`/${row.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
-          >
-            <ExternalLink className="h-3 w-3" /> Live
-          </a>
+          {!row.archived_at && (
+            <>
+              <Link
+                to="/admin/pages/$key/builder"
+                params={{ key: row.key }}
+                className="inline-flex items-center gap-1 rounded-md bg-heart px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90"
+              >
+                <LayoutTemplate className="h-3 w-3" /> Builder
+              </Link>
+              <a
+                href={`/${row.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+              >
+                <ExternalLink className="h-3 w-3" /> Live
+              </a>
+            </>
+          )}
           {onDelete && (
             <button
               className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"
               onClick={onDelete}
-              title="Delete page"
+              title="Move to archive"
             >
               <Trash2 className="h-3 w-3" /> Delete
+            </button>
+          )}
+          {onRestore && (
+            <button
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+              onClick={onRestore}
+              title="Restore page"
+            >
+              <RotateCcw className="h-3 w-3" /> Restore
+            </button>
+          )}
+          {onPurge && (
+            <button
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"
+              onClick={onPurge}
+              title="Permanently delete"
+            >
+              <Trash2 className="h-3 w-3" /> Delete forever
             </button>
           )}
         </div>
@@ -418,6 +449,7 @@ function PageTile({
     </div>
   );
 }
+
 
 function CreateDialog({
   existing, onClose, onCreated,
