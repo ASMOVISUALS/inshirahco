@@ -125,6 +125,14 @@ function AdminSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/archive")} tooltip="Archive">
+              <Link to="/admin/archive">
+                <Archive className="h-4 w-4" />
+                <span>Archive</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/admin/settings")} tooltip="Settings">
               <Link to="/admin/settings">
                 <Settings className="h-4 w-4" />
