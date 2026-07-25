@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PillarArchive } from "@/components/PillarArchive";
+import { pageQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/young-hearts")({
+  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("pillar:young-hearts")); },
   head: () => ({
     meta: [
       { title: "Young Hearts — Inshirah" },
