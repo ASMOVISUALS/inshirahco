@@ -54,11 +54,15 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     label: "Layout",
     items: [
       { type: "hero", label: "Hero", description: "Big arabic mark + title + CTAs" },
+      { type: "hero_fullscreen", label: "Full-screen header", description: "Layered pattern + watermark" },
+      { type: "hidden_frame", label: "Hidden / Coming soon frame", description: "System template body" },
+      { type: "explore_pages", label: "Explore pages row", description: "Chip navigation" },
       { type: "section_header", label: "Section header", description: "Eyebrow + title + description" },
       { type: "divider", label: "Divider" },
       { type: "spacer", label: "Spacer" },
     ],
   },
+
   {
     key: "content",
     label: "Content",
