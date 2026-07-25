@@ -601,6 +601,50 @@ function FaqBlock({ pageKey, items }: { pageKey?: string; items: { question: str
   );
 }
 
+function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string }) {
+  return (
+    <section className="relative isolate overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.14]"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--heart) 55%, transparent) 0, transparent 42%),
+            radial-gradient(circle at 82% 68%, color-mix(in oklab, var(--gold) 45%, transparent) 0, transparent 45%),
+            url("data:image/svg+xml;utf8,${encodeURIComponent(
+              `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='#B4463D' stroke-width='0.9' opacity='0.9'><circle cx='80' cy='80' r='40'/><circle cx='80' cy='80' r='28' stroke='#D4AF37'/><polygon points='80,32 116,64 116,96 80,128 44,96 44,64'/><polygon points='80,44 106,68 106,92 80,116 54,92 54,68' stroke='#D4AF37'/><polygon points='80,56 96,72 96,88 80,104 64,88 64,72'/><path d='M0 80 L160 80 M80 0 L80 160 M20 20 L140 140 M140 20 L20 140' stroke-opacity='0.35'/></g></svg>`,
+            )}")`,
+          backgroundRepeat: "no-repeat, no-repeat, repeat",
+          backgroundSize: "auto, auto, 200px 200px",
+          backgroundPosition: "center, center, center",
+        }}
+      />
+      {watermark && (
+        <span
+          aria-hidden
+          className="watermark-breathe pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none font-arabic text-[24vw] leading-none"
+          style={{ color: "color-mix(in oklab, var(--heart) 12%, transparent)" }}
+          dir="rtl"
+        >
+          {watermark}
+        </span>
+      )}
+      <div className="container-wide relative z-10 flex min-h-[70svh] flex-col items-center justify-center py-24 text-center">
+        {eyebrow && <p className="eyebrow mb-6" style={{ color: "var(--heart)" }}>{eyebrow}</p>}
+        {title && (
+          <h1 className="mx-auto max-w-3xl text-6xl leading-[1.02] md:text-8xl" style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1', color: "var(--ink)" }}>
+            {title}
+          </h1>
+        )}
+        {subtitle && <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground md:text-xl">{subtitle}</p>}
+        {verse && (
+          <p className="mt-10 font-arabic text-2xl" dir="rtl" style={{ color: "color-mix(in oklab, var(--heart) 70%, transparent)" }}>{verse}</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // -------- Helpers --------
 
 export function isBlockArray(v: unknown): v is Block[] {
