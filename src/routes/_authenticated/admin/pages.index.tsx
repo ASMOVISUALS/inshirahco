@@ -384,7 +384,7 @@ function StatusOverlay({
                 onClick={() => onPick(o.value)}
                 className={`group flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-all ${isCurrent ? "border-heart bg-heart/5" : "border-border bg-card hover:border-heart hover:shadow-md"}`}
               >
-                <Icon className="h-6 w-6" style={{ color: o.color }} />
+                <Icon className="h-6 w-6" />
                 <div>
                   <p className="text-base font-bold">{o.label}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{o.description}</p>
