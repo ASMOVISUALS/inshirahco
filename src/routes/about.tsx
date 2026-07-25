@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LetterMark } from "@/components/LetterMark";
 import { pageQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { HiddenPage } from "@/components/HiddenPage";
 
 export const Route = createFileRoute("/about")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("about")); },
