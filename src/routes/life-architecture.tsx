@@ -50,7 +50,9 @@ export const Route = createFileRoute("/life-architecture")({
 interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
-  const { data: page = {} } = useQuery(pageQuery("life-architecture"));
+  const { data: bundle } = useQuery(pageQuery("life-architecture"));
+  const page = bundle?.content ?? {};
+  if (bundle?.is_locked) return <HiddenPage title="Life Architecture" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
@@ -60,6 +62,7 @@ function LifeArchitecture() {
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
     return <PageRenderer blocks={rawBlocks as Block[]} />;
   }
+
 
   return (
     <>
