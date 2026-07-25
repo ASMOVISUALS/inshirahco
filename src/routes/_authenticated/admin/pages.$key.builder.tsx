@@ -102,7 +102,7 @@ function PageBuilderRoute() {
   const save = useMutation({
     mutationFn: async () => {
       if (!row) throw new Error("No page");
-      const nextContent = { ...(row.content ?? {}), blocks };
+      const nextContent = { ...(row.content ?? {}), seo_title: seoTitle, seo_description: seoDesc, blocks };
       const { error } = await supabase.from("pages").update({ content: nextContent as never }).eq("key", row.key);
       if (error) throw error;
     },
