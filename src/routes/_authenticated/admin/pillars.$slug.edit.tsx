@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ArabicLetterPicker, TintSelect } from "@/components/ArabicLetterPicker";
 
 export const Route = createFileRoute("/_authenticated/admin/pillars/$slug/edit")({
   head: () => ({ meta: [{ title: "Edit pillar — Admin" }, { name: "robots", content: "noindex" }] }),
