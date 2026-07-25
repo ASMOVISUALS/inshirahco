@@ -12,6 +12,9 @@ import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVar
 
 export type BlockType =
   | "hero"
+  | "hero_fullscreen"
+  | "hidden_frame"
+  | "explore_pages"
   | "section_header"
   | "heading"
   | "paragraph"
@@ -31,6 +34,7 @@ export type BlockType =
   | "arabic_verse"
   | "divider"
   | "spacer";
+
 
 export interface Block<TProps = Record<string, unknown>> {
   id: string;
