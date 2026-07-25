@@ -270,7 +270,9 @@ type FieldDef =
   | { key: string; label: string; kind: "number"; min?: number; max?: number }
   | { key: string; label: string; kind: "select"; options: { value: string; label: string }[] }
   | { key: string; label: string; kind: "list_string" }
+  | { key: string; label: string; kind: "newsletter_select" }
   | { key: string; label: string; kind: "list_object"; shape: { key: string; label: string; kind: "text" | "textarea" | "select"; options?: { value: string; label: string }[] }[] };
+
 
 const FIELDS: Record<BlockType, FieldDef[]> = {
   hero: [
