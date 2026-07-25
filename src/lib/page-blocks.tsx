@@ -405,12 +405,41 @@ function RenderBlock({ block }: { block: Block }) {
         </section>
       );
 
-    case "newsletter":
+    case "newsletter": {
+      const nlId = (p.newsletterId as string) || undefined;
       return (
         <section className="container-wide py-14">
-          <NewsletterSignup heading={s("heading") || undefined} description={s("description") || undefined} cta={s("cta") || undefined} />
+          <NewsletterSignup
+            heading={s("heading") || undefined}
+            description={s("description") || undefined}
+            cta={s("cta") || undefined}
+            newsletterId={nlId}
+          />
         </section>
       );
+    }
+
+    case "hero_fullscreen":
+      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+
+    case "hidden_frame":
+      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+
+    case "explore_pages": {
+      const items = (Array.isArray(p.items) ? p.items : []) as { label: string; href: string }[];
+      return (
+        <section className="container-wide pb-16">
+          <nav aria-label="Explore" className="flex flex-wrap items-center justify-center gap-2">
+            {items.map((l, i) => (
+              <Link key={i} to={l.href} className="rounded-full border border-border bg-card/70 px-5 py-2 text-sm backdrop-blur transition-colors hover:border-heart hover:text-heart">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </section>
+      );
+    }
+
 
     case "faq_accordion":
       return <FaqBlock pageKey={s("page_key")} items={(Array.isArray(p.items) ? p.items : []) as { question: string; answer: string }[]} />;
