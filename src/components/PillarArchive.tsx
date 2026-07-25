@@ -27,6 +27,10 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
 
   const filtered = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items;
 
+  if (bundle?.is_locked) return <HiddenPage title={meta.label} />;
+
+
+
   return (
     <>
       <section className="hero-radial">
