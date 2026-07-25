@@ -519,3 +519,20 @@ function Field({ field, value, onChange }: { field: FieldDef; value: unknown; on
 }
 
 void Link;
+
+function NewsletterSelectField({ label, value, onChange }: { label: string; value: string | undefined; onChange: (v: string) => void }) {
+  const base = "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm outline-none focus:border-heart";
+  const { data = [] } = useQuery(newslettersQuery());
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <select className={base} value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Default newsletter</option>
+        {data.map((n) => (
+          <option key={n.id} value={n.id}>{n.name}{n.is_default ? " (default)" : ""}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
