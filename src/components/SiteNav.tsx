@@ -191,6 +191,9 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
                     <Shield className="h-4.5 w-4.5" strokeWidth={1.8} />
                   </Link>
                 )}
+                <Link to="/profile" aria-label="My profile" className="hidden md:grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-secondary">
+                  <User className="h-4.5 w-4.5" strokeWidth={1.8} />
+                </Link>
                 <button type="button" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
                   <LogOut className="h-4 w-4" strokeWidth={1.8} /> Sign out
                 </button>
