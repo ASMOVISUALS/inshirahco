@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft } from "lucide-react";
+import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
