@@ -39,19 +39,25 @@ function ProfileEdit() {
     onError: (e: Error) => setNameStatus(e.message),
   });
 
+  const [currentPw, setCurrentPw] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [pwStatus, setPwStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const changePassword = useMutation({
     mutationFn: async () => {
+      if (!currentPw) throw new Error("Enter your current password.");
       if (pw.length < 8) throw new Error("Password must be at least 8 characters.");
       if (pw !== pw2) throw new Error("Passwords do not match.");
+      const email = profile?.email ?? user?.email;
+      if (!email) throw new Error("Missing account email.");
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPw });
+      if (signInError) throw new Error("Current password is incorrect.");
       const { error } = await supabase.auth.updateUser({ password: pw });
       if (error) throw error;
     },
     onSuccess: () => {
-      setPw(""); setPw2("");
+      setCurrentPw(""); setPw(""); setPw2("");
       setPwStatus({ ok: true, msg: "Password updated." });
     },
     onError: (e: Error) => setPwStatus({ ok: false, msg: e.message }),
@@ -97,6 +103,17 @@ function ProfileEdit() {
         <p className="mt-1 text-sm text-muted-foreground">Use at least 8 characters. You'll stay signed in on this device.</p>
         <div className="mt-5 grid gap-4">
           <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="currentPw">Current password</label>
+            <input
+              id="currentPw"
+              type="password"
+              autoComplete="current-password"
+              value={currentPw}
+              onChange={(e) => { setCurrentPw(e.target.value); setPwStatus(null); }}
+              className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none focus:border-heart"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="pw">New password</label>
             <input
               id="pw"
@@ -123,7 +140,7 @@ function ProfileEdit() {
               type="button"
               className="btn-primary"
               onClick={() => changePassword.mutate()}
-              disabled={changePassword.isPending || !pw || !pw2}
+              disabled={changePassword.isPending || !currentPw || !pw || !pw2}
             >
               {changePassword.isPending ? "Updating…" : "Update password"}
             </button>
