@@ -141,7 +141,8 @@ function Group({ label, rows, selectedKey, onSelect }: { label: string; rows: Pa
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 font-semibold">
-                  {r.is_locked && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  {r.status === "hidden" && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  {r.status === "coming_soon" && <Clock className="h-3 w-3 shrink-0" style={{ color: "var(--gold)" }} />}
                   <span className="truncate">{r.title || r.slug}</span>
                 </div>
                 <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
