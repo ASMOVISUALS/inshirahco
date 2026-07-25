@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const Route = createFileRoute("/_authenticated/admin/pillars")({
+export const Route = createFileRoute("/_authenticated/admin/pillars/")({
   head: () => ({ meta: [{ title: "Pillars — Admin" }, { name: "robots", content: "noindex" }] }),
   component: PillarsAdmin,
 });
