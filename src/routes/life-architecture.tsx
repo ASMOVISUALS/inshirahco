@@ -5,6 +5,7 @@ import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { pageQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { HiddenPage } from "@/components/HiddenPage";
 
 interface Preview { icon?: string; title: string; description: string; tag?: string }
 
