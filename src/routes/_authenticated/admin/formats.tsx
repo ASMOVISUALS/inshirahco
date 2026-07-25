@@ -118,7 +118,7 @@ function FormatsAdmin() {
                   className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                   style={{
                     background: `color-mix(in oklab, ${color} 20%, transparent)`,
-                    color,
+                    color: `color-mix(in oklab, ${color} 65%, var(--ink))`,
                   }}
                 >
                   #{r.sort_order}
@@ -136,7 +136,7 @@ function FormatsAdmin() {
                     onClick={() => { setEditing(r); setSelected(null); }}
                     aria-label={`Edit ${r.label}`}
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-                    style={{ background: color }}
+                    style={{ background: `color-mix(in oklab, ${color} 78%, var(--ink))` }}
                   >
                     <Pencil className="h-3.5 w-3.5" /> Edit
                   </button>
