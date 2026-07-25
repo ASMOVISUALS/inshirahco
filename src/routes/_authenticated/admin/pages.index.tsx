@@ -315,7 +315,7 @@ function PageTile({
               onClick={onDelete}
               title="Delete page"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Delete
+              <Trash2 className="h-3 w-3" /> Delete
             </button>
           )}
         </div>
