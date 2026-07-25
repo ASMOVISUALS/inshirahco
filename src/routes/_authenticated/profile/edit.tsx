@@ -103,6 +103,17 @@ function ProfileEdit() {
         <p className="mt-1 text-sm text-muted-foreground">Use at least 8 characters. You'll stay signed in on this device.</p>
         <div className="mt-5 grid gap-4">
           <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="currentPw">Current password</label>
+            <input
+              id="currentPw"
+              type="password"
+              autoComplete="current-password"
+              value={currentPw}
+              onChange={(e) => { setCurrentPw(e.target.value); setPwStatus(null); }}
+              className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none focus:border-heart"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="pw">New password</label>
             <input
               id="pw"
