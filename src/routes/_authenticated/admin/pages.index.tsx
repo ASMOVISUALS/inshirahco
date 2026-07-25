@@ -467,14 +467,21 @@ function CreateDialog({
       const t = title.trim();
       const s = slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
       if (!t || !s) throw new Error("Title and slug are required.");
-      if (existing.some((r) => r.slug === s || r.key === s)) throw new Error("Slug already exists.");
       const key = `custom:${s}`;
+      const conflict = existing.find((r) => r.slug === s || r.key === s || r.key === key);
+      if (conflict) {
+        const where = conflict.archived_at ? "the archive" : "an active page";
+        throw new Error(`Slug "/${s}" is already used by ${where} ("${conflict.title || conflict.slug}"). Pick a different slug.`);
+      }
       const { error } = await supabase
         .from("pages")
         .insert({ key, slug: s, title: t, is_published: true, template: "blank", content: { blocks: [] } as never });
-      if (error) throw error;
+      if (error) throw new Error(error.message.includes("pages_slug_active_unique") ? `Slug "/${s}" is already in use.` : error.message);
       return key;
     },
+    onSuccess: (key) => onCreated(key),
+    onError: (e: Error) => setErr(e.message),
+  });
     onSuccess: (key) => onCreated(key),
     onError: (e: Error) => setErr(e.message),
   });
