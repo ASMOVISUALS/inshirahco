@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
-import { articlesQuery, testimonialsQuery, reflectionsQuery, faqsQuery } from "@/lib/queries";
+import { articlesQuery, testimonialsQuery, faqsQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVars } from "@/lib/template-vars";
+
 
 export type BlockType =
   | "hero"
