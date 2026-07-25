@@ -10,6 +10,7 @@ export const articlesQuery = () =>
         .from("articles")
         .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("published", true)
+        .is("archived_at", null)
         .order("published_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -27,6 +28,7 @@ export const articleBySlugQuery = (slug: string) =>
         .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("slug", slug)
         .eq("published", true)
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return data ? mapArticleRow(data) : null;
@@ -41,6 +43,7 @@ export const reflectionsQuery = () =>
         .from("reflections")
         .select("id,arabic,translation,reference,sort_order")
         .eq("active", true)
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -56,6 +59,7 @@ export const testimonialsQuery = () =>
         .from("testimonials")
         .select("id,quote,name,role,sort_order")
         .eq("featured", true)
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
