@@ -112,7 +112,7 @@ function PagesAdmin() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" onClick={() => setActiveKey(null)}>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pages</h1>
@@ -223,7 +223,7 @@ function Section({
   label: string;
   rows: PageRow[];
   activeKey: string | null;
-  onSelect: (k: string) => void;
+  onSelect: (k: string | null) => void;
   onStatus: ((row: PageRow) => void) | null;
   onDelete: ((row: PageRow) => void) | null;
   note?: string;
@@ -234,13 +234,13 @@ function Section({
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rows.map((r) => (
           <PageTile
             key={r.key}
             row={r}
             active={activeKey === r.key}
-            onSelect={() => onSelect(r.key)}
+            onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
             onStatus={onStatus ? () => onStatus(r) : null}
             onDelete={onDelete ? () => onDelete(r) : null}
           />
@@ -267,8 +267,8 @@ function PageTile({
 
   return (
     <div
-      onClick={onSelect}
-      className={`flex cursor-pointer flex-col rounded-2xl border bg-card p-4 transition-all ${
+      onClick={(e) => { e.stopPropagation(); onSelect(); }}
+      className={`flex cursor-pointer flex-col self-start rounded-2xl border bg-card p-4 transition-all ${
         active ? "border-heart shadow-md ring-1 ring-heart/30" : "border-border hover:border-heart/60 hover:shadow-sm"
       }`}
     >
@@ -284,34 +284,38 @@ function PageTile({
       </div>
 
       {active && (
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3" onClick={(e) => e.stopPropagation()}>
           {onStatus && (
-            <button className="btn-ghost text-xs" onClick={onStatus} title="Change status">
-              <StatusIcon className="h-3.5 w-3.5" /> Status
+            <button
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+              onClick={onStatus}
+              title="Change status"
+            >
+              <StatusIcon className="h-3 w-3" /> Status
             </button>
           )}
           <Link
             to="/admin/pages/$key/builder"
             params={{ key: row.key }}
-            className="btn-primary text-xs"
+            className="inline-flex items-center gap-1 rounded-md bg-heart px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90"
           >
-            <LayoutTemplate className="h-3.5 w-3.5" /> Builder
+            <LayoutTemplate className="h-3 w-3" /> Builder
           </Link>
           <a
             href={`/${row.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="btn-ghost text-xs"
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
           >
-            <ExternalLink className="h-3.5 w-3.5" /> Live
+            <ExternalLink className="h-3 w-3" /> Live
           </a>
           {onDelete && (
             <button
-              className="btn-ghost text-xs text-destructive hover:!text-destructive"
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"
               onClick={onDelete}
               title="Delete page"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Delete
+              <Trash2 className="h-3 w-3" /> Delete
             </button>
           )}
         </div>
