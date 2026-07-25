@@ -223,7 +223,7 @@ function Section({
   label: string;
   rows: PageRow[];
   activeKey: string | null;
-  onSelect: (k: string) => void;
+  onSelect: (k: string | null) => void;
   onStatus: ((row: PageRow) => void) | null;
   onDelete: ((row: PageRow) => void) | null;
   note?: string;
