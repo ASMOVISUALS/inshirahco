@@ -49,6 +49,8 @@ function Contact() {
     setSent(true);
   };
 
+  if (bundle?.is_locked) return <HiddenPage title="Contact" />;
+
   const rawBlocks = (page as { blocks?: unknown }).blocks;
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
     return <PageRenderer blocks={rawBlocks as Block[]} />;
