@@ -29,7 +29,8 @@ const schema = z.object({
 });
 
 function Contact() {
-  const { data: page = {} } = useQuery(pageQuery("contact"));
+  const { data: bundle } = useQuery(pageQuery("contact"));
+  const page = bundle?.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
