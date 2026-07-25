@@ -353,3 +353,52 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     </div>
   );
 }
+
+function StatusOverlay({
+  open, current, onOpenChange, onPick,
+}: {
+  open: boolean;
+  current: PageStatus;
+  onOpenChange: (o: boolean) => void;
+  onPick: (next: PageStatus) => void;
+}) {
+  const options: { value: PageStatus; label: string; icon: React.ComponentType<{ className?: string }>; description: string; color: string }[] = [
+    { value: "published", label: "Published", icon: Eye, description: "Live for all visitors.", color: "var(--ink)" },
+    { value: "hidden", label: "Hidden", icon: EyeOff, description: "Visitors see the hidden template.", color: "var(--heart)" },
+    { value: "coming_soon", label: "Coming soon", icon: Clock, description: "Visitors see a coming-soon page with newsletter sign-up.", color: "var(--gold)" },
+  ];
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Set page status</DialogTitle>
+          <DialogDescription>Pick a state. You'll be asked to confirm your password.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {options.map((o) => {
+            const Icon = o.icon;
+            const isCurrent = o.value === current;
+            return (
+              <button
+                key={o.value}
+                onClick={() => onPick(o.value)}
+                className={`group flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-all ${isCurrent ? "border-heart bg-heart/5" : "border-border bg-card hover:border-heart hover:shadow-md"}`}
+              >
+                <Icon className="h-6 w-6" style={{ color: o.color }} />
+                <div>
+                  <p className="text-base font-bold">{o.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{o.description}</p>
+                </div>
+                {isCurrent && <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--heart)" }}>Current</span>}
+              </button>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
