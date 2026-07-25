@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Heart } from "lucide-react";
 import { pageQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
-import { HiddenPage } from "@/components/HiddenPage";
+import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },

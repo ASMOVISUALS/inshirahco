@@ -5,7 +5,7 @@ import { articlesQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
-import { HiddenPage } from "@/components/HiddenPage";
+import { SystemTemplate } from "@/components/SystemTemplate";
 import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 interface Props {
