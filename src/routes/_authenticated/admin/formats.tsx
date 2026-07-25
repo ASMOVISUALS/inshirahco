@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ArabicLetterPicker, TintSelect } from "@/components/ArabicLetterPicker";
 
 export const Route = createFileRoute("/_authenticated/admin/formats")({
   head: () => ({ meta: [{ title: "Formats — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -57,8 +58,8 @@ function FormatsAdmin() {
           <div className="grid gap-3 md:grid-cols-2">
             <F label="Label"><input className={cls} value={r.label} onChange={(e) => set(i, "label", e.target.value)} /></F>
             <F label="Plural"><input className={cls} value={r.plural} onChange={(e) => set(i, "plural", e.target.value)} /></F>
-            <F label="Arabic letter"><input className={cls} value={r.arabic_letter} onChange={(e) => set(i, "arabic_letter", e.target.value)} /></F>
-            <F label="Tint"><input className={cls} value={r.tint} onChange={(e) => set(i, "tint", e.target.value)} /></F>
+            <F label="Arabic letter"><ArabicLetterPicker value={r.arabic_letter} onChange={(v) => set(i, "arabic_letter", v)} /></F>
+            <F label="Tint"><TintSelect value={r.tint} onChange={(v) => set(i, "tint", v)} /></F>
             <F label="Sort order"><input type="number" className={cls} value={r.sort_order} onChange={(e) => set(i, "sort_order", Number(e.target.value))} /></F>
           </div>
         </div>
