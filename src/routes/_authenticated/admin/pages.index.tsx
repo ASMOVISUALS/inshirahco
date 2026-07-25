@@ -128,10 +128,15 @@ function Group({ label, rows, selectedKey, onSelect }: { label: string; rows: Pa
           <li key={r.key}>
             <button
               onClick={() => onSelect(r.key)}
-              className={`w-full rounded-xl px-3 py-2 text-left text-sm ${selectedKey === r.key ? "bg-secondary" : "hover:bg-secondary"}`}
+              className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm ${selectedKey === r.key ? "bg-secondary" : "hover:bg-secondary"}`}
             >
-              <div className="font-semibold">{r.title || r.slug}</div>
-              <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  {r.is_locked && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  <span className="truncate">{r.title || r.slug}</span>
+                </div>
+                <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
+              </div>
             </button>
           </li>
         ))}
