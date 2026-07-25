@@ -207,12 +207,24 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     <div className="rounded-3xl border border-border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <h2 className="text-xl font-bold">{row.title || row.slug}</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            {row.is_locked && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.title || row.slug}
+          </h2>
           <p className="font-mono text-xs text-muted-foreground">
             key: {row.key} · slug: /{row.slug} · {hasBlocks ? "using builder blocks" : "using legacy fields"}
+            {row.is_locked && <> · <span style={{ color: "var(--heart)" }}>locked</span></>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => toggleLock.mutate()}
+            disabled={toggleLock.isPending}
+            className="btn-ghost text-xs"
+            title={row.is_locked ? "Unlock — page will render normally." : "Lock — visitors will see a hidden placeholder."}
+          >
+            {row.is_locked ? <><Unlock className="h-3.5 w-3.5" /> Unlock page</> : <><Lock className="h-3.5 w-3.5" /> Lock page</>}
+          </button>
           <a href={`/${row.slug}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
             <ExternalLink className="h-3.5 w-3.5" /> View live
           </a>
