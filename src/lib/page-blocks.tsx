@@ -177,20 +177,24 @@ export function newBlock(type: BlockType): Block {
 
 // -------- Renderer --------
 
-export function PageRenderer({ blocks }: { blocks: Block[] }) {
+export function PageRenderer({ blocks, vars }: { blocks: Block[]; vars?: TemplateVars }) {
+  const inherited = useTemplateVars();
+  const merged = vars ? { ...inherited, ...vars } : inherited;
   return (
-    <>
+    <TemplateVarsProvider value={merged}>
       {blocks.map((b) => (
         <RenderBlock key={b.id} block={b} />
       ))}
-    </>
+    </TemplateVarsProvider>
   );
 }
 
 function RenderBlock({ block }: { block: Block }) {
   const p = block.props as Record<string, unknown>;
-  const s = (k: string, f = "") => (p[k] as string) ?? f;
+  const vars = useTemplateVars();
+  const s = (k: string, f = "") => substituteVars((p[k] as string) ?? f, vars);
   const n = (k: string, f = 0) => (typeof p[k] === "number" ? (p[k] as number) : f);
+
 
   switch (block.type) {
     case "hero": {
