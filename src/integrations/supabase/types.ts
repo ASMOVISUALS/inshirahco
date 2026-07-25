@@ -204,6 +204,7 @@ export type Database = {
       }
       pages: {
         Row: {
+          archived_at: string | null
           content: Json
           created_at: string
           is_locked: boolean
@@ -216,6 +217,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           content?: Json
           created_at?: string
           is_locked?: boolean
@@ -228,6 +230,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           content?: Json
           created_at?: string
           is_locked?: boolean
