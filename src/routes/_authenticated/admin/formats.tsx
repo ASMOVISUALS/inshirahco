@@ -118,7 +118,7 @@ function FormatsAdmin() {
                   className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
                   style={{
                     background: `color-mix(in oklab, ${color} 20%, transparent)`,
-                    color,
+                    color: `color-mix(in oklab, ${color} 65%, var(--ink))`,
                   }}
                 >
                   #{r.sort_order}
