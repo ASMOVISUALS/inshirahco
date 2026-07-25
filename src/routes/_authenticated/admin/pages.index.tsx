@@ -189,19 +189,26 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
 
-  const toggleLock = useMutation({
-    mutationFn: async () => {
-      const next = !row.is_locked;
-      const { error } = await supabase.from("pages").update({ is_locked: next }).eq("key", row.key);
+  const [statusOverlayOpen, setStatusOverlayOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<PageStatus | null>(null);
+
+  const setStatusMutation = useMutation({
+    mutationFn: async (next: PageStatus) => {
+      const { error } = await supabase.from("pages").update({ status: next } as never).eq("key", row.key);
       if (error) throw error;
       return next;
     },
-    onSuccess: (locked) => {
-      setStatus({ kind: "ok", msg: locked ? "Page locked — visitors will see the hidden placeholder." : "Page unlocked — live again." });
+    onSuccess: (next) => {
+      const msg =
+        next === "published" ? "Page is now published." :
+        next === "hidden" ? "Page is hidden — visitors see the hidden template." :
+        "Page is set to coming soon — visitors see the coming-soon template.";
+      setStatus({ kind: "ok", msg });
       onSaved();
     },
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
+
 
   const update = (key: string, value: string) => { setDraft((d) => ({ ...d, [key]: value })); setDirty(true); };
   const addKey = () => {
