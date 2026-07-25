@@ -40,6 +40,7 @@ export const Route = createFileRoute("/$pageSlug")({
 function DynamicPage() {
   const { pageSlug } = Route.useParams();
   const { data } = useSuspenseQuery(pageBySlugQuery(pageSlug));
+  if (data?.is_locked) return <HiddenPage title={data.title ?? undefined} />;
   const blocks = readBlocks((data?.content ?? {}) as Record<string, unknown>);
   if (blocks.length === 0) {
     return (
