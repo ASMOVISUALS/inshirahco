@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RotateCcw, Trash2, Archive as ArchiveIcon, ExternalLink, LayoutTemplate, Eye, EyeOff, Clock } from "lucide-react";
+import { RotateCcw, Trash2, Archive as ArchiveIcon, Eye, EyeOff, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
