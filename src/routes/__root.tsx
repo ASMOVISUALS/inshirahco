@@ -99,6 +99,8 @@ function RootComponent() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isBuilder = /^\/admin\/pages\/[^/]+\/builder$/.test(pathname);
   const isAdmin = !isBuilder && (pathname === "/admin" || pathname.startsWith("/admin/"));
+  const isProfile = pathname === "/profile" || pathname.startsWith("/profile/");
+  const minimal = isAdmin || isProfile;
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -116,11 +118,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        {!isBuilder && <SiteNav minimal={isAdmin} />}
+        {!isBuilder && <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />}
         <main className="flex-1">
           <Outlet />
         </main>
-        {!isAdmin && !isBuilder && <SiteFooter />}
+        {!minimal && !isBuilder && <SiteFooter />}
       </div>
     </QueryClientProvider>
   );

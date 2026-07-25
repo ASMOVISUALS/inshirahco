@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft } from "lucide-react";
+import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
@@ -11,7 +11,7 @@ import { usePillars, useFormats } from "@/hooks/use-cms";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
-export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
+export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Admin" }: { minimal?: boolean; title?: string; eyebrow?: string } = {}) {
   const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openMobileResources, setOpenMobileResources] = useState(false);
@@ -79,8 +79,8 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
 
           {minimal && (
             <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
-              <p className="eyebrow text-[10px]" style={{ color: "var(--tazkiyah, #3f7d5b)" }}>Admin</p>
-              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">Control Room</h1>
+              <p className="eyebrow text-[10px]" style={{ color: "var(--tazkiyah, #3f7d5b)" }}>{eyebrow}</p>
+              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">{title}</h1>
             </div>
           )}
 
@@ -191,6 +191,9 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
                     <Shield className="h-4.5 w-4.5" strokeWidth={1.8} />
                   </Link>
                 )}
+                <Link to="/profile" aria-label="My profile" className="hidden md:grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-secondary">
+                  <User className="h-4.5 w-4.5" strokeWidth={1.8} />
+                </Link>
                 <button type="button" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex items-center gap-1.5 rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
                   <LogOut className="h-4 w-4" strokeWidth={1.8} /> Sign out
                 </button>
