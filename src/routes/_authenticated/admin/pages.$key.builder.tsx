@@ -511,6 +511,9 @@ function Field({ field, value, onChange }: { field: FieldDef; value: unknown; on
       </div>
     );
   }
+  if (field.kind === "newsletter_select") {
+    return <NewsletterSelectField label={field.label} value={value as string | undefined} onChange={(v) => onChange(v)} />;
+  }
   return null;
 }
 
