@@ -228,23 +228,29 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold">
-            {row.is_locked && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.status === "hidden" && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.status === "coming_soon" && <Clock className="h-4 w-4" style={{ color: "var(--gold)" }} />}
             {row.title || row.slug}
           </h2>
           <p className="font-mono text-xs text-muted-foreground">
             key: {row.key} · slug: /{row.slug} · {hasBlocks ? "using builder blocks" : "using legacy fields"}
-            {row.is_locked && <> · <span style={{ color: "var(--heart)" }}>locked</span></>}
+            {row.status !== "published" && (
+              <> · <span style={{ color: row.status === "hidden" ? "var(--heart)" : "var(--gold)" }}>{row.status === "hidden" ? "hidden" : "coming soon"}</span></>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setGateOpen(true)}
-            disabled={toggleLock.isPending}
+            onClick={() => setStatusOverlayOpen(true)}
+            disabled={setStatusMutation.isPending}
             className="btn-ghost text-xs"
-            title={row.is_locked ? "Unlock — password required." : "Lock — password required."}
+            title="Change page status — password required."
           >
-            {row.is_locked ? <><Unlock className="h-3.5 w-3.5" /> Unlock page</> : <><Lock className="h-3.5 w-3.5" /> Lock page</>}
+            {row.status === "published" ? <><Eye className="h-3.5 w-3.5" /> Published</> :
+             row.status === "hidden" ? <><EyeOff className="h-3.5 w-3.5" /> Hidden</> :
+             <><Clock className="h-3.5 w-3.5" /> Coming soon</>}
           </button>
+
 
           <a href={`/${row.slug}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
             <ExternalLink className="h-3.5 w-3.5" /> View live
