@@ -21,6 +21,7 @@ import { Route as JoinRouteImport } from './routes/join'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as PageSlugRouteImport } from './routes/$pageSlug'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadSlugRouteImport } from './routes/read.$slug'
@@ -30,13 +31,16 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
-import { Route as AuthenticatedAdminPillarsRouteImport } from './routes/_authenticated/admin/pillars'
-import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
+import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
+import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
+import { Route as AuthenticatedAdminPagesIndexRouteImport } from './routes/_authenticated/admin/pages.index'
 import { Route as AuthenticatedAdminArticlesIndexRouteImport } from './routes/_authenticated/admin/articles/index'
 import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_authenticated/admin/articles/$id'
+import { Route as AuthenticatedAdminPillarsSlugEditRouteImport } from './routes/_authenticated/admin/pillars.$slug.edit'
+import { Route as AuthenticatedAdminPagesKeyBuilderRouteImport } from './routes/_authenticated/admin/pages.$key.builder'
 
 const YoungHeartsRoute = YoungHeartsRouteImport.update({
   id: '/young-hearts',
@@ -98,6 +102,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PageSlugRoute = PageSlugRouteImport.update({
+  id: '/$pageSlug',
+  path: '/$pageSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -145,17 +154,6 @@ const AuthenticatedAdminReflectionsRoute =
     path: '/reflections',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminPillarsRoute =
-  AuthenticatedAdminPillarsRouteImport.update({
-    id: '/pillars',
-    path: '/pillars',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
-  id: '/pages',
-  path: '/pages',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
-} as any)
 const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
@@ -173,6 +171,24 @@ const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminArchiveRoute =
+  AuthenticatedAdminArchiveRouteImport.update({
+    id: '/archive',
+    path: '/archive',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPillarsIndexRoute =
+  AuthenticatedAdminPillarsIndexRouteImport.update({
+    id: '/pillars/',
+    path: '/pillars/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPagesIndexRoute =
+  AuthenticatedAdminPagesIndexRouteImport.update({
+    id: '/pages/',
+    path: '/pages/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminArticlesIndexRoute =
   AuthenticatedAdminArticlesIndexRouteImport.update({
     id: '/articles/',
@@ -185,9 +201,22 @@ const AuthenticatedAdminArticlesIdRoute =
     path: '/articles/$id',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminPillarsSlugEditRoute =
+  AuthenticatedAdminPillarsSlugEditRouteImport.update({
+    id: '/pillars/$slug/edit',
+    path: '/pillars/$slug/edit',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPagesKeyBuilderRoute =
+  AuthenticatedAdminPagesKeyBuilderRouteImport.update({
+    id: '/pages/$key/builder',
+    path: '/pages/$key/builder',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$pageSlug': typeof PageSlugRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
@@ -203,20 +232,24 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRoute
-  '/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
+  '/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
+  '/admin/pillars/': typeof AuthenticatedAdminPillarsIndexRoute
+  '/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
+  '/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$pageSlug': typeof PageSlugRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
@@ -231,22 +264,26 @@ export interface FileRoutesByTo {
   '/young-hearts': typeof YoungHeartsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRoute
-  '/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles': typeof AuthenticatedAdminArticlesIndexRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesIndexRoute
+  '/admin/pillars': typeof AuthenticatedAdminPillarsIndexRoute
+  '/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
+  '/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/$pageSlug': typeof PageSlugRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
@@ -262,22 +299,26 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRoute
-  '/_authenticated/admin/pillars': typeof AuthenticatedAdminPillarsRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/_authenticated/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
+  '/_authenticated/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
+  '/_authenticated/admin/pillars/': typeof AuthenticatedAdminPillarsIndexRoute
+  '/_authenticated/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
+  '/_authenticated/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$pageSlug'
     | '/about'
     | '/auth'
     | '/contact'
@@ -293,20 +334,24 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth/callback'
     | '/read/$slug'
+    | '/admin/archive'
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
-    | '/admin/pages'
-    | '/admin/pillars'
     | '/admin/reflections'
     | '/admin/settings'
     | '/admin/testimonials'
     | '/admin/'
     | '/admin/articles/$id'
     | '/admin/articles/'
+    | '/admin/pages/'
+    | '/admin/pillars/'
+    | '/admin/pages/$key/builder'
+    | '/admin/pillars/$slug/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$pageSlug'
     | '/about'
     | '/auth'
     | '/contact'
@@ -321,21 +366,25 @@ export interface FileRouteTypes {
     | '/young-hearts'
     | '/auth/callback'
     | '/read/$slug'
+    | '/admin/archive'
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
-    | '/admin/pages'
-    | '/admin/pillars'
     | '/admin/reflections'
     | '/admin/settings'
     | '/admin/testimonials'
     | '/admin'
     | '/admin/articles/$id'
     | '/admin/articles'
+    | '/admin/pages'
+    | '/admin/pillars'
+    | '/admin/pages/$key/builder'
+    | '/admin/pillars/$slug/edit'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/$pageSlug'
     | '/about'
     | '/auth'
     | '/contact'
@@ -351,22 +400,26 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/auth/callback'
     | '/read/$slug'
+    | '/_authenticated/admin/archive'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
-    | '/_authenticated/admin/pages'
-    | '/_authenticated/admin/pillars'
     | '/_authenticated/admin/reflections'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/articles/$id'
     | '/_authenticated/admin/articles/'
+    | '/_authenticated/admin/pages/'
+    | '/_authenticated/admin/pillars/'
+    | '/_authenticated/admin/pages/$key/builder'
+    | '/_authenticated/admin/pillars/$slug/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  PageSlugRoute: typeof PageSlugRoute
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
@@ -468,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$pageSlug': {
+      id: '/$pageSlug'
+      path: '/$pageSlug'
+      fullPath: '/$pageSlug'
+      preLoaderRoute: typeof PageSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -531,20 +591,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReflectionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/pillars': {
-      id: '/_authenticated/admin/pillars'
-      path: '/pillars'
-      fullPath: '/admin/pillars'
-      preLoaderRoute: typeof AuthenticatedAdminPillarsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/pages': {
-      id: '/_authenticated/admin/pages'
-      path: '/pages'
-      fullPath: '/admin/pages'
-      preLoaderRoute: typeof AuthenticatedAdminPagesRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/admin/newsletter': {
       id: '/_authenticated/admin/newsletter'
       path: '/newsletter'
@@ -566,6 +612,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/archive': {
+      id: '/_authenticated/admin/archive'
+      path: '/archive'
+      fullPath: '/admin/archive'
+      preLoaderRoute: typeof AuthenticatedAdminArchiveRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pillars/': {
+      id: '/_authenticated/admin/pillars/'
+      path: '/pillars'
+      fullPath: '/admin/pillars/'
+      preLoaderRoute: typeof AuthenticatedAdminPillarsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pages/': {
+      id: '/_authenticated/admin/pages/'
+      path: '/pages'
+      fullPath: '/admin/pages/'
+      preLoaderRoute: typeof AuthenticatedAdminPagesIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/articles/': {
       id: '/_authenticated/admin/articles/'
       path: '/articles'
@@ -580,36 +647,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminArticlesIdRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/pillars/$slug/edit': {
+      id: '/_authenticated/admin/pillars/$slug/edit'
+      path: '/pillars/$slug/edit'
+      fullPath: '/admin/pillars/$slug/edit'
+      preLoaderRoute: typeof AuthenticatedAdminPillarsSlugEditRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pages/$key/builder': {
+      id: '/_authenticated/admin/pages/$key/builder'
+      path: '/pages/$key/builder'
+      fullPath: '/admin/pages/$key/builder'
+      preLoaderRoute: typeof AuthenticatedAdminPagesKeyBuilderRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
   AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
-  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRoute
-  AuthenticatedAdminPillarsRoute: typeof AuthenticatedAdminPillarsRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTestimonialsRoute: typeof AuthenticatedAdminTestimonialsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminArticlesIdRoute: typeof AuthenticatedAdminArticlesIdRoute
   AuthenticatedAdminArticlesIndexRoute: typeof AuthenticatedAdminArticlesIndexRoute
+  AuthenticatedAdminPagesIndexRoute: typeof AuthenticatedAdminPagesIndexRoute
+  AuthenticatedAdminPillarsIndexRoute: typeof AuthenticatedAdminPillarsIndexRoute
+  AuthenticatedAdminPagesKeyBuilderRoute: typeof AuthenticatedAdminPagesKeyBuilderRoute
+  AuthenticatedAdminPillarsSlugEditRoute: typeof AuthenticatedAdminPillarsSlugEditRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
     AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
-    AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRoute,
-    AuthenticatedAdminPillarsRoute: AuthenticatedAdminPillarsRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminTestimonialsRoute: AuthenticatedAdminTestimonialsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminArticlesIdRoute: AuthenticatedAdminArticlesIdRoute,
     AuthenticatedAdminArticlesIndexRoute: AuthenticatedAdminArticlesIndexRoute,
+    AuthenticatedAdminPagesIndexRoute: AuthenticatedAdminPagesIndexRoute,
+    AuthenticatedAdminPillarsIndexRoute: AuthenticatedAdminPillarsIndexRoute,
+    AuthenticatedAdminPagesKeyBuilderRoute:
+      AuthenticatedAdminPagesKeyBuilderRoute,
+    AuthenticatedAdminPillarsSlugEditRoute:
+      AuthenticatedAdminPillarsSlugEditRoute,
   }
 
 const AuthenticatedAdminRouteRouteWithChildren =
@@ -641,6 +730,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  PageSlugRoute: PageSlugRoute,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,

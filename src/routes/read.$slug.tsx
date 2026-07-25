@@ -8,6 +8,8 @@ import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
+import { supabase } from "@/integrations/supabase/client";
+import { ArticleBodyView } from "@/lib/article-blocks";
 
 export const Route = createFileRoute("/read/$slug")({
   ssr: false,
@@ -69,6 +71,19 @@ function Detail() {
   const type = RESOURCE_TYPES[item.type];
   const { data: all = [] } = useQuery(articlesQuery());
   const related = all.filter((c) => c.pillar === item.pillar && c.slug !== item.slug).slice(0, 3);
+  const { data: authorProfile } = useQuery({
+    queryKey: ["profile-by-name", item.author.name],
+    enabled: !!item.author.name,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name,avatar_url")
+        .ilike("name", item.author.name)
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
   const [progress, setProgress] = useState(0);
@@ -115,7 +130,11 @@ function Detail() {
 
           <div className="mt-8 flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-3">
-              <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              {authorProfile?.avatar_url ? (
+                <img src={authorProfile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+              ) : (
+                <LetterMark letter={pillar.letter} tint="heart" size={40} />
+              )}
               <div>
                 <p className="font-bold">{item.author.name}</p>
                 {item.author.role && <p className="text-xs text-muted-foreground">{item.author.role}</p>}
@@ -149,35 +168,8 @@ function Detail() {
         </header>
 
         <div className="container-wide max-w-3xl pb-16">
-          <div className="prose-body space-y-6 text-[1.14rem] leading-[1.75] md:text-[1.18rem]">
-            {item.body?.map((block, i) => {
-              if (block.kind === "h2") {
-                return <h2 key={i} className="mt-12 text-3xl md:text-4xl">{block.text}</h2>;
-              }
-              if (block.kind === "quote") {
-                return (
-                  <blockquote
-                    key={i}
-                    className="my-10 rounded-3xl border-l-4 p-8"
-                    style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}
-                  >
-                    {block.arabic && (
-                      <p className="font-arabic text-3xl leading-loose md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>
-                        {block.arabic}
-                      </p>
-                    )}
-                    <p className="mt-4 font-display text-xl italic md:text-2xl" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
-                      "{block.text}"
-                    </p>
-                    {block.source && (
-                      <p className="mt-3 text-sm font-semibold text-muted-foreground">— {block.source}</p>
-                    )}
-                  </blockquote>
-                );
-              }
-              return <p key={i}>{block.text}</p>;
-            })}
-          </div>
+          <ArticleBodyView blocks={item.body ?? []} />
+
 
           <div className="mt-12 flex flex-wrap items-center gap-3 rounded-3xl border border-border bg-card p-5">
             <span className="text-sm font-bold">Share</span>

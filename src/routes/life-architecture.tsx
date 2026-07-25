@@ -4,6 +4,8 @@ import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-r
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { pageQuery } from "@/lib/queries";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { SystemTemplate } from "@/components/SystemTemplate";
 
 interface Preview { icon?: string; title: string; description: string; tag?: string }
 
@@ -48,11 +50,20 @@ export const Route = createFileRoute("/life-architecture")({
 interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
-  const { data: page = {} } = useQuery(pageQuery("life-architecture"));
+  const { data: bundle } = useQuery(pageQuery("life-architecture"));
+  const page = bundle?.content ?? {};
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
   const previews = (Array.isArray(page.previews) && page.previews.length > 0 ? page.previews : DEFAULT_PREVIEWS) as Preview[];
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
 
   return (
     <>

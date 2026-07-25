@@ -21,7 +21,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             },
           },
         });
-        const { data } = await client.from("articles").select("slug").eq("published", true).limit(1000);
+        const { data } = await client.from("articles").select("slug").eq("published", true).is("archived_at", null).limit(1000);
         const staticPaths = ["/", "/quranic-reflections", "/tazkiyah-toolkit", "/young-hearts", "/life-architecture", "/resources", "/about", "/contact"];
         const dynamicPaths = (data ?? []).map((c) => `/read/${c.slug}`);
         const paths = [...staticPaths, ...dynamicPaths];

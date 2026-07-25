@@ -10,6 +10,7 @@ export const articlesQuery = () =>
         .from("articles")
         .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("published", true)
+        .is("archived_at", null)
         .order("published_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -27,6 +28,7 @@ export const articleBySlugQuery = (slug: string) =>
         .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("slug", slug)
         .eq("published", true)
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return data ? mapArticleRow(data) : null;
@@ -41,6 +43,7 @@ export const reflectionsQuery = () =>
         .from("reflections")
         .select("id,arabic,translation,reference,sort_order")
         .eq("active", true)
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -56,6 +59,7 @@ export const testimonialsQuery = () =>
         .from("testimonials")
         .select("id,quote,name,role,sort_order")
         .eq("featured", true)
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -148,21 +152,58 @@ export const formatsQuery = () =>
   });
 
 export type PageContent = Record<string, unknown>;
+export type PageStatus = "published" | "hidden" | "coming_soon";
+
+export interface PageBundle {
+  content: PageContent;
+  status: PageStatus;
+  title: string | null;
+}
 
 export const pageQuery = (key: string) =>
   queryOptions({
     queryKey: ["cms", "page", key],
-    queryFn: async (): Promise<PageContent> => {
+    queryFn: async (): Promise<PageBundle> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("content")
+        .select("content,status,title")
         .eq("key", key)
         .maybeSingle();
       if (error) throw error;
-      return (data?.content ?? {}) as PageContent;
+      return {
+        content: (data?.content ?? {}) as PageContent,
+        status: (data?.status as PageStatus) ?? "published",
+        title: data?.title ?? null,
+      };
     },
     staleTime: 60_000,
   });
+
+export interface PageMetaRow {
+  key: string;
+  slug: string;
+  title: string;
+  is_published: boolean;
+  status: PageStatus;
+  template: string;
+}
+
+export const pageBySlugQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-by-slug", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("key,slug,title,is_published,status,content")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60_000,
+  });
+
 
 export interface FaqRow {
   id: string;
@@ -200,4 +241,48 @@ export const siteSettingQuery = (key: string) =>
       return (data?.value ?? {}) as Record<string, unknown>;
     },
     staleTime: 5 * 60_000,
+  });
+
+// ============ Newsletters ============
+
+export interface NewsletterRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const newslettersQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "newsletters"],
+    queryFn: async (): Promise<NewsletterRow[]> => {
+      const { data, error } = await supabase
+        .from("newsletters")
+        .select("id,slug,name,description,is_default,created_at,updated_at")
+        .order("is_default", { ascending: false })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as NewsletterRow[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
+export const newsletterSubscribersQuery = (newsletterId: string | null) =>
+  queryOptions({
+    queryKey: ["cms", "newsletter-subs", newsletterId ?? "none"],
+    queryFn: async () => {
+      if (!newsletterId) return [];
+      const { data, error } = await supabase
+        .from("newsletter_signups")
+        .select("id,email,source,created_at")
+        .eq("newsletter_id", newsletterId)
+        .order("created_at", { ascending: false })
+        .limit(2000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!newsletterId,
   });

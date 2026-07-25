@@ -8,6 +8,8 @@ import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 import { usePillars } from "@/hooks/use-cms";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -34,12 +36,22 @@ const TINTS = ["heart", "tazkiyah", "heart-soft", "gold"] as const;
 function Home() {
   const { data: content } = useSuspenseQuery(articlesQuery());
   const { data: testimonials } = useSuspenseQuery(testimonialsQuery());
-  const { data: page = {} } = useQuery(pageQuery("home"));
+  const { data: bundle } = useQuery(pageQuery("home"));
+  const page = bundle?.content ?? {};
   const pillars = usePillars();
   const latest = content.slice(0, 3);
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Home" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Home" />;
+
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
+
 
   return (
     <>

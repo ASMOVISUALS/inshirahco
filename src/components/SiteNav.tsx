@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield } from "lucide-react";
+import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
@@ -11,7 +11,7 @@ import { usePillars, useFormats } from "@/hooks/use-cms";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
-export function SiteNav() {
+export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
   const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openMobileResources, setOpenMobileResources] = useState(false);
@@ -59,9 +59,32 @@ export function SiteNav() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border/60 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--background) 88%, transparent)" }}>
-        <div className="container-wide flex h-[72px] items-center justify-between gap-6">
-          <Logo />
+        <div className={`${minimal ? "px-4" : "container-wide"} relative flex h-[72px] items-center justify-between gap-6`}>
+          <div className="flex items-center gap-3">
+            {minimal && (
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                aria-label="Go back"
+                className="group grid h-10 w-10 place-items-center rounded-full border border-border text-foreground/80 transition-all hover:border-transparent hover:text-[var(--heart)]"
+                style={{ transition: "box-shadow 200ms, border-color 200ms, color 200ms" }}
+                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 14px 2px color-mix(in oklab, var(--heart) 55%, transparent)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ""; }}
+              >
+                <ArrowLeft className="h-4.5 w-4.5" strokeWidth={1.8} />
+              </button>
+            )}
+            <Logo />
+          </div>
 
+          {minimal && (
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
+              <p className="eyebrow text-[10px]" style={{ color: "var(--tazkiyah, #3f7d5b)" }}>Admin</p>
+              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">Control Room</h1>
+            </div>
+          )}
+
+          {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {pillars.map((p) => (
               <Link
@@ -125,28 +148,33 @@ export function SiteNav() {
               {aboutLabel}
             </Link>
           </nav>
+          )}
 
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary"
-            >
-              <Search className="h-4.5 w-4.5" strokeWidth={1.8} />
-            </button>
-            <Link
-              to="/saved"
-              aria-label={`Saved (${slugs.length})`}
-              className="relative hidden h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary md:grid"
-            >
-              <Bookmark className="h-4.5 w-4.5" strokeWidth={1.8} />
-              {slugs.length > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-heart px-1 text-[10px] font-bold text-primary-foreground" style={{ background: "var(--heart)" }}>
-                  {slugs.length}
-                </span>
-              )}
-            </Link>
+            {!minimal && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search"
+                  className="grid h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary"
+                >
+                  <Search className="h-4.5 w-4.5" strokeWidth={1.8} />
+                </button>
+                <Link
+                  to="/saved"
+                  aria-label={`Saved (${slugs.length})`}
+                  className="relative hidden h-10 w-10 place-items-center rounded-full text-foreground/80 transition-colors hover:bg-secondary md:grid"
+                >
+                  <Bookmark className="h-4.5 w-4.5" strokeWidth={1.8} />
+                  {slugs.length > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-heart px-1 text-[10px] font-bold text-primary-foreground" style={{ background: "var(--heart)" }}>
+                      {slugs.length}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             <button
               type="button"
               onClick={toggleTheme}

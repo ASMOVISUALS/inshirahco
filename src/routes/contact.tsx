@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Heart } from "lucide-react";
 import { pageQuery } from "@/lib/queries";
+import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },
@@ -27,7 +29,8 @@ const schema = z.object({
 });
 
 function Contact() {
-  const { data: page = {} } = useQuery(pageQuery("contact"));
+  const { data: bundle } = useQuery(pageQuery("contact"));
+  const page = bundle?.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -45,6 +48,14 @@ function Contact() {
     setErrors({});
     setSent(true);
   };
+
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
+
+  const rawBlocks = (page as { blocks?: unknown }).blocks;
+  if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
+    return <PageRenderer blocks={rawBlocks as Block[]} />;
+  }
 
   return (
     <>

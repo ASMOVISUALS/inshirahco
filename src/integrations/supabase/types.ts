@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          archived_at: string | null
           author_name: string
           author_role: string | null
           body: Json
@@ -34,6 +35,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           author_name: string
           author_role?: string | null
           body?: Json
@@ -52,6 +54,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           author_name?: string
           author_role?: string | null
           body?: Json
@@ -143,6 +146,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          newsletter_id: string
           source: string | null
         }
         Insert: {
@@ -150,6 +154,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          newsletter_id: string
           source?: string | null
         }
         Update: {
@@ -157,27 +162,87 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          newsletter_id?: string
           source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_signups_newsletter_id_fkey"
+            columns: ["newsletter_id"]
+            isOneToOne: false
+            referencedRelation: "newsletters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletters: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
       pages: {
         Row: {
+          archived_at: string | null
           content: Json
           created_at: string
+          is_locked: boolean
+          is_published: boolean
           key: string
+          slug: string | null
+          status: Database["public"]["Enums"]["page_status"]
+          template: string
+          title: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           content?: Json
           created_at?: string
+          is_locked?: boolean
+          is_published?: boolean
           key: string
+          slug?: string | null
+          status?: Database["public"]["Enums"]["page_status"]
+          template?: string
+          title?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           content?: Json
           created_at?: string
+          is_locked?: boolean
+          is_published?: boolean
           key?: string
+          slug?: string | null
+          status?: Database["public"]["Enums"]["page_status"]
+          template?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -226,6 +291,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           dob: string | null
           email: string | null
@@ -236,6 +303,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           dob?: string | null
           email?: string | null
@@ -246,6 +315,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           dob?: string | null
           email?: string | null
@@ -261,6 +332,7 @@ export type Database = {
         Row: {
           active: boolean
           arabic: string
+          archived_at: string | null
           created_at: string
           id: string
           reference: string
@@ -271,6 +343,7 @@ export type Database = {
         Insert: {
           active?: boolean
           arabic: string
+          archived_at?: string | null
           created_at?: string
           id?: string
           reference: string
@@ -281,6 +354,7 @@ export type Database = {
         Update: {
           active?: boolean
           arabic?: string
+          archived_at?: string | null
           created_at?: string
           id?: string
           reference?: string
@@ -346,6 +420,7 @@ export type Database = {
       }
       testimonials: {
         Row: {
+          archived_at: string | null
           created_at: string
           featured: boolean
           id: string
@@ -356,6 +431,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           featured?: boolean
           id?: string
@@ -366,6 +442,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           featured?: boolean
           id?: string
@@ -414,6 +491,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "member"
       gender_type: "male" | "female" | "prefer_not_to_say"
+      page_status: "published" | "hidden" | "coming_soon"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -543,6 +621,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "member"],
       gender_type: ["male", "female", "prefer_not_to_say"],
+      page_status: ["published", "hidden", "coming_soon"],
     },
   },
 } as const
