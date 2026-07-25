@@ -140,7 +140,7 @@ function ProfileEdit() {
               type="button"
               className="btn-primary"
               onClick={() => changePassword.mutate()}
-              disabled={changePassword.isPending || !pw || !pw2}
+              disabled={changePassword.isPending || !currentPw || !pw || !pw2}
             >
               {changePassword.isPending ? "Updating…" : "Update password"}
             </button>
