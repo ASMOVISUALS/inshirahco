@@ -42,6 +42,7 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     items: [
       { title: "Articles", url: "/admin/articles", icon: FileText },
       { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
+      { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
     ],
   },
   {
@@ -56,7 +57,6 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     items: [
       { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
       { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
-      { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
     ],
   },
   {
