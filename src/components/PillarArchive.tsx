@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import type { Pillar } from "@/lib/content";
 import { articlesQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
@@ -16,9 +16,15 @@ interface Props {
 export function PillarArchive({ pillar, tint = "heart" }: Props) {
   const pillars = usePillarMap();
   const meta = pillarLabel(pillars, pillar);
+  const { data: bundle } = useSuspenseQuery(pageQuery(`pillar:${pillar}`));
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName={meta.label} />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={meta.label} />;
+  return <PillarArchiveContent pillar={pillar} tint={tint} bundle={bundle} meta={meta} />;
+}
+
+function PillarArchiveContent({ pillar, tint, bundle, meta }: Props & { bundle: ReturnType<typeof usePillarMap> extends never ? never : { content?: Record<string, unknown> | null }; meta: ReturnType<typeof pillarLabel> }) {
   const { data: all } = useSuspenseQuery(articlesQuery());
-  const { data: bundle } = useQuery(pageQuery(`pillar:${pillar}`));
-  const page = bundle?.content;
+  const page = bundle?.content ?? undefined;
   const eyebrow = (page?.eyebrow as string) ?? "Pillar";
   const intro = (page?.intro as string) ?? meta.description;
   const items = useMemo(() => all.filter((c) => c.pillar === pillar), [all, pillar]);
@@ -27,8 +33,6 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
 
   const filtered = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items;
 
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName={meta.label} />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={meta.label} />;
 
 
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Heart } from "lucide-react";
 import { pageQuery } from "@/lib/queries";
@@ -29,7 +29,9 @@ const schema = z.object({
 });
 
 function Contact() {
-  const { data: bundle } = useQuery(pageQuery("contact"));
+  const { data: bundle } = useSuspenseQuery(pageQuery("contact"));
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
   const page = bundle?.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
@@ -49,8 +51,6 @@ function Contact() {
     setSent(true);
   };
 
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
 
   const rawBlocks = (page as { blocks?: unknown }).blocks;
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {

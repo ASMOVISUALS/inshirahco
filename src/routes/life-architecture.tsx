@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
@@ -50,10 +50,10 @@ export const Route = createFileRoute("/life-architecture")({
 interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
-  const { data: bundle } = useQuery(pageQuery("life-architecture"));
-  const page = bundle?.content ?? {};
+  const { data: bundle } = useSuspenseQuery(pageQuery("life-architecture"));
   if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
   if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
+  const page = bundle?.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
