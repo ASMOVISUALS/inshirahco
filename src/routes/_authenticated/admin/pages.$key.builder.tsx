@@ -358,10 +358,32 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
   ],
   reflection_spotlight: [],
   newsletter: [
-    { key: "heading", label: "Heading", kind: "text" },
-    { key: "description", label: "Description", kind: "textarea" },
+    { key: "heading", label: "Heading (supports {{page_name}})", kind: "text" },
+    { key: "description", label: "Description (supports {{page_name}})", kind: "textarea" },
     { key: "cta", label: "CTA label", kind: "text" },
+    { key: "newsletterId", label: "Send signups to", kind: "newsletter_select" },
   ],
+  hero_fullscreen: [
+    { key: "eyebrow", label: "Eyebrow (supports {{page_name}})", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "subtitle", label: "Subtitle", kind: "textarea", rows: 3 },
+    { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
+    { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+  ],
+  hidden_frame: [
+    { key: "eyebrow", label: "Eyebrow (supports {{page_name}})", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "subtitle", label: "Subtitle (supports {{page_name}})", kind: "textarea", rows: 3 },
+    { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
+    { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+  ],
+  explore_pages: [
+    { key: "items", label: "Links", kind: "list_object", shape: [
+      { key: "label", label: "Label", kind: "text" },
+      { key: "href", label: "Link", kind: "text" },
+    ]},
+  ],
+
   faq_accordion: [
     { key: "page_key", label: "Auto-load FAQs page_key (or blank)", kind: "text" },
     { key: "items", label: "Manual items", kind: "list_object", shape: [
