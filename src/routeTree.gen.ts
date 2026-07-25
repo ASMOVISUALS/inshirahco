@@ -32,10 +32,10 @@ import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminPillarsRouteImport } from './routes/_authenticated/admin/pillars'
-import { Route as AuthenticatedAdminPagesRouteImport } from './routes/_authenticated/admin/pages'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
+import { Route as AuthenticatedAdminPagesIndexRouteImport } from './routes/_authenticated/admin/pages.index'
 import { Route as AuthenticatedAdminArticlesIndexRouteImport } from './routes/_authenticated/admin/articles/index'
 import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_authenticated/admin/articles/$id'
 import { Route as AuthenticatedAdminPillarsSlugEditRouteImport } from './routes/_authenticated/admin/pillars.$slug.edit'
@@ -159,11 +159,6 @@ const AuthenticatedAdminPillarsRoute =
     path: '/pillars',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminPagesRoute = AuthenticatedAdminPagesRouteImport.update({
-  id: '/pages',
-  path: '/pages',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
-} as any)
 const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
@@ -181,6 +176,12 @@ const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminPagesIndexRoute =
+  AuthenticatedAdminPagesIndexRouteImport.update({
+    id: '/pages/',
+    path: '/pages/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminArticlesIndexRoute =
   AuthenticatedAdminArticlesIndexRouteImport.update({
     id: '/articles/',
@@ -201,9 +202,9 @@ const AuthenticatedAdminPillarsSlugEditRoute =
   } as any)
 const AuthenticatedAdminPagesKeyBuilderRoute =
   AuthenticatedAdminPagesKeyBuilderRouteImport.update({
-    id: '/$key/builder',
-    path: '/$key/builder',
-    getParentRoute: () => AuthenticatedAdminPagesRoute,
+    id: '/pages/$key/builder',
+    path: '/pages/$key/builder',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -227,7 +228,6 @@ export interface FileRoutesByFullPath {
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/pillars': typeof AuthenticatedAdminPillarsRouteWithChildren
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -235,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
+  '/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
   '/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
   '/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
@@ -258,7 +259,6 @@ export interface FileRoutesByTo {
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/admin/pillars': typeof AuthenticatedAdminPillarsRouteWithChildren
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -266,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles': typeof AuthenticatedAdminArticlesIndexRoute
+  '/admin/pages': typeof AuthenticatedAdminPagesIndexRoute
   '/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
   '/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
@@ -292,7 +293,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
-  '/_authenticated/admin/pages': typeof AuthenticatedAdminPagesRouteWithChildren
   '/_authenticated/admin/pillars': typeof AuthenticatedAdminPillarsRouteWithChildren
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -300,6 +300,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/_authenticated/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
+  '/_authenticated/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
   '/_authenticated/admin/pages/$key/builder': typeof AuthenticatedAdminPagesKeyBuilderRoute
   '/_authenticated/admin/pillars/$slug/edit': typeof AuthenticatedAdminPillarsSlugEditRoute
 }
@@ -326,7 +327,6 @@ export interface FileRouteTypes {
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
-    | '/admin/pages'
     | '/admin/pillars'
     | '/admin/reflections'
     | '/admin/settings'
@@ -334,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/articles/$id'
     | '/admin/articles/'
+    | '/admin/pages/'
     | '/admin/pages/$key/builder'
     | '/admin/pillars/$slug/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -357,7 +358,6 @@ export interface FileRouteTypes {
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
-    | '/admin/pages'
     | '/admin/pillars'
     | '/admin/reflections'
     | '/admin/settings'
@@ -365,6 +365,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/articles/$id'
     | '/admin/articles'
+    | '/admin/pages'
     | '/admin/pages/$key/builder'
     | '/admin/pillars/$slug/edit'
   id:
@@ -390,7 +391,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
-    | '/_authenticated/admin/pages'
     | '/_authenticated/admin/pillars'
     | '/_authenticated/admin/reflections'
     | '/_authenticated/admin/settings'
@@ -398,6 +398,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/articles/$id'
     | '/_authenticated/admin/articles/'
+    | '/_authenticated/admin/pages/'
     | '/_authenticated/admin/pages/$key/builder'
     | '/_authenticated/admin/pillars/$slug/edit'
   fileRoutesById: FileRoutesById
@@ -584,13 +585,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPillarsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/pages': {
-      id: '/_authenticated/admin/pages'
-      path: '/pages'
-      fullPath: '/admin/pages'
-      preLoaderRoute: typeof AuthenticatedAdminPagesRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/admin/newsletter': {
       id: '/_authenticated/admin/newsletter'
       path: '/newsletter'
@@ -610,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/faqs'
       fullPath: '/admin/faqs'
       preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/pages/': {
+      id: '/_authenticated/admin/pages/'
+      path: '/pages'
+      fullPath: '/admin/pages/'
+      preLoaderRoute: typeof AuthenticatedAdminPagesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/articles/': {
@@ -635,28 +636,13 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/pages/$key/builder': {
       id: '/_authenticated/admin/pages/$key/builder'
-      path: '/$key/builder'
+      path: '/pages/$key/builder'
       fullPath: '/admin/pages/$key/builder'
       preLoaderRoute: typeof AuthenticatedAdminPagesKeyBuilderRouteImport
-      parentRoute: typeof AuthenticatedAdminPagesRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
   }
 }
-
-interface AuthenticatedAdminPagesRouteChildren {
-  AuthenticatedAdminPagesKeyBuilderRoute: typeof AuthenticatedAdminPagesKeyBuilderRoute
-}
-
-const AuthenticatedAdminPagesRouteChildren: AuthenticatedAdminPagesRouteChildren =
-  {
-    AuthenticatedAdminPagesKeyBuilderRoute:
-      AuthenticatedAdminPagesKeyBuilderRoute,
-  }
-
-const AuthenticatedAdminPagesRouteWithChildren =
-  AuthenticatedAdminPagesRoute._addFileChildren(
-    AuthenticatedAdminPagesRouteChildren,
-  )
 
 interface AuthenticatedAdminPillarsRouteChildren {
   AuthenticatedAdminPillarsSlugEditRoute: typeof AuthenticatedAdminPillarsSlugEditRoute
@@ -677,7 +663,6 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
   AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
-  AuthenticatedAdminPagesRoute: typeof AuthenticatedAdminPagesRouteWithChildren
   AuthenticatedAdminPillarsRoute: typeof AuthenticatedAdminPillarsRouteWithChildren
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -685,6 +670,8 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminArticlesIdRoute: typeof AuthenticatedAdminArticlesIdRoute
   AuthenticatedAdminArticlesIndexRoute: typeof AuthenticatedAdminArticlesIndexRoute
+  AuthenticatedAdminPagesIndexRoute: typeof AuthenticatedAdminPagesIndexRoute
+  AuthenticatedAdminPagesKeyBuilderRoute: typeof AuthenticatedAdminPagesKeyBuilderRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
@@ -692,7 +679,6 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
     AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
-    AuthenticatedAdminPagesRoute: AuthenticatedAdminPagesRouteWithChildren,
     AuthenticatedAdminPillarsRoute: AuthenticatedAdminPillarsRouteWithChildren,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
@@ -700,6 +686,9 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminArticlesIdRoute: AuthenticatedAdminArticlesIdRoute,
     AuthenticatedAdminArticlesIndexRoute: AuthenticatedAdminArticlesIndexRoute,
+    AuthenticatedAdminPagesIndexRoute: AuthenticatedAdminPagesIndexRoute,
+    AuthenticatedAdminPagesKeyBuilderRoute:
+      AuthenticatedAdminPagesKeyBuilderRoute,
   }
 
 const AuthenticatedAdminRouteRouteWithChildren =
