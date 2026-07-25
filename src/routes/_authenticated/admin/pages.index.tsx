@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2 } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2, Archive, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,7 +21,14 @@ interface PageRow {
   title: string;
   is_published: boolean;
   status: PageStatus;
+  archived_at: string | null;
 }
+
+type PendingAction =
+  | { kind: "status"; key: string; next: PageStatus }
+  | { kind: "archive"; key: string }
+  | { kind: "restore"; key: string }
+  | { kind: "purge"; key: string };
 
 function PagesAdmin() {
   const qc = useQueryClient();
@@ -31,7 +38,7 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,status")
+        .select("key,slug,title,is_published,status,archived_at")
         .order("key");
       if (error) throw error;
       return (data ?? []) as PageRow[];
@@ -40,17 +47,17 @@ function PagesAdmin() {
 
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [tab, setTab] = useState<"active" | "archive">("active");
 
   // Password-gated actions
   const [gateOpen, setGateOpen] = useState(false);
-  const [pending, setPending] = useState<
-    | { kind: "status"; key: string; next: PageStatus }
-    | { kind: "delete"; key: string }
-    | null
-  >(null);
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   const [statusOverlay, setStatusOverlay] = useState<{ key: string; current: PageStatus } | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ key: string; title: string } | null>(null);
+  const [confirm, setConfirm] = useState<
+    | { kind: "archive" | "restore" | "purge"; key: string; title: string }
+    | null
+  >(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   const setStatusMutation = useMutation({
@@ -72,14 +79,45 @@ function PagesAdmin() {
     onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
   });
 
-  const deleteMutation = useMutation({
+  const archiveMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const { error } = await supabase.from("pages").update({ archived_at: new Date().toISOString() } as never).eq("key", key);
+      if (error) throw error;
+      return key;
+    },
+    onSuccess: (key) => {
+      setToast({ kind: "ok", msg: "Page moved to archive." });
+      if (activeKey === key) setActiveKey(null);
+      qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const row = data.find((r) => r.key === key);
+      if (!row) throw new Error("Page not found.");
+      const conflict = data.find((r) => r.key !== key && !r.archived_at && r.slug === row.slug);
+      if (conflict) throw new Error(`Slug "/${row.slug}" is already in use by "${conflict.title || conflict.slug}". Change that page's slug first.`);
+      const { error } = await supabase.from("pages").update({ archived_at: null } as never).eq("key", key);
+      if (error) throw error;
+      return key;
+    },
+    onSuccess: () => {
+      setToast({ kind: "ok", msg: "Page restored." });
+      qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const purgeMutation = useMutation({
     mutationFn: async (key: string) => {
       const { error } = await supabase.from("pages").delete().eq("key", key);
       if (error) throw error;
       return key;
     },
     onSuccess: (key) => {
-      setToast({ kind: "ok", msg: "Page deleted." });
+      setToast({ kind: "ok", msg: "Page permanently deleted." });
       if (activeKey === key) setActiveKey(null);
       qc.invalidateQueries({ queryKey: ["admin", "pages"] });
     },
@@ -88,39 +126,58 @@ function PagesAdmin() {
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
-  const core = data.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:"));
-  const pillars = data.filter((r) => r.key.startsWith("pillar:"));
-  const custom = data.filter((r) => r.key.startsWith("custom:"));
-  const system = data.filter((r) => r.key.startsWith("system:"));
+  const active = data.filter((r) => !r.archived_at);
+  const archived = data.filter((r) => !!r.archived_at);
+  const core = active.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:"));
+  const pillars = active.filter((r) => r.key.startsWith("pillar:"));
+  const custom = active.filter((r) => r.key.startsWith("custom:"));
+  const system = active.filter((r) => r.key.startsWith("system:"));
 
-  const runStatus = (key: string, next: PageStatus) => {
+  const runGated = (action: PendingAction) => {
+    setConfirm(null);
     setStatusOverlay(null);
-    setPending({ kind: "status", key, next });
-    setGateOpen(true);
-  };
-  const runDelete = (key: string) => {
-    setDeleteConfirm(null);
-    setPending({ kind: "delete", key });
+    setPending(action);
     setGateOpen(true);
   };
   const onVerified = () => {
     setGateOpen(false);
     if (!pending) return;
     if (pending.kind === "status") setStatusMutation.mutate({ key: pending.key, next: pending.next });
-    if (pending.kind === "delete") deleteMutation.mutate(pending.key);
+    if (pending.kind === "archive") archiveMutation.mutate(pending.key);
+    if (pending.kind === "restore") restoreMutation.mutate(pending.key);
+    if (pending.kind === "purge") purgeMutation.mutate(pending.key);
     setPending(null);
   };
 
   return (
     <div className="flex flex-col gap-6" onClick={() => setActiveKey(null)}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Pages</h1>
           <p className="text-sm text-muted-foreground">Click a page to reveal actions. Use the builder to edit content.</p>
         </div>
-        <button className="btn-primary text-sm" onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" /> New page
-        </button>
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="inline-flex rounded-md border border-border p-0.5">
+            <button
+              className={`inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold ${tab === "active" ? "bg-secondary" : "hover:bg-secondary/60"}`}
+              onClick={() => setTab("active")}
+            >
+              Active
+            </button>
+            <button
+              className={`inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-semibold ${tab === "archive" ? "bg-secondary" : "hover:bg-secondary/60"}`}
+              onClick={() => setTab("archive")}
+            >
+              <Archive className="h-3 w-3" /> Archive
+              {archived.length > 0 && <span className="ml-1 rounded-full bg-heart/10 px-1.5 text-[10px] text-heart">{archived.length}</span>}
+            </button>
+          </div>
+          {tab === "active" && (
+            <button className="btn-primary text-sm" onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" /> New page
+            </button>
+          )}
+        </div>
       </div>
 
       {toast && (
@@ -129,43 +186,67 @@ function PagesAdmin() {
         </p>
       )}
 
-      <Section
-        label="Core"
-        rows={core}
-        activeKey={activeKey}
-        onSelect={setActiveKey}
-        onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
-        onDelete={null}
-      />
-      {pillars.length > 0 && (
+      {tab === "active" ? (
+        <>
+          <Section
+            label="Core"
+            rows={core}
+            activeKey={activeKey}
+            onSelect={setActiveKey}
+            onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
+            onDelete={null}
+            onRestore={null}
+            onPurge={null}
+          />
+          {pillars.length > 0 && (
+            <Section
+              label="Pillars"
+              rows={pillars}
+              activeKey={activeKey}
+              onSelect={setActiveKey}
+              onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
+              onDelete={null}
+              onRestore={null}
+              onPurge={null}
+            />
+          )}
+          {custom.length > 0 && (
+            <Section
+              label="Custom"
+              rows={custom}
+              activeKey={activeKey}
+              onSelect={setActiveKey}
+              onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
+              onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
+              onRestore={null}
+              onPurge={null}
+            />
+          )}
+          {system.length > 0 && (
+            <Section
+              label="System templates"
+              rows={system}
+              activeKey={activeKey}
+              onSelect={setActiveKey}
+              onStatus={null}
+              onDelete={null}
+              onRestore={null}
+              onPurge={null}
+              note="Rendered when a page is hidden or coming soon. Edit via builder to customise."
+            />
+          )}
+        </>
+      ) : (
         <Section
-          label="Pillars"
-          rows={pillars}
-          activeKey={activeKey}
-          onSelect={setActiveKey}
-          onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
-          onDelete={null}
-        />
-      )}
-      {custom.length > 0 && (
-        <Section
-          label="Custom"
-          rows={custom}
-          activeKey={activeKey}
-          onSelect={setActiveKey}
-          onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
-          onDelete={(row) => setDeleteConfirm({ key: row.key, title: row.title || row.slug })}
-        />
-      )}
-      {system.length > 0 && (
-        <Section
-          label="System templates"
-          rows={system}
+          label="Archive"
+          rows={archived}
           activeKey={activeKey}
           onSelect={setActiveKey}
           onStatus={null}
           onDelete={null}
-          note="Rendered when a page is hidden or coming soon. Edit via builder to customise."
+          onRestore={(row) => setConfirm({ kind: "restore", key: row.key, title: row.title || row.slug })}
+          onPurge={(row) => setConfirm({ kind: "purge", key: row.key, title: row.title || row.slug })}
+          note={archived.length === 0 ? "No archived pages. Deleted pages land here so you can restore them." : "Deleted pages live here. Restore or permanently delete."}
         />
       )}
 
@@ -186,22 +267,35 @@ function PagesAdmin() {
           open
           current={statusOverlay.current}
           onOpenChange={(o) => { if (!o) setStatusOverlay(null); }}
-          onPick={(next) => runStatus(statusOverlay.key, next)}
+          onPick={(next) => runGated({ kind: "status", key: statusOverlay.key, next })}
         />
       )}
 
-      {deleteConfirm && (
-        <Dialog open onOpenChange={(o) => { if (!o) setDeleteConfirm(null); }}>
+      {confirm && (
+        <Dialog open onOpenChange={(o) => { if (!o) setConfirm(null); }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete "{deleteConfirm.title}"?</DialogTitle>
+              <DialogTitle>
+                {confirm.kind === "archive" && `Move "${confirm.title}" to archive?`}
+                {confirm.kind === "restore" && `Restore "${confirm.title}"?`}
+                {confirm.kind === "purge" && `Permanently delete "${confirm.title}"?`}
+              </DialogTitle>
               <DialogDescription>
-                This permanently removes the page and its blocks. You'll be asked to confirm your password.
+                {confirm.kind === "archive" && "The page will be hidden from the site and can be restored later from the archive. You'll be asked to confirm your password."}
+                {confirm.kind === "restore" && "The page will return to Active with its previous status. If another page has taken its slug, restore will fail. You'll be asked to confirm your password."}
+                {confirm.kind === "purge" && "This cannot be undone. The page and its blocks are removed forever. You'll be asked to confirm your password."}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={() => runDelete(deleteConfirm.key)}>Delete</Button>
+              <Button variant="outline" onClick={() => setConfirm(null)}>Cancel</Button>
+              <Button
+                variant={confirm.kind === "purge" ? "destructive" : "default"}
+                onClick={() => runGated({ kind: confirm.kind, key: confirm.key })}
+              >
+                {confirm.kind === "archive" && "Move to archive"}
+                {confirm.kind === "restore" && "Restore"}
+                {confirm.kind === "purge" && "Delete forever"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -216,6 +310,7 @@ function PagesAdmin() {
     </div>
   );
 }
+
 
 function Section({
   label, rows, activeKey, onSelect, onStatus, onDelete, note,
