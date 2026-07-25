@@ -22,9 +22,11 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
   return <PillarArchiveContent pillar={pillar} tint={tint} bundle={bundle} meta={meta} />;
 }
 
-function PillarArchiveContent({ pillar, tint, bundle, meta }: Props & { bundle: ReturnType<typeof usePillarMap> extends never ? never : { content?: Record<string, unknown> | null }; meta: ReturnType<typeof pillarLabel> }) {
+type Bundle = ReturnType<typeof useSuspenseQuery<ReturnType<typeof pageQuery>["queryFn"] extends (...a: unknown[]) => Promise<infer R> ? R : never>>["data"];
+
+function PillarArchiveContent({ pillar, bundle, meta }: Props & { bundle: Bundle; meta: ReturnType<typeof pillarLabel> }) {
   const { data: all } = useSuspenseQuery(articlesQuery());
-  const page = bundle?.content ?? undefined;
+  const page = bundle?.content as Record<string, unknown> | undefined;
   const eyebrow = (page?.eyebrow as string) ?? "Pillar";
   const intro = (page?.intro as string) ?? meta.description;
   const items = useMemo(() => all.filter((c) => c.pillar === pillar), [all, pillar]);
