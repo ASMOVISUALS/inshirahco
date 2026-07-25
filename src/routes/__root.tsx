@@ -97,7 +97,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isBuilder = /^\/admin\/pages\/[^/]+\/builder$/.test(pathname);
+  const isAdmin = !isBuilder && (pathname === "/admin" || pathname.startsWith("/admin/"));
   useEffect(() => {
     let cancelled = false;
     void (async () => {
