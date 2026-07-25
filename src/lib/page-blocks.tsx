@@ -164,8 +164,12 @@ export function newBlock(type: BlockType): Block {
         { label: "Contact", href: "/contact" },
       ],
     },
+    faq_accordion: { page_key: "", items: [] },
+    founder_letter: { eyebrow: "Behind the words", title: "The founder", letter: "ف", name: "Founder", role: "", bio: "", tint: "heart" },
+    arabic_verse: { arabic: "", translation: "", reference: "" },
     divider: {},
     spacer: { size: "md" },
+
 
   };
   return { id, type, props: defaults[type] };
