@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { Pillar } from "@/lib/content";
-import { articlesQuery, pageQuery } from "@/lib/queries";
+import { articlesQuery, pageQuery, type PageBundle } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
@@ -22,9 +22,7 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
   return <PillarArchiveContent pillar={pillar} tint={tint} bundle={bundle} meta={meta} />;
 }
 
-type Bundle = ReturnType<typeof useSuspenseQuery<ReturnType<typeof pageQuery>["queryFn"] extends (...a: unknown[]) => Promise<infer R> ? R : never>>["data"];
-
-function PillarArchiveContent({ pillar, bundle, meta }: Props & { bundle: Bundle; meta: ReturnType<typeof pillarLabel> }) {
+function PillarArchiveContent({ pillar, tint, bundle, meta }: Props & { bundle: PageBundle; meta: ReturnType<typeof pillarLabel> }) {
   const { data: all } = useSuspenseQuery(articlesQuery());
   const page = bundle?.content as Record<string, unknown> | undefined;
   const eyebrow = (page?.eyebrow as string) ?? "Pillar";
