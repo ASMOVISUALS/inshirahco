@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { pageBySlugQuery } from "@/lib/queries";
 import { PageRenderer, readBlocks } from "@/lib/page-blocks";
-import { HiddenPage } from "@/components/HiddenPage";
+import { SystemTemplate } from "@/components/SystemTemplate";
 
 // Reserved slugs that have their own route files
 const RESERVED = new Set([
@@ -40,7 +40,8 @@ export const Route = createFileRoute("/$pageSlug")({
 function DynamicPage() {
   const { pageSlug } = Route.useParams();
   const { data } = useSuspenseQuery(pageBySlugQuery(pageSlug));
-  if (data?.is_locked) return <HiddenPage title={data.title ?? undefined} />;
+  if (data?.status === "hidden") return <SystemTemplate mode="hidden" pageName={data.title ?? undefined} />;
+  if (data?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={data.title ?? undefined} />;
   const blocks = readBlocks((data?.content ?? {}) as Record<string, unknown>);
   if (blocks.length === 0) {
     return (

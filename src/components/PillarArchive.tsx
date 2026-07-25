@@ -27,7 +27,8 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
 
   const filtered = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items;
 
-  if (bundle?.is_locked) return <HiddenPage title={meta.label} />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName={meta.label} />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={meta.label} />;
 
 
 

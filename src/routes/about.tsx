@@ -23,7 +23,8 @@ export const Route = createFileRoute("/about")({
 function About() {
   const { data: bundle } = useQuery(pageQuery("about"));
   const page = bundle?.content ?? {};
-  if (bundle?.is_locked) return <HiddenPage title="About" />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="About" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="About" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
 

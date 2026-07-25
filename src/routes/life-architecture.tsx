@@ -52,7 +52,8 @@ interface Mentor { name: string; title?: string; role?: string; qualification?: 
 function LifeArchitecture() {
   const { data: bundle } = useQuery(pageQuery("life-architecture"));
   const page = bundle?.content ?? {};
-  if (bundle?.is_locked) return <HiddenPage title="Life Architecture" />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;

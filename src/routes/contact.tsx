@@ -49,7 +49,8 @@ function Contact() {
     setSent(true);
   };
 
-  if (bundle?.is_locked) return <HiddenPage title="Contact" />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
 
   const rawBlocks = (page as { blocks?: unknown }).blocks;
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {

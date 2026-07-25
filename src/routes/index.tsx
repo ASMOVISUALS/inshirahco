@@ -42,7 +42,8 @@ function Home() {
   const latest = content.slice(0, 3);
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
-  if (bundle?.is_locked) return <HiddenPage title="Home" />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Home" />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Home" />;
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
 
