@@ -5,7 +5,7 @@ import { ExternalLink, LayoutTemplate, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlockArray } from "@/lib/page-blocks";
 
-export const Route = createFileRoute("/_authenticated/admin/pages")({
+export const Route = createFileRoute("/_authenticated/admin/pages/")({
   head: () => ({ meta: [{ title: "Pages — Admin" }, { name: "robots", content: "noindex" }] }),
   component: PagesAdmin,
 });
