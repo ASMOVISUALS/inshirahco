@@ -176,6 +176,20 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
 
+  const toggleLock = useMutation({
+    mutationFn: async () => {
+      const next = !row.is_locked;
+      const { error } = await supabase.from("pages").update({ is_locked: next }).eq("key", row.key);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (locked) => {
+      setStatus({ kind: "ok", msg: locked ? "Page locked — visitors will see the hidden placeholder." : "Page unlocked — live again." });
+      onSaved();
+    },
+    onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
+  });
+
   const update = (key: string, value: string) => { setDraft((d) => ({ ...d, [key]: value })); setDirty(true); };
   const addKey = () => {
     const k = window.prompt("New field key (letters, numbers, underscore):");
