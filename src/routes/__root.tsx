@@ -99,6 +99,8 @@ function RootComponent() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isBuilder = /^\/admin\/pages\/[^/]+\/builder$/.test(pathname);
   const isAdmin = !isBuilder && (pathname === "/admin" || pathname.startsWith("/admin/"));
+  const isProfile = pathname === "/profile" || pathname.startsWith("/profile/");
+  const minimal = isAdmin || isProfile;
   useEffect(() => {
     let cancelled = false;
     void (async () => {
