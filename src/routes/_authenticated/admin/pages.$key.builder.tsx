@@ -11,6 +11,7 @@ import {
   BLOCK_CATEGORIES, BLOCK_LABEL, PageRenderer,
   newBlock, isBlockArray, type Block, type BlockType,
 } from "@/lib/page-blocks";
+import { newslettersQuery } from "@/lib/queries";
 import { seedBlocksFor } from "@/lib/page-seed";
 
 export const Route = createFileRoute("/_authenticated/admin/pages/$key/builder")({
