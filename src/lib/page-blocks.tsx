@@ -1,15 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
-import { articlesQuery, testimonialsQuery, reflectionsQuery, faqsQuery } from "@/lib/queries";
+import { articlesQuery, testimonialsQuery, faqsQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVars } from "@/lib/template-vars";
+
 
 export type BlockType =
   | "hero"
+  | "hero_fullscreen"
+  | "hidden_frame"
+  | "explore_pages"
   | "section_header"
   | "heading"
   | "paragraph"
@@ -30,6 +35,7 @@ export type BlockType =
   | "divider"
   | "spacer";
 
+
 export interface Block<TProps = Record<string, unknown>> {
   id: string;
   type: BlockType;
@@ -48,11 +54,15 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     label: "Layout",
     items: [
       { type: "hero", label: "Hero", description: "Big arabic mark + title + CTAs" },
+      { type: "hero_fullscreen", label: "Full-screen header", description: "Layered pattern + watermark" },
+      { type: "hidden_frame", label: "Hidden / Coming soon frame", description: "System template body" },
+      { type: "explore_pages", label: "Explore pages row", description: "Chip navigation" },
       { type: "section_header", label: "Section header", description: "Eyebrow + title + description" },
       { type: "divider", label: "Divider" },
       { type: "spacer", label: "Spacer" },
     ],
   },
+
   {
     key: "content",
     label: "Content",
@@ -130,32 +140,61 @@ export function newBlock(type: BlockType): Block {
     testimonials_row: { eyebrow: "Community voices", title: "Notes from readers" },
     latest_articles: { eyebrow: "Latest writing", title: "Recently, from us to you", pillar: "", count: 3 },
     reflection_spotlight: {},
-    newsletter: { heading: "", description: "", cta: "" },
+    newsletter: { heading: "", description: "", cta: "", newsletterId: "" },
+    hero_fullscreen: {
+      eyebrow: "",
+      title: "A quiet page",
+      subtitle: "",
+      arabic_watermark: "انشراح",
+      arabic_verse: "",
+      align: "center",
+    },
+    hidden_frame: {
+      eyebrow: "{{page_name}}",
+      title: "This page is hidden.",
+      subtitle: "Come back soon — but feel free to explore other pages below.",
+      arabic_watermark: "سِرّ",
+      arabic_verse: "إن مع العسر يسرا",
+    },
+    explore_pages: {
+      items: [
+        { label: "Home", href: "/" },
+        { label: "About", href: "/about" },
+        { label: "Resources", href: "/resources" },
+        { label: "Contact", href: "/contact" },
+      ],
+    },
     faq_accordion: { page_key: "", items: [] },
     founder_letter: { eyebrow: "Behind the words", title: "The founder", letter: "ف", name: "Founder", role: "", bio: "", tint: "heart" },
     arabic_verse: { arabic: "", translation: "", reference: "" },
     divider: {},
     spacer: { size: "md" },
+
+
   };
   return { id, type, props: defaults[type] };
 }
 
 // -------- Renderer --------
 
-export function PageRenderer({ blocks }: { blocks: Block[] }) {
+export function PageRenderer({ blocks, vars }: { blocks: Block[]; vars?: TemplateVars }) {
+  const inherited = useTemplateVars();
+  const merged = vars ? { ...inherited, ...vars } : inherited;
   return (
-    <>
+    <TemplateVarsProvider value={merged}>
       {blocks.map((b) => (
         <RenderBlock key={b.id} block={b} />
       ))}
-    </>
+    </TemplateVarsProvider>
   );
 }
 
 function RenderBlock({ block }: { block: Block }) {
   const p = block.props as Record<string, unknown>;
-  const s = (k: string, f = "") => (p[k] as string) ?? f;
+  const vars = useTemplateVars();
+  const s = (k: string, f = "") => substituteVars((p[k] as string) ?? f, vars);
   const n = (k: string, f = 0) => (typeof p[k] === "number" ? (p[k] as number) : f);
+
 
   switch (block.type) {
     case "hero": {
@@ -366,12 +405,41 @@ function RenderBlock({ block }: { block: Block }) {
         </section>
       );
 
-    case "newsletter":
+    case "newsletter": {
+      const nlId = (p.newsletterId as string) || undefined;
       return (
         <section className="container-wide py-14">
-          <NewsletterSignup heading={s("heading") || undefined} description={s("description") || undefined} cta={s("cta") || undefined} />
+          <NewsletterSignup
+            heading={s("heading") || undefined}
+            description={s("description") || undefined}
+            cta={s("cta") || undefined}
+            newsletterId={nlId}
+          />
         </section>
       );
+    }
+
+    case "hero_fullscreen":
+      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+
+    case "hidden_frame":
+      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+
+    case "explore_pages": {
+      const items = (Array.isArray(p.items) ? p.items : []) as { label: string; href: string }[];
+      return (
+        <section className="container-wide pb-16">
+          <nav aria-label="Explore" className="flex flex-wrap items-center justify-center gap-2">
+            {items.map((l, i) => (
+              <Link key={i} to={l.href} className="rounded-full border border-border bg-card/70 px-5 py-2 text-sm backdrop-blur transition-colors hover:border-heart hover:text-heart">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </section>
+      );
+    }
+
 
     case "faq_accordion":
       return <FaqBlock pageKey={s("page_key")} items={(Array.isArray(p.items) ? p.items : []) as { question: string; answer: string }[]} />;
@@ -528,6 +596,50 @@ function FaqBlock({ pageKey, items }: { pageKey?: string; items: { question: str
             <p className="mt-3 text-muted-foreground">{f.answer}</p>
           </details>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string }) {
+  return (
+    <section className="relative isolate overflow-hidden">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.14]"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--heart) 55%, transparent) 0, transparent 42%),
+            radial-gradient(circle at 82% 68%, color-mix(in oklab, var(--gold) 45%, transparent) 0, transparent 45%),
+            url("data:image/svg+xml;utf8,${encodeURIComponent(
+              `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='#B4463D' stroke-width='0.9' opacity='0.9'><circle cx='80' cy='80' r='40'/><circle cx='80' cy='80' r='28' stroke='#D4AF37'/><polygon points='80,32 116,64 116,96 80,128 44,96 44,64'/><polygon points='80,44 106,68 106,92 80,116 54,92 54,68' stroke='#D4AF37'/><polygon points='80,56 96,72 96,88 80,104 64,88 64,72'/><path d='M0 80 L160 80 M80 0 L80 160 M20 20 L140 140 M140 20 L20 140' stroke-opacity='0.35'/></g></svg>`,
+            )}")`,
+          backgroundRepeat: "no-repeat, no-repeat, repeat",
+          backgroundSize: "auto, auto, 200px 200px",
+          backgroundPosition: "center, center, center",
+        }}
+      />
+      {watermark && (
+        <span
+          aria-hidden
+          className="watermark-breathe pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none font-arabic text-[24vw] leading-none"
+          style={{ color: "color-mix(in oklab, var(--heart) 12%, transparent)" }}
+          dir="rtl"
+        >
+          {watermark}
+        </span>
+      )}
+      <div className="container-wide relative z-10 flex min-h-[70svh] flex-col items-center justify-center py-24 text-center">
+        {eyebrow && <p className="eyebrow mb-6" style={{ color: "var(--heart)" }}>{eyebrow}</p>}
+        {title && (
+          <h1 className="mx-auto max-w-3xl text-6xl leading-[1.02] md:text-8xl" style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1', color: "var(--ink)" }}>
+            {title}
+          </h1>
+        )}
+        {subtitle && <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground md:text-xl">{subtitle}</p>}
+        {verse && (
+          <p className="mt-10 font-arabic text-2xl" dir="rtl" style={{ color: "color-mix(in oklab, var(--heart) 70%, transparent)" }}>{verse}</p>
+        )}
       </div>
     </section>
   );

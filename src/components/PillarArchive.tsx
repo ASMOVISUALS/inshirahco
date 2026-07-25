@@ -5,7 +5,7 @@ import { articlesQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
-import { HiddenPage } from "@/components/HiddenPage";
+import { SystemTemplate } from "@/components/SystemTemplate";
 import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 interface Props {
@@ -27,7 +27,8 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
 
   const filtered = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items;
 
-  if (bundle?.is_locked) return <HiddenPage title={meta.label} />;
+  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName={meta.label} />;
+  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={meta.label} />;
 
 
 

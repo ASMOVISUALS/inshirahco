@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Lock, Unlock, Plus } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Lock, Plus, Eye, EyeOff, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlockArray } from "@/lib/page-blocks";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+type PageStatus = "published" | "hidden" | "coming_soon";
+
 
 
 export const Route = createFileRoute("/_authenticated/admin/pages/")({
@@ -18,7 +23,7 @@ interface PageRow {
   slug: string;
   title: string;
   is_published: boolean;
-  is_locked: boolean;
+  status: PageStatus;
   content: Record<string, unknown>;
 }
 
@@ -29,9 +34,10 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,is_locked,content")
+        .select("key,slug,title,is_published,status,content")
         .order("key");
       if (error) throw error;
+
       return (data ?? []) as PageRow[];
     },
   });
@@ -135,7 +141,8 @@ function Group({ label, rows, selectedKey, onSelect }: { label: string; rows: Pa
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 font-semibold">
-                  {r.is_locked && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  {r.status === "hidden" && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  {r.status === "coming_soon" && <Clock className="h-3 w-3 shrink-0" style={{ color: "var(--gold)" }} />}
                   <span className="truncate">{r.title || r.slug}</span>
                 </div>
                 <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
@@ -182,19 +189,26 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
 
-  const toggleLock = useMutation({
-    mutationFn: async () => {
-      const next = !row.is_locked;
-      const { error } = await supabase.from("pages").update({ is_locked: next }).eq("key", row.key);
+  const [statusOverlayOpen, setStatusOverlayOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<PageStatus | null>(null);
+
+  const setStatusMutation = useMutation({
+    mutationFn: async (next: PageStatus) => {
+      const { error } = await supabase.from("pages").update({ status: next } as never).eq("key", row.key);
       if (error) throw error;
       return next;
     },
-    onSuccess: (locked) => {
-      setStatus({ kind: "ok", msg: locked ? "Page locked — visitors will see the hidden placeholder." : "Page unlocked — live again." });
+    onSuccess: (next) => {
+      const msg =
+        next === "published" ? "Page is now published." :
+        next === "hidden" ? "Page is hidden — visitors see the hidden template." :
+        "Page is set to coming soon — visitors see the coming-soon template.";
+      setStatus({ kind: "ok", msg });
       onSaved();
     },
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
+
 
   const update = (key: string, value: string) => { setDraft((d) => ({ ...d, [key]: value })); setDirty(true); };
   const addKey = () => {
@@ -214,23 +228,29 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold">
-            {row.is_locked && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.status === "hidden" && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.status === "coming_soon" && <Clock className="h-4 w-4" style={{ color: "var(--gold)" }} />}
             {row.title || row.slug}
           </h2>
           <p className="font-mono text-xs text-muted-foreground">
             key: {row.key} · slug: /{row.slug} · {hasBlocks ? "using builder blocks" : "using legacy fields"}
-            {row.is_locked && <> · <span style={{ color: "var(--heart)" }}>locked</span></>}
+            {row.status !== "published" && (
+              <> · <span style={{ color: row.status === "hidden" ? "var(--heart)" : "var(--gold)" }}>{row.status === "hidden" ? "hidden" : "coming soon"}</span></>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setGateOpen(true)}
-            disabled={toggleLock.isPending}
+            onClick={() => setStatusOverlayOpen(true)}
+            disabled={setStatusMutation.isPending}
             className="btn-ghost text-xs"
-            title={row.is_locked ? "Unlock — password required." : "Lock — password required."}
+            title="Change page status — password required."
           >
-            {row.is_locked ? <><Unlock className="h-3.5 w-3.5" /> Unlock page</> : <><Lock className="h-3.5 w-3.5" /> Lock page</>}
+            {row.status === "published" ? <><Eye className="h-3.5 w-3.5" /> Published</> :
+             row.status === "hidden" ? <><EyeOff className="h-3.5 w-3.5" /> Hidden</> :
+             <><Clock className="h-3.5 w-3.5" /> Coming soon</>}
           </button>
+
 
           <a href={`/${row.slug}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
             <ExternalLink className="h-3.5 w-3.5" /> View live
@@ -305,16 +325,80 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
         </div>
       </div>
 
+      <StatusOverlay
+        open={statusOverlayOpen}
+        current={row.status}
+        onOpenChange={setStatusOverlayOpen}
+        onPick={(next) => {
+          setStatusOverlayOpen(false);
+          setPendingStatus(next);
+          setGateOpen(true);
+        }}
+      />
+
       <AdminPasswordGate
         open={gateOpen}
-        onOpenChange={setGateOpen}
+        onOpenChange={(o) => { setGateOpen(o); if (!o) setPendingStatus(null); }}
         email={user?.email ?? ""}
         onVerified={() => {
           setGateOpen(false);
-          toggleLock.mutate();
+          if (pendingStatus) {
+            setStatusMutation.mutate(pendingStatus);
+            setPendingStatus(null);
+          }
         }}
       />
+
 
     </div>
   );
 }
+
+function StatusOverlay({
+  open, current, onOpenChange, onPick,
+}: {
+  open: boolean;
+  current: PageStatus;
+  onOpenChange: (o: boolean) => void;
+  onPick: (next: PageStatus) => void;
+}) {
+  const options: { value: PageStatus; label: string; icon: React.ComponentType<{ className?: string }>; description: string; color: string }[] = [
+    { value: "published", label: "Published", icon: Eye, description: "Live for all visitors.", color: "var(--ink)" },
+    { value: "hidden", label: "Hidden", icon: EyeOff, description: "Visitors see the hidden template.", color: "var(--heart)" },
+    { value: "coming_soon", label: "Coming soon", icon: Clock, description: "Visitors see a coming-soon page with newsletter sign-up.", color: "var(--gold)" },
+  ];
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Set page status</DialogTitle>
+          <DialogDescription>Pick a state. You'll be asked to confirm your password.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {options.map((o) => {
+            const Icon = o.icon;
+            const isCurrent = o.value === current;
+            return (
+              <button
+                key={o.value}
+                onClick={() => onPick(o.value)}
+                className={`group flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-all ${isCurrent ? "border-heart bg-heart/5" : "border-border bg-card hover:border-heart hover:shadow-md"}`}
+              >
+                <Icon className="h-6 w-6" />
+                <div>
+                  <p className="text-base font-bold">{o.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{o.description}</p>
+                </div>
+                {isCurrent && <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--heart)" }}>Current</span>}
+              </button>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

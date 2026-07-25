@@ -11,6 +11,7 @@ import {
   BLOCK_CATEGORIES, BLOCK_LABEL, PageRenderer,
   newBlock, isBlockArray, type Block, type BlockType,
 } from "@/lib/page-blocks";
+import { newslettersQuery } from "@/lib/queries";
 import { seedBlocksFor } from "@/lib/page-seed";
 
 export const Route = createFileRoute("/_authenticated/admin/pages/$key/builder")({
@@ -270,7 +271,9 @@ type FieldDef =
   | { key: string; label: string; kind: "number"; min?: number; max?: number }
   | { key: string; label: string; kind: "select"; options: { value: string; label: string }[] }
   | { key: string; label: string; kind: "list_string" }
+  | { key: string; label: string; kind: "newsletter_select" }
   | { key: string; label: string; kind: "list_object"; shape: { key: string; label: string; kind: "text" | "textarea" | "select"; options?: { value: string; label: string }[] }[] };
+
 
 const FIELDS: Record<BlockType, FieldDef[]> = {
   hero: [
@@ -356,10 +359,32 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
   ],
   reflection_spotlight: [],
   newsletter: [
-    { key: "heading", label: "Heading", kind: "text" },
-    { key: "description", label: "Description", kind: "textarea" },
+    { key: "heading", label: "Heading (supports {{page_name}})", kind: "text" },
+    { key: "description", label: "Description (supports {{page_name}})", kind: "textarea" },
     { key: "cta", label: "CTA label", kind: "text" },
+    { key: "newsletterId", label: "Send signups to", kind: "newsletter_select" },
   ],
+  hero_fullscreen: [
+    { key: "eyebrow", label: "Eyebrow (supports {{page_name}})", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "subtitle", label: "Subtitle", kind: "textarea", rows: 3 },
+    { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
+    { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+  ],
+  hidden_frame: [
+    { key: "eyebrow", label: "Eyebrow (supports {{page_name}})", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "subtitle", label: "Subtitle (supports {{page_name}})", kind: "textarea", rows: 3 },
+    { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
+    { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+  ],
+  explore_pages: [
+    { key: "items", label: "Links", kind: "list_object", shape: [
+      { key: "label", label: "Label", kind: "text" },
+      { key: "href", label: "Link", kind: "text" },
+    ]},
+  ],
+
   faq_accordion: [
     { key: "page_key", label: "Auto-load FAQs page_key (or blank)", kind: "text" },
     { key: "items", label: "Manual items", kind: "list_object", shape: [
@@ -487,7 +512,27 @@ function Field({ field, value, onChange }: { field: FieldDef; value: unknown; on
       </div>
     );
   }
+  if (field.kind === "newsletter_select") {
+    return <NewsletterSelectField label={field.label} value={value as string | undefined} onChange={(v) => onChange(v)} />;
+  }
   return null;
 }
 
 void Link;
+
+function NewsletterSelectField({ label, value, onChange }: { label: string; value: string | undefined; onChange: (v: string) => void }) {
+  const base = "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm outline-none focus:border-heart";
+  const { data = [] } = useQuery(newslettersQuery());
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <select className={base} value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Default newsletter</option>
+        {data.map((n) => (
+          <option key={n.id} value={n.id}>{n.name}{n.is_default ? " (default)" : ""}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
