@@ -97,7 +97,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isBuilder = /^\/admin\/pages\/[^/]+\/builder$/.test(pathname);
+  const isAdmin = !isBuilder && (pathname === "/admin" || pathname.startsWith("/admin/"));
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -115,11 +116,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        <SiteNav minimal={isAdmin} />
+        {!isBuilder && <SiteNav minimal={isAdmin} />}
         <main className="flex-1">
           <Outlet />
         </main>
-        {!isAdmin && <SiteFooter />}
+        {!isAdmin && !isBuilder && <SiteFooter />}
       </div>
     </QueryClientProvider>
   );

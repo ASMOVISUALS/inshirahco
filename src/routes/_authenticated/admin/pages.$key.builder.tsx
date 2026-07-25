@@ -117,7 +117,7 @@ function PageBuilderRoute() {
   const vpWidth = viewport === "desktop" ? "100%" : viewport === "tablet" ? "820px" : "390px";
 
   return (
-    <div className="-m-8 flex h-[calc(100vh-72px)] flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background">
       {/* Top bar */}
       <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2">
         <div className="flex items-center gap-3">
