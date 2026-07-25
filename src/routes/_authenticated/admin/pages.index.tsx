@@ -39,14 +39,17 @@ function PagesAdmin() {
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
       <PageList rows={data} selectedKey={selectedKey} onSelect={setSelectedKey} onCreated={setSelectedKey} />
       {selected ? (
-        <PageEditor key={selected.key} row={selected} onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "pages"] })} />
+        <div className="min-w-0 max-w-4xl w-full">
+          <PageEditor key={selected.key} row={selected} onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "pages"] })} />
+        </div>
       ) : (
         <p className="text-muted-foreground">Pick a page.</p>
       )}
     </div>
+
   );
 }
 
@@ -231,9 +234,10 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
                   <td className="px-4 py-3 font-mono text-xs font-semibold">{key}</td>
                   <td className="px-4 py-3">
                     {Array.isArray(value) || (typeof value === "object" && value !== null) ? (
-                      <pre className="overflow-x-auto rounded-md border border-dashed border-border bg-background/50 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-dashed border-border bg-background/50 px-3 py-2 font-mono text-[11px] text-muted-foreground">
                         {JSON.stringify(value, null, 2)}
                       </pre>
+
                     ) : (
                       <textarea
                         rows={Math.min(6, Math.max(1, String(value ?? "").split("\n").length))}
