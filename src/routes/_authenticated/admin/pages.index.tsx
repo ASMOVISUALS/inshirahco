@@ -304,6 +304,17 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
           {status && <span className={`text-xs font-semibold ${status.kind === "ok" ? "text-emerald-600" : "text-destructive"}`}>{status.msg}</span>}
         </div>
       </div>
+
+      <AdminPasswordGate
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        email={user?.email ?? ""}
+        onVerified={() => {
+          setGateOpen(false);
+          toggleLock.mutate();
+        }}
+      />
+
     </div>
   );
 }
