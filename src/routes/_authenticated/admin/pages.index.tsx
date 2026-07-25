@@ -39,14 +39,17 @@ function PagesAdmin() {
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
       <PageList rows={data} selectedKey={selectedKey} onSelect={setSelectedKey} onCreated={setSelectedKey} />
       {selected ? (
-        <PageEditor key={selected.key} row={selected} onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "pages"] })} />
+        <div className="min-w-0 max-w-4xl w-full">
+          <PageEditor key={selected.key} row={selected} onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "pages"] })} />
+        </div>
       ) : (
         <p className="text-muted-foreground">Pick a page.</p>
       )}
     </div>
+
   );
 }
 
