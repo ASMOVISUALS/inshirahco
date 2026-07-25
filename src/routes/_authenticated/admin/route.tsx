@@ -50,6 +50,8 @@ function AdminLayout() {
   const { user } = useAuth();
   const { data: isAdmin, isLoading } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const isBuilder = /^\/admin\/pages\/[^/]+\/builder$/.test(pathname);
 
   useEffect(() => {
     if (!isLoading && user && isAdmin === false) navigate({ to: "/" });
@@ -60,6 +62,10 @@ function AdminLayout() {
   }
   if (!isAdmin) {
     return <div className="container-wide py-24 text-center text-muted-foreground">Not authorized.</div>;
+  }
+
+  if (isBuilder) {
+    return <Outlet />;
   }
 
   return (
