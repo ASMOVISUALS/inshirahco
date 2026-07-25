@@ -234,7 +234,7 @@ function Section({
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rows.map((r) => (
           <PageTile
             key={r.key}
