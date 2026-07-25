@@ -26,8 +26,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReadSlugRouteImport } from './routes/read.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authenticated/profile/route'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
@@ -126,16 +129,34 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthenticatedProfileRouteRoute =
+  AuthenticatedProfileRouteRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileIndexRoute =
+  AuthenticatedProfileIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedProfileEditRoute =
+  AuthenticatedProfileEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
 const AuthenticatedAdminTestimonialsRoute =
   AuthenticatedAdminTestimonialsRouteImport.update({
     id: '/testimonials',
@@ -230,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
@@ -239,7 +261,9 @@ export interface FileRoutesByFullPath {
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
   '/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
@@ -271,7 +295,9 @@ export interface FileRoutesByTo {
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/admin/articles': typeof AuthenticatedAdminArticlesIndexRoute
   '/admin/pages': typeof AuthenticatedAdminPagesIndexRoute
@@ -297,6 +323,7 @@ export interface FileRoutesById {
   '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
   '/young-hearts': typeof YoungHeartsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
@@ -306,7 +333,9 @@ export interface FileRoutesById {
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
   '/_authenticated/admin/articles/': typeof AuthenticatedAdminArticlesIndexRoute
   '/_authenticated/admin/pages/': typeof AuthenticatedAdminPagesIndexRoute
@@ -332,6 +361,7 @@ export interface FileRouteTypes {
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/admin'
+    | '/profile'
     | '/auth/callback'
     | '/read/$slug'
     | '/admin/archive'
@@ -341,7 +371,9 @@ export interface FileRouteTypes {
     | '/admin/reflections'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/profile/edit'
     | '/admin/'
+    | '/profile/'
     | '/admin/articles/$id'
     | '/admin/articles/'
     | '/admin/pages/'
@@ -373,7 +405,9 @@ export interface FileRouteTypes {
     | '/admin/reflections'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/profile/edit'
     | '/admin'
+    | '/profile'
     | '/admin/articles/$id'
     | '/admin/articles'
     | '/admin/pages'
@@ -398,6 +432,7 @@ export interface FileRouteTypes {
     | '/tazkiyah-toolkit'
     | '/young-hearts'
     | '/_authenticated/admin'
+    | '/_authenticated/profile'
     | '/auth/callback'
     | '/read/$slug'
     | '/_authenticated/admin/archive'
@@ -407,7 +442,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reflections'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
+    | '/_authenticated/profile/edit'
     | '/_authenticated/admin/'
+    | '/_authenticated/profile/'
     | '/_authenticated/admin/articles/$id'
     | '/_authenticated/admin/articles/'
     | '/_authenticated/admin/pages/'
@@ -556,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -563,12 +607,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile/': {
+      id: '/_authenticated/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/profile/edit': {
+      id: '/_authenticated/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
     }
     '/_authenticated/admin/testimonials': {
       id: '/_authenticated/admin/testimonials'
@@ -706,12 +764,30 @@ const AuthenticatedAdminRouteRouteWithChildren =
     AuthenticatedAdminRouteRouteChildren,
   )
 
+interface AuthenticatedProfileRouteRouteChildren {
+  AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
+}
+
+const AuthenticatedProfileRouteRouteChildren: AuthenticatedProfileRouteRouteChildren =
+  {
+    AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+    AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
+  }
+
+const AuthenticatedProfileRouteRouteWithChildren =
+  AuthenticatedProfileRouteRoute._addFileChildren(
+    AuthenticatedProfileRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedProfileRouteRoute: typeof AuthenticatedProfileRouteRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedProfileRouteRoute: AuthenticatedProfileRouteRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
