@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Lock, Unlock, Plus } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Lock, Plus, Eye, EyeOff, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlockArray } from "@/lib/page-blocks";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+type PageStatus = "published" | "hidden" | "coming_soon";
+
 
 
 export const Route = createFileRoute("/_authenticated/admin/pages/")({
