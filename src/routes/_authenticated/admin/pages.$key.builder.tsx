@@ -59,12 +59,17 @@ function PageBuilderRoute() {
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [dirty, setDirty] = useState(false);
   const [activeCat, setActiveCat] = useState<string | null>(BLOCK_CATEGORIES[0]?.key ?? null);
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
 
   useEffect(() => {
     if (row && !seeded) {
       setBlocks(initialBlocks);
       setHistory([initialBlocks]);
       setHistoryIdx(0);
+      const content = (row.content ?? {}) as Record<string, unknown>;
+      setSeoTitle(typeof content.seo_title === "string" ? content.seo_title : "");
+      setSeoDesc(typeof content.seo_description === "string" ? content.seo_description : "");
       // If blocks were seeded (not already saved), mark dirty so user knows to save
       const saved = isBlockArray(row.content?.blocks) && (row.content?.blocks as Block[]).length > 0;
       setDirty(!saved && initialBlocks.length > 0);
@@ -97,7 +102,7 @@ function PageBuilderRoute() {
   const save = useMutation({
     mutationFn: async () => {
       if (!row) throw new Error("No page");
-      const nextContent = { ...(row.content ?? {}), blocks };
+      const nextContent = { ...(row.content ?? {}), seo_title: seoTitle, seo_description: seoDesc, blocks };
       const { error } = await supabase.from("pages").update({ content: nextContent as never }).eq("key", row.key);
       if (error) throw error;
     },
@@ -239,7 +244,30 @@ function PageBuilderRoute() {
           {selected ? (
             <BlockInspector key={selected.id} block={selected} onChange={(props) => updateBlock(selected.id, props)} />
           ) : (
-            <p className="text-xs text-muted-foreground">Select a block from the list to edit its properties.</p>
+            <div className="flex flex-col gap-4">
+              <div className="rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold">Page settings</div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold">SEO title</label>
+                <input
+                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  value={seoTitle}
+                  onChange={(e) => { setSeoTitle(e.target.value); setDirty(true); }}
+                  placeholder={row.title}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">Shown in browser tab and search results. Falls back to page title.</p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold">SEO description</label>
+                <textarea
+                  rows={4}
+                  className="w-full resize-y rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                  value={seoDesc}
+                  onChange={(e) => { setSeoDesc(e.target.value); setDirty(true); }}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">One or two sentences describing the page for search & social previews.</p>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Select a block above to edit its properties.</p>
+            </div>
           )}
         </div>
       </div>
