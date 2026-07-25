@@ -81,6 +81,7 @@ function RecommendedCard({ slug }: { slug: string }) {
         .select("slug,title,description,pillar,type")
         .eq("slug", slug)
         .eq("published", true)
+        .is("archived_at", null)
         .maybeSingle();
       return data;
     },

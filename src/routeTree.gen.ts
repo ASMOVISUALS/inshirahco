@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
+import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
 import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
 import { Route as AuthenticatedAdminPagesIndexRouteImport } from './routes/_authenticated/admin/pages.index'
 import { Route as AuthenticatedAdminArticlesIndexRouteImport } from './routes/_authenticated/admin/articles/index'
@@ -170,6 +171,12 @@ const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminArchiveRoute =
+  AuthenticatedAdminArchiveRouteImport.update({
+    id: '/archive',
+    path: '/archive',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminPillarsIndexRoute =
   AuthenticatedAdminPillarsIndexRouteImport.update({
     id: '/pillars/',
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -256,6 +264,7 @@ export interface FileRoutesByTo {
   '/young-hearts': typeof YoungHeartsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -290,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth/callback'
     | '/read/$slug'
+    | '/admin/archive'
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
@@ -355,6 +366,7 @@ export interface FileRouteTypes {
     | '/young-hearts'
     | '/auth/callback'
     | '/read/$slug'
+    | '/admin/archive'
     | '/admin/faqs'
     | '/admin/formats'
     | '/admin/newsletter'
@@ -388,6 +400,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/auth/callback'
     | '/read/$slug'
+    | '/_authenticated/admin/archive'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
@@ -599,6 +612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/archive': {
+      id: '/_authenticated/admin/archive'
+      path: '/archive'
+      fullPath: '/admin/archive'
+      preLoaderRoute: typeof AuthenticatedAdminArchiveRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/pillars/': {
       id: '/_authenticated/admin/pillars/'
       path: '/pillars'
@@ -645,6 +665,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
   AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
@@ -662,6 +683,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
     AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
