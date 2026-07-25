@@ -240,7 +240,7 @@ function Section({
             key={r.key}
             row={r}
             active={activeKey === r.key}
-            onSelect={() => onSelect(r.key)}
+            onSelect={() => onSelect(activeKey === r.key ? "" : r.key)}
             onStatus={onStatus ? () => onStatus(r) : null}
             onDelete={onDelete ? () => onDelete(r) : null}
           />
