@@ -140,12 +140,33 @@ export function newBlock(type: BlockType): Block {
     testimonials_row: { eyebrow: "Community voices", title: "Notes from readers" },
     latest_articles: { eyebrow: "Latest writing", title: "Recently, from us to you", pillar: "", count: 3 },
     reflection_spotlight: {},
-    newsletter: { heading: "", description: "", cta: "" },
-    faq_accordion: { page_key: "", items: [] },
-    founder_letter: { eyebrow: "Behind the words", title: "The founder", letter: "ف", name: "Founder", role: "", bio: "", tint: "heart" },
-    arabic_verse: { arabic: "", translation: "", reference: "" },
+    newsletter: { heading: "", description: "", cta: "", newsletterId: "" },
+    hero_fullscreen: {
+      eyebrow: "",
+      title: "A quiet page",
+      subtitle: "",
+      arabic_watermark: "انشراح",
+      arabic_verse: "",
+      align: "center",
+    },
+    hidden_frame: {
+      eyebrow: "{{page_name}}",
+      title: "This page is hidden.",
+      subtitle: "Come back soon — but feel free to explore other pages below.",
+      arabic_watermark: "سِرّ",
+      arabic_verse: "إن مع العسر يسرا",
+    },
+    explore_pages: {
+      items: [
+        { label: "Home", href: "/" },
+        { label: "About", href: "/about" },
+        { label: "Resources", href: "/resources" },
+        { label: "Contact", href: "/contact" },
+      ],
+    },
     divider: {},
     spacer: { size: "md" },
+
   };
   return { id, type, props: defaults[type] };
 }
