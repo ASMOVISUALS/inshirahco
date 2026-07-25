@@ -21,7 +21,9 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
-  const { data: page = {} } = useQuery(pageQuery("about"));
+  const { data: bundle } = useQuery(pageQuery("about"));
+  const page = bundle?.content ?? {};
+  if (bundle?.is_locked) return <HiddenPage title="About" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
 
@@ -29,6 +31,7 @@ function About() {
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
     return <PageRenderer blocks={rawBlocks as Block[]} />;
   }
+
 
   return (
     <>
