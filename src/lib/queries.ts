@@ -148,10 +148,11 @@ export const formatsQuery = () =>
   });
 
 export type PageContent = Record<string, unknown>;
+export type PageStatus = "published" | "hidden" | "coming_soon";
 
 export interface PageBundle {
   content: PageContent;
-  is_locked: boolean;
+  status: PageStatus;
   title: string | null;
 }
 
@@ -161,13 +162,13 @@ export const pageQuery = (key: string) =>
     queryFn: async (): Promise<PageBundle> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("content,is_locked,title")
+        .select("content,status,title")
         .eq("key", key)
         .maybeSingle();
       if (error) throw error;
       return {
         content: (data?.content ?? {}) as PageContent,
-        is_locked: Boolean(data?.is_locked),
+        status: (data?.status as PageStatus) ?? "published",
         title: data?.title ?? null,
       };
     },
@@ -179,7 +180,7 @@ export interface PageMetaRow {
   slug: string;
   title: string;
   is_published: boolean;
-  is_locked: boolean;
+  status: PageStatus;
   template: string;
 }
 
@@ -189,7 +190,7 @@ export const pageBySlugQuery = (slug: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,is_locked,content")
+        .select("key,slug,title,is_published,status,content")
         .eq("slug", slug)
         .eq("is_published", true)
         .maybeSingle();
@@ -236,4 +237,48 @@ export const siteSettingQuery = (key: string) =>
       return (data?.value ?? {}) as Record<string, unknown>;
     },
     staleTime: 5 * 60_000,
+  });
+
+// ============ Newsletters ============
+
+export interface NewsletterRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const newslettersQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "newsletters"],
+    queryFn: async (): Promise<NewsletterRow[]> => {
+      const { data, error } = await supabase
+        .from("newsletters")
+        .select("id,slug,name,description,is_default,created_at,updated_at")
+        .order("is_default", { ascending: false })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as NewsletterRow[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
+export const newsletterSubscribersQuery = (newsletterId: string | null) =>
+  queryOptions({
+    queryKey: ["cms", "newsletter-subs", newsletterId ?? "none"],
+    queryFn: async () => {
+      if (!newsletterId) return [];
+      const { data, error } = await supabase
+        .from("newsletter_signups")
+        .select("id,email,source,created_at")
+        .eq("newsletter_id", newsletterId)
+        .order("created_at", { ascending: false })
+        .limit(2000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!newsletterId,
   });
