@@ -151,6 +151,8 @@ function Group({ label, rows, selectedKey, onSelect }: { label: string; rows: Pa
 // -------- JSON table editor (with Builder launch button) --------
 
 function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
+  const { user } = useAuth();
+  const [gateOpen, setGateOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, unknown>>({ ...(row.content ?? {}) });
   const [dirty, setDirty] = useState(false);
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
@@ -161,6 +163,7 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
       initialRef.current = row.key;
     }
   }, [row]);
+
 
   const blocks = draft.blocks;
   const hasBlocks = isBlockArray(blocks) && blocks.length > 0;
