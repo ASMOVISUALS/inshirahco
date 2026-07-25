@@ -35,10 +35,13 @@ const TINTS = ["heart", "tazkiyah", "heart-soft", "gold"] as const;
 function Home() {
   const { data: content } = useSuspenseQuery(articlesQuery());
   const { data: testimonials } = useSuspenseQuery(testimonialsQuery());
-  const { data: page = {} } = useQuery(pageQuery("home"));
+  const { data: bundle } = useQuery(pageQuery("home"));
+  const page = bundle?.content ?? {};
   const pillars = usePillars();
   const latest = content.slice(0, 3);
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
+
+  if (bundle?.is_locked) return <HiddenPage title="Home" />;
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
 
