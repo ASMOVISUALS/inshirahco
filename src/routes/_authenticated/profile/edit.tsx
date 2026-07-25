@@ -39,19 +39,25 @@ function ProfileEdit() {
     onError: (e: Error) => setNameStatus(e.message),
   });
 
+  const [currentPw, setCurrentPw] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [pwStatus, setPwStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const changePassword = useMutation({
     mutationFn: async () => {
+      if (!currentPw) throw new Error("Enter your current password.");
       if (pw.length < 8) throw new Error("Password must be at least 8 characters.");
       if (pw !== pw2) throw new Error("Passwords do not match.");
+      const email = profile?.email ?? user?.email;
+      if (!email) throw new Error("Missing account email.");
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPw });
+      if (signInError) throw new Error("Current password is incorrect.");
       const { error } = await supabase.auth.updateUser({ password: pw });
       if (error) throw error;
     },
     onSuccess: () => {
-      setPw(""); setPw2("");
+      setCurrentPw(""); setPw(""); setPw2("");
       setPwStatus({ ok: true, msg: "Password updated." });
     },
     onError: (e: Error) => setPwStatus({ ok: false, msg: e.message }),
