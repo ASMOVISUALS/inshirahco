@@ -224,13 +224,14 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => toggleLock.mutate()}
+            onClick={() => setGateOpen(true)}
             disabled={toggleLock.isPending}
             className="btn-ghost text-xs"
-            title={row.is_locked ? "Unlock — page will render normally." : "Lock — visitors will see a hidden placeholder."}
+            title={row.is_locked ? "Unlock — password required." : "Lock — password required."}
           >
             {row.is_locked ? <><Unlock className="h-3.5 w-3.5" /> Unlock page</> : <><Lock className="h-3.5 w-3.5" /> Lock page</>}
           </button>
+
           <a href={`/${row.slug}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
             <ExternalLink className="h-3.5 w-3.5" /> View live
           </a>
