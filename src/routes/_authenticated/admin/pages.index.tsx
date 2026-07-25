@@ -128,8 +128,8 @@ function PagesAdmin() {
 
   const active = data.filter((r) => !r.archived_at);
   const archived = data.filter((r) => !!r.archived_at);
-  const core = active.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:"));
-  const pillars = active.filter((r) => r.key.startsWith("pillar:"));
+  const core = active.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:") && r.key !== "life-architecture");
+  const pillars = active.filter((r) => r.key.startsWith("pillar:") || r.key === "life-architecture");
   const custom = active.filter((r) => r.key.startsWith("custom:"));
   const system = active.filter((r) => r.key.startsWith("system:"));
 
