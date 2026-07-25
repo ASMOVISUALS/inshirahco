@@ -59,7 +59,7 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-border/60 backdrop-blur-md" style={{ background: "color-mix(in oklab, var(--background) 88%, transparent)" }}>
-        <div className="container-wide relative flex h-[72px] items-center justify-between gap-6">
+        <div className={`${minimal ? "px-4" : "container-wide"} relative flex h-[72px] items-center justify-between gap-6`}>
           <div className="flex items-center gap-3">
             {minimal && (
               <button
