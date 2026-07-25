@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/profile/edit")({
   head: () => ({ meta: [{ title: "Profile — Inshirah" }, { name: "robots", content: "noindex" }] }),
-  component: ProfileEdit;
+  component: ProfileEdit,
 });
 
 function ProfileEdit() {
