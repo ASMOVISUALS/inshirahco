@@ -1,86 +1,77 @@
-## Goal
+# Plan
 
-Turn `/admin/pages` into a mini web builder (in the spirit of the article editor, but with its own block library tuned for marketing pages). Every existing page must render **identically** after the migration — no visual regressions allowed.
+## 1. Page status model
 
-## 1. New page-block model
+**DB migration on `pages`:**
+- Add `status text not null default 'published' check (status in ('published','hidden','coming_soon'))`.
+- Backfill: rows with `is_locked = true` → `status = 'hidden'`.
+- Keep `is_locked` for one migration cycle (drop later) so nothing breaks mid-deploy.
 
-Introduce a page-block schema separate from article blocks, stored on `pages.content.blocks` (JSONB array). Each block: `{ id, type, props }`.
+**Admin UI (`pages.index.tsx`):**
+- Replace the single lock/unlock button with a **"Change status"** button.
+- Clicking opens a full-screen overlay with three side-by-side cards: **Published / Hidden / Coming soon**. Each shows an icon, name, and description between the header and body. Selecting highlights (brand ring + tint).
+- A **Confirm** button below opens the existing `AdminPasswordGate`. On verify, mutation writes the new status.
+- Sidebar list keeps a small status pill (green/red/gold) next to each page title instead of just a padlock.
 
-Initial block library (built from scratch for pages):
+**Public rendering (`queries.ts` + all public routes + `$pageSlug.tsx`):**
+- `getPageContent` returns `status` alongside content.
+- `published` → normal render (unchanged).
+- `hidden` → render `HiddenTemplate` (from the two shared system pages, see §2).
+- `coming_soon` → render `ComingSoonTemplate`.
+- Both are rendered via the standard `PageRenderer` so they inherit any edits made in the builder.
 
-**Layout / structure**
-- `hero` (eyebrow, arabic watermark, two title lines, description, up to 2 CTAs)
-- `section_header` (eyebrow + title + optional description)
-- `two_column` / `three_column` container (holds child blocks)
-- `divider`, `spacer`
+## 2. Shared Hidden / Coming Soon templates
 
-**Marketing / content**
-- `rich_text` (paragraphs, headings, lists — for About body etc.)
-- `feature_grid` (icon + title + description cards)
-- `pillar_cards` (pulls live pillars from Supabase)
-- `cta_banner` (title, description, button)
-- `stat_row`, `logo_row`, `image` / `image_text_split`
-- `testimonials_row` (pulls from testimonials table)
-- `reflection_spotlight` (pulls reflection_of_the_day)
-- `latest_articles` (auto list, filter by pillar)
-- `faq_accordion` (pulls from faqs, filterable)
-- `newsletter_block`
-- `arabic_verse` (reuses `QuranFetcher`)
-- `founder_letter` (arabic sigil + role + letter body)
-- `success_state` (arabic + title + description — used by /join, /contact)
-- `raw_html` (escape hatch)
+Two new system pages seeded in the `pages` table:
+- `system:hidden` (slug `_hidden`, not routable publicly)
+- `system:coming-soon` (slug `_coming-soon`, not routable publicly)
 
-The library is data-driven (`src/lib/page-blocks.ts`) so blocks can be added later without touching pages.
+They appear in the admin Pages list under a new **System** group (below Core/Pillars/Custom). Editing opens the same builder — no special UI needed.
 
-## 2. Zero-regression migration
+**Variables in blocks:**
+- Extend `PageRenderer` / builder to support `{{page_name}}` (and `{{page_slug}}`) tokens in any text field.
+- When rendering a template because another page is hidden/coming-soon, the renderer substitutes `{{page_name}}` with that host page's `title`.
+- Inspector fields that support variables show a small hint chip: *"Insert {{page_name}}"*.
 
-For every existing row in `pages`, deterministically convert the current key/value JSON into the new `blocks` array so the rendered output is byte-identical.
+**Default seed content:**
+- Hidden template mirrors the current `HiddenPage.tsx` design as builder blocks (eyebrow using `{{page_name}}`, Fraunces headline, subtitle, explore-nav chip row, Arabic verse). `HiddenPage.tsx` is retired.
+- Coming Soon template = same layout, different copy, plus a `NewsletterSignup` block at the bottom (bound to a "General waitlist" newsletter by default).
 
-- Each existing page route (`index`, `about`, `join`, `contact`, four pillar pages, `life-architecture`, etc.) gets a small mapper: existing keys → an ordered list of blocks with the same copy.
-- Mapping happens in a one-shot script executed via `supabase--insert` after the schema migration; the resulting `blocks` array is written back into `content.blocks` while the legacy keys are kept in `content.legacy` as a safety net.
-- Each page route is refactored to render from `content.blocks` via a `<PageRenderer />` component. If `blocks` is missing it falls back to the legacy renderer, so nothing can go dark mid-migration.
-- Acceptance: every existing route diffed visually before/after — hero copy, order, CTAs, arabic sigils, founder letter, success states, SEO tags all unchanged.
+**New/updated block library entries** (all editable in builder):
+- `hero_fullscreen` — full-viewport headline with eyebrow (variable-aware), watermark, Arabic pattern background.
+- `explore_pages` — the chip row of links to other pages (auto-pulled from published pages, or manual list).
+- `arabic_verse` — Arabic + optional translation, centered.
+- Existing `newsletter` block extended (see §3).
 
-## 3. Create brand-new pages
+## 3. Newsletters system
 
-- Add `pages.slug`, `pages.title`, `pages.is_published`, `pages.template` columns (keep `key` for legacy fixed pages).
-- Add a catch-all route `src/routes/$pageSlug.tsx` that loads the page by slug and renders it through `<PageRenderer />`. Fixed routes (index, about, …) keep their own files and simply mount `<PageRenderer blocks={…} />`.
-- Admin: "New page" button → prompts for title + slug + starting template (Blank, Pillar page, Landing) → creates row → opens the builder.
+**DB migrations:**
+- New `newsletters` table: `id`, `slug` (unique), `name`, `description`, `is_default bool`, timestamps. Owner-only writes; public read for active lists so the block can render a name.
+- Add `newsletter_id uuid` FK to `newsletter_signups` (nullable during backfill).
+- Backfill: create a "General" newsletter, set all existing signups to it, then set column NOT NULL.
+- Unique index `(newsletter_id, lower(email))` — dedupes per list, allows the same email on multiple lists.
+- GRANTs per project rules; RLS: anon can INSERT into `newsletter_signups` (existing behaviour) but must supply a valid `newsletter_id`; admins can read all.
 
-## 4. Admin builder UI (`/admin/pages`)
+**Signup logic:**
+- `NewsletterSignup` component takes a `newsletterId` prop. Insert becomes `{ email, newsletter_id, source }`. On unique-violation, treat as success (idempotent).
 
-Replaces the current key/value table. Layout mirrors the article editor:
+**Newsletter block inspector:**
+- Add a "Newsletter" dropdown listing all newsletters (label = name, value = id). Default to the `is_default` list. Stored on the block as `newsletterId`.
+- Preserves existing heading/description/CTA fields.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Pages list (left rail)   │   Builder canvas                │
-│  • home                    │  ┌─ Toolbar: undo/redo, view ─┐│
-│  • about                   │  │                            ││
-│  • join                    │  │  [Blocks column]  [Preview]││
-│  • + New page              │  │                            ││
-└─────────────────────────────────────────────────────────────┘
-```
+**Admin `/admin/newsletter` rework:**
+- Left column: list of newsletters with "New newsletter" button (name + auto slug + description; one can be marked default).
+- Right column: selected newsletter's subscribers table (email, source, signed-up date) + count + CSV export button.
+- Deleting a newsletter is blocked if it has subscribers (or requires typing the slug to confirm) — safer default: block + offer "move subscribers to…".
+- Sending campaigns is explicitly out of scope for v1.
 
-- Left rail: list of pages (grouped: Core, Pillars, Custom), search, "+ New page".
-- Middle: block list — drag to reorder, hover-trash, click a block to edit its props in an inline form (same interaction language as the article editor). Left-side flyout palette grouped: Layout, Content, Marketing, Data, Media, Advanced.
-- Right: **live preview pane** rendering the real `<PageRenderer />` against draft state at the target viewport (desktop/tablet/mobile toggle). Updates on every edit.
-- Undo/redo history per session, save button, unsaved-changes warning on nav away, "View live" link.
-- Password gate reused from Pillars for destructive actions (delete page, change slug).
+## 4. Cleanup / follow-ups
+- Remove `HiddenPage.tsx` after templates render correctly.
+- Drop `is_locked` in a follow-up migration once no code reads it.
+- Update `src/lib/queries.ts`, `use-cms.ts`, and every route currently checking `is_locked` to use `status` instead.
 
-## 5. Technical notes
-
-- New files: `src/lib/page-blocks.ts` (registry), `src/components/page-renderer/*` (one component per block, plus `<PageRenderer />`), `src/routes/_authenticated/admin/pages.$key.edit.tsx` (builder), `src/routes/$pageSlug.tsx` (dynamic).
-- Schema migration adds `slug`, `title`, `is_published`, `template`, and a `blocks` field on content — no destructive changes. GRANTs + RLS follow the same pattern as existing pages table.
-- Data-pulling blocks (pillars, testimonials, faqs, articles) use existing TanStack Query hooks so they stay live.
-- Reused primitives: `QuranFetcher`, `NewsletterSignup`, `ReflectionOfTheDay`, `MediaCarousel`, `ContentCard`.
-- Article editor is untouched.
-
-## 6. Rollout order
-
-1. Migration: add columns; keep everything running on legacy JSON.
-2. Ship `<PageRenderer />` + full block library.
-3. Backfill `content.blocks` for every existing page via a mapper; refactor each route to render from blocks with legacy fallback.
-4. Ship the new admin builder UI + create-page flow + dynamic route.
-5. Remove the old key/value table.
-
-Deliverable is complete only when every existing page still renders identically and a brand-new page can be created and published entirely from the admin.
+## Technical notes
+- Overlay uses the existing `Dialog` primitive with a custom full-screen content class; radio-group semantics for a11y.
+- Variable substitution is a small pure helper (`substituteVars(text, { page_name })`) applied inside each block's text render path — no runtime template engine.
+- Password gate reused verbatim; the confirm button in the status overlay just opens it and passes the chosen status into the mutation on verify.
+- All new tables follow the required GRANT + RLS + updated_at trigger structure.
