@@ -453,6 +453,3 @@ function EmptyArchive({ label }: { label: string }) {
     </div>
   );
 }
-
-// Unused imports referenced only to keep the icon set discoverable
-void Link; void ExternalLink; void LayoutTemplate;
