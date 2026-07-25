@@ -80,7 +80,7 @@ export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
           {minimal && (
             <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center leading-tight">
               <p className="eyebrow text-[10px]" style={{ color: "var(--tazkiyah, #3f7d5b)" }}>Admin</p>
-              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">Inshirah control room</h1>
+              <h1 className="font-display text-base sm:text-lg md:text-xl leading-none whitespace-nowrap">Control Room</h1>
             </div>
           )}
 
