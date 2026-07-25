@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PillarArchive } from "@/components/PillarArchive";
+import { pageQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/quranic-reflections")({
+  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("pillar:quranic-reflections")); },
   head: () => ({
     meta: [
       { title: "Qur'anic Reflections — Inshirah" },
