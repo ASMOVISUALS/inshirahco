@@ -165,6 +165,7 @@ export type Database = {
         Row: {
           content: Json
           created_at: string
+          is_locked: boolean
           is_published: boolean
           key: string
           slug: string | null
@@ -175,6 +176,7 @@ export type Database = {
         Insert: {
           content?: Json
           created_at?: string
+          is_locked?: boolean
           is_published?: boolean
           key: string
           slug?: string | null
@@ -185,6 +187,7 @@ export type Database = {
         Update: {
           content?: Json
           created_at?: string
+          is_locked?: boolean
           is_published?: boolean
           key?: string
           slug?: string | null

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Plus } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Lock, Unlock, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isBlockArray } from "@/lib/page-blocks";
 
@@ -15,6 +15,7 @@ interface PageRow {
   slug: string;
   title: string;
   is_published: boolean;
+  is_locked: boolean;
   content: Record<string, unknown>;
 }
 
@@ -25,7 +26,7 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,content")
+        .select("key,slug,title,is_published,is_locked,content")
         .order("key");
       if (error) throw error;
       return (data ?? []) as PageRow[];
@@ -127,10 +128,15 @@ function Group({ label, rows, selectedKey, onSelect }: { label: string; rows: Pa
           <li key={r.key}>
             <button
               onClick={() => onSelect(r.key)}
-              className={`w-full rounded-xl px-3 py-2 text-left text-sm ${selectedKey === r.key ? "bg-secondary" : "hover:bg-secondary"}`}
+              className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm ${selectedKey === r.key ? "bg-secondary" : "hover:bg-secondary"}`}
             >
-              <div className="font-semibold">{r.title || r.slug}</div>
-              <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  {r.is_locked && <Lock className="h-3 w-3 shrink-0" style={{ color: "var(--heart)" }} />}
+                  <span className="truncate">{r.title || r.slug}</span>
+                </div>
+                <div className="font-mono text-[10px] text-muted-foreground">/{r.slug}</div>
+              </div>
             </button>
           </li>
         ))}
@@ -170,6 +176,20 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
   });
 
+  const toggleLock = useMutation({
+    mutationFn: async () => {
+      const next = !row.is_locked;
+      const { error } = await supabase.from("pages").update({ is_locked: next }).eq("key", row.key);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (locked) => {
+      setStatus({ kind: "ok", msg: locked ? "Page locked — visitors will see the hidden placeholder." : "Page unlocked — live again." });
+      onSaved();
+    },
+    onError: (e: Error) => setStatus({ kind: "err", msg: e.message }),
+  });
+
   const update = (key: string, value: string) => { setDraft((d) => ({ ...d, [key]: value })); setDirty(true); };
   const addKey = () => {
     const k = window.prompt("New field key (letters, numbers, underscore):");
@@ -187,12 +207,24 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
     <div className="rounded-3xl border border-border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <h2 className="text-xl font-bold">{row.title || row.slug}</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            {row.is_locked && <Lock className="h-4 w-4" style={{ color: "var(--heart)" }} />}
+            {row.title || row.slug}
+          </h2>
           <p className="font-mono text-xs text-muted-foreground">
             key: {row.key} · slug: /{row.slug} · {hasBlocks ? "using builder blocks" : "using legacy fields"}
+            {row.is_locked && <> · <span style={{ color: "var(--heart)" }}>locked</span></>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => toggleLock.mutate()}
+            disabled={toggleLock.isPending}
+            className="btn-ghost text-xs"
+            title={row.is_locked ? "Unlock — page will render normally." : "Lock — visitors will see a hidden placeholder."}
+          >
+            {row.is_locked ? <><Unlock className="h-3.5 w-3.5" /> Unlock page</> : <><Lock className="h-3.5 w-3.5" /> Lock page</>}
+          </button>
           <a href={`/${row.slug}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
             <ExternalLink className="h-3.5 w-3.5" /> View live
           </a>

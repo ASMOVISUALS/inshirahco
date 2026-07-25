@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { LetterMark } from "@/components/LetterMark";
 import { pageQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { HiddenPage } from "@/components/HiddenPage";
 
 export const Route = createFileRoute("/about")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("about")); },
@@ -20,7 +21,9 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
-  const { data: page = {} } = useQuery(pageQuery("about"));
+  const { data: bundle } = useQuery(pageQuery("about"));
+  const page = bundle?.content ?? {};
+  if (bundle?.is_locked) return <HiddenPage title="About" />;
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
 
@@ -28,6 +31,7 @@ function About() {
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {
     return <PageRenderer blocks={rawBlocks as Block[]} />;
   }
+
 
   return (
     <>

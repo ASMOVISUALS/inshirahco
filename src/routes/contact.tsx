@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Heart } from "lucide-react";
 import { pageQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
+import { HiddenPage } from "@/components/HiddenPage";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },
@@ -28,7 +29,8 @@ const schema = z.object({
 });
 
 function Contact() {
-  const { data: page = {} } = useQuery(pageQuery("contact"));
+  const { data: bundle } = useQuery(pageQuery("contact"));
+  const page = bundle?.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,6 +48,8 @@ function Contact() {
     setErrors({});
     setSent(true);
   };
+
+  if (bundle?.is_locked) return <HiddenPage title="Contact" />;
 
   const rawBlocks = (page as { blocks?: unknown }).blocks;
   if (isBlockArray(rawBlocks) && (rawBlocks as Block[]).length > 0) {

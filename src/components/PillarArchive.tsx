@@ -5,6 +5,7 @@ import { articlesQuery, pageQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
+import { HiddenPage } from "@/components/HiddenPage";
 import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 interface Props {
@@ -16,7 +17,8 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
   const pillars = usePillarMap();
   const meta = pillarLabel(pillars, pillar);
   const { data: all } = useSuspenseQuery(articlesQuery());
-  const { data: page } = useQuery(pageQuery(`pillar:${pillar}`));
+  const { data: bundle } = useQuery(pageQuery(`pillar:${pillar}`));
+  const page = bundle?.content;
   const eyebrow = (page?.eyebrow as string) ?? "Pillar";
   const intro = (page?.intro as string) ?? meta.description;
   const items = useMemo(() => all.filter((c) => c.pillar === pillar), [all, pillar]);
@@ -24,6 +26,10 @@ export function PillarArchive({ pillar, tint = "heart" }: Props) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const filtered = activeTag ? items.filter((i) => i.tags.includes(activeTag)) : items;
+
+  if (bundle?.is_locked) return <HiddenPage title={meta.label} />;
+
+
 
   return (
     <>

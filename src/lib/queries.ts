@@ -149,17 +149,27 @@ export const formatsQuery = () =>
 
 export type PageContent = Record<string, unknown>;
 
+export interface PageBundle {
+  content: PageContent;
+  is_locked: boolean;
+  title: string | null;
+}
+
 export const pageQuery = (key: string) =>
   queryOptions({
     queryKey: ["cms", "page", key],
-    queryFn: async (): Promise<PageContent> => {
+    queryFn: async (): Promise<PageBundle> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("content")
+        .select("content,is_locked,title")
         .eq("key", key)
         .maybeSingle();
       if (error) throw error;
-      return (data?.content ?? {}) as PageContent;
+      return {
+        content: (data?.content ?? {}) as PageContent,
+        is_locked: Boolean(data?.is_locked),
+        title: data?.title ?? null,
+      };
     },
     staleTime: 60_000,
   });
@@ -169,6 +179,7 @@ export interface PageMetaRow {
   slug: string;
   title: string;
   is_published: boolean;
+  is_locked: boolean;
   template: string;
 }
 
@@ -178,7 +189,7 @@ export const pageBySlugQuery = (slug: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,content")
+        .select("key,slug,title,is_published,is_locked,content")
         .eq("slug", slug)
         .eq("is_published", true)
         .maybeSingle();
