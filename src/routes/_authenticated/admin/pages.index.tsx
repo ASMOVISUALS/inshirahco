@@ -325,15 +325,30 @@ function PageEditor({ row, onSaved }: { row: PageRow; onSaved: () => void }) {
         </div>
       </div>
 
+      <StatusOverlay
+        open={statusOverlayOpen}
+        current={row.status}
+        onOpenChange={setStatusOverlayOpen}
+        onPick={(next) => {
+          setStatusOverlayOpen(false);
+          setPendingStatus(next);
+          setGateOpen(true);
+        }}
+      />
+
       <AdminPasswordGate
         open={gateOpen}
-        onOpenChange={setGateOpen}
+        onOpenChange={(o) => { setGateOpen(o); if (!o) setPendingStatus(null); }}
         email={user?.email ?? ""}
         onVerified={() => {
           setGateOpen(false);
-          toggleLock.mutate();
+          if (pendingStatus) {
+            setStatusMutation.mutate(pendingStatus);
+            setPendingStatus(null);
+          }
         }}
       />
+
 
     </div>
   );
