@@ -482,9 +482,6 @@ function CreateDialog({
     onSuccess: (key) => onCreated(key),
     onError: (e: Error) => setErr(e.message),
   });
-    onSuccess: (key) => onCreated(key),
-    onError: (e: Error) => setErr(e.message),
-  });
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
