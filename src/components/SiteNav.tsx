@@ -11,7 +11,7 @@ import { usePillars, useFormats } from "@/hooks/use-cms";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchOverlay } from "./SearchOverlay";
 
-export function SiteNav({ minimal = false }: { minimal?: boolean } = {}) {
+export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Admin" }: { minimal?: boolean; title?: string; eyebrow?: string } = {}) {
   const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openMobileResources, setOpenMobileResources] = useState(false);
