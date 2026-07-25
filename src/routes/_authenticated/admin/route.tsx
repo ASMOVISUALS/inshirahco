@@ -13,6 +13,7 @@ import {
   LayoutTemplate,
   FileStack,
   HelpCircle,
+  Archive,
   Settings,
 } from "lucide-react";
 import {
