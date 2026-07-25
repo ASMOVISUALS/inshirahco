@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       articles: {
         Row: {
+          archived_at: string | null
           author_name: string
           author_role: string | null
           body: Json
@@ -34,6 +35,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           author_name: string
           author_role?: string | null
           body?: Json
@@ -52,6 +54,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           author_name?: string
           author_role?: string | null
           body?: Json
@@ -329,6 +332,7 @@ export type Database = {
         Row: {
           active: boolean
           arabic: string
+          archived_at: string | null
           created_at: string
           id: string
           reference: string
@@ -339,6 +343,7 @@ export type Database = {
         Insert: {
           active?: boolean
           arabic: string
+          archived_at?: string | null
           created_at?: string
           id?: string
           reference: string
@@ -349,6 +354,7 @@ export type Database = {
         Update: {
           active?: boolean
           arabic?: string
+          archived_at?: string | null
           created_at?: string
           id?: string
           reference?: string
@@ -414,6 +420,7 @@ export type Database = {
       }
       testimonials: {
         Row: {
+          archived_at: string | null
           created_at: string
           featured: boolean
           id: string
@@ -424,6 +431,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           featured?: boolean
           id?: string
@@ -434,6 +442,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           featured?: boolean
           id?: string
