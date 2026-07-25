@@ -153,10 +153,10 @@ function PillarEdit() {
             <Input value={form.slug} readOnly disabled />
           </Field>
           <Field label="Arabic letter">
-            <Input value={form.arabic_letter} onChange={(e) => set("arabic_letter", e.target.value)} />
+            <ArabicLetterPicker value={form.arabic_letter} onChange={(v) => set("arabic_letter", v)} />
           </Field>
-          <Field label="Tint (heart, tazkiyah, heart-soft, gold, ink)">
-            <Input value={form.tint} onChange={(e) => set("tint", e.target.value)} />
+          <Field label="Tint">
+            <TintSelect value={form.tint} onChange={(v) => set("tint", v)} />
           </Field>
           <Field label="Href">
             <Input value={form.href} onChange={(e) => set("href", e.target.value)} />
