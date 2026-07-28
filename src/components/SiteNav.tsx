@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { signOutCompletely } from "@/lib/auth";
 import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { LetterMark } from "./LetterMark";
@@ -8,7 +9,7 @@ import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
 import { usePillars, useFormats } from "@/hooks/use-cms";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SearchOverlay } from "./SearchOverlay";
 
 export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Admin" }: { minimal?: boolean; title?: string; eyebrow?: string } = {}) {
@@ -24,6 +25,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const pillars = usePillars();
   const formats = useFormats();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const megaRef = useRef<HTMLDivElement>(null);
 
   const aboutLabel = (nav.about_label as string) ?? "About";
@@ -32,10 +34,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const resourcesEyebrow = (nav.resources_eyebrow as string) ?? "Every resource, one library";
   const browseAllLabel = (nav.browse_all_label as string) ?? "Browse all resources →";
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
-  };
+  const signOut = () => signOutCompletely({ queryClient, navigate });
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
