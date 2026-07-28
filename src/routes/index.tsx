@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
-import { articlesQuery, testimonialsQuery, pageQuery } from "@/lib/queries";
+import { articlesQuery, testimonialsQuery, pageContentQuery, pageStatusQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { LetterMark } from "@/components/LetterMark";
 import { MediaCarousel } from "@/components/MediaCarousel";
@@ -23,10 +23,15 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(articlesQuery());
-    context.queryClient.ensureQueryData(testimonialsQuery());
-    context.queryClient.ensureQueryData(pageQuery("home"));
+  loader: async ({ context }) => {
+    const status = await context.queryClient.ensureQueryData(pageStatusQuery("home"));
+    if (status.status === "published") {
+      await Promise.all([
+        context.queryClient.ensureQueryData(pageContentQuery("home")),
+        context.queryClient.ensureQueryData(articlesQuery()),
+        context.queryClient.ensureQueryData(testimonialsQuery()),
+      ]);
+    }
   },
   component: Home,
 });
@@ -34,16 +39,20 @@ export const Route = createFileRoute("/")({
 const TINTS = ["heart", "tazkiyah", "heart-soft", "gold"] as const;
 
 function Home() {
+  const { data: status } = useSuspenseQuery(pageStatusQuery("home"));
+  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="Home" />;
+  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Home" />;
+  return <HomeContent />;
+}
+
+function HomeContent() {
   const { data: content } = useSuspenseQuery(articlesQuery());
   const { data: testimonials } = useSuspenseQuery(testimonialsQuery());
-  const { data: bundle } = useQuery(pageQuery("home"));
-  const page = bundle?.content ?? {};
+  const { data } = useSuspenseQuery(pageContentQuery("home"));
+  const page = data.content ?? {};
   const pillars = usePillars();
   const latest = content.slice(0, 3);
   const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
-
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Home" />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Home" />;
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
 
