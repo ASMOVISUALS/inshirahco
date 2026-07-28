@@ -25,6 +25,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const pillars = usePillars();
   const formats = useFormats();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const megaRef = useRef<HTMLDivElement>(null);
 
   const aboutLabel = (nav.about_label as string) ?? "About";
@@ -33,10 +34,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const resourcesEyebrow = (nav.resources_eyebrow as string) ?? "Every resource, one library";
   const browseAllLabel = (nav.browse_all_label as string) ?? "Browse all resources →";
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
-  };
+  const signOut = () => signOutCompletely({ queryClient, navigate });
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
