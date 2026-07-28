@@ -154,11 +154,52 @@ export const formatsQuery = () =>
 export type PageContent = Record<string, unknown>;
 export type PageStatus = "published" | "hidden" | "coming_soon";
 
+export interface PageStatusBundle {
+  status: PageStatus;
+  title: string | null;
+}
+
 export interface PageBundle {
   content: PageContent;
   status: PageStatus;
   title: string | null;
 }
+
+export const pageStatusQuery = (key: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-status", key],
+    queryFn: async (): Promise<PageStatusBundle> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("status,title")
+        .eq("key", key)
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        status: (data?.status as PageStatus) ?? "published",
+        title: data?.title ?? null,
+      };
+    },
+  });
+
+export const pageContentQuery = (key: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-content", key],
+    queryFn: async (): Promise<{ content: PageContent; title: string | null }> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("content,title")
+        .eq("key", key)
+        .eq("status", "published")
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        content: (data?.content ?? {}) as PageContent,
+        title: data?.title ?? null,
+      };
+    },
+    staleTime: 60_000,
+  });
 
 export const pageQuery = (key: string) =>
   queryOptions({
@@ -187,6 +228,46 @@ export interface PageMetaRow {
   status: PageStatus;
   template: string;
 }
+
+export interface PageSlugStatusRow {
+  key: string;
+  slug: string;
+  title: string;
+  is_published: boolean;
+  status: PageStatus;
+}
+
+export const pageBySlugStatusQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-by-slug-status", slug],
+    queryFn: async (): Promise<PageSlugStatusRow | null> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("key,slug,title,is_published,status")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data as PageSlugStatusRow | null;
+    },
+  });
+
+export const pageBySlugContentQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["cms", "page-by-slug-content", slug],
+    queryFn: async (): Promise<{ content: PageContent } | null> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("content")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .eq("status", "published")
+        .maybeSingle();
+      if (error) throw error;
+      return data ? { content: (data.content ?? {}) as PageContent } : null;
+    },
+    staleTime: 60_000,
+  });
 
 export const pageBySlugQuery = (slug: string) =>
   queryOptions({
