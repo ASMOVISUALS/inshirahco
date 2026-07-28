@@ -3,12 +3,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Heart } from "lucide-react";
-import { pageQuery } from "@/lib/queries";
+import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/contact")({
-  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); },
+  loader: async ({ context }) => {
+    const status = await context.queryClient.ensureQueryData(pageStatusQuery("contact"));
+    if (status.status === "published") {
+      await context.queryClient.ensureQueryData(pageContentQuery("contact"));
+    }
+  },
   head: () => ({
     meta: [
       { title: "Contact & support — Inshirah" },
@@ -29,10 +34,15 @@ const schema = z.object({
 });
 
 function Contact() {
-  const { data: bundle } = useSuspenseQuery(pageQuery("contact"));
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
-  const page = bundle?.content ?? {};
+  const { data: status } = useSuspenseQuery(pageStatusQuery("contact"));
+  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="Contact" />;
+  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Contact" />;
+  return <ContactContent />;
+}
+
+function ContactContent() {
+  const { data } = useSuspenseQuery(pageContentQuery("contact"));
+  const page = data.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const [values, setValues] = useState({ name: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
