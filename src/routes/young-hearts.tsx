@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PillarArchive } from "@/components/PillarArchive";
-import { pageQuery } from "@/lib/queries";
+import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/young-hearts")({
-  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("pillar:young-hearts")); },
+  loader: async ({ context }) => {
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:young-hearts"));
+    if (status.status === "published") {
+      await context.queryClient.ensureQueryData(pageContentQuery("pillar:young-hearts"));
+    }
+  },
   head: () => ({
     meta: [
       { title: "Young Hearts — Inshirah" },

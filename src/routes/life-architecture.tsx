@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Compass, Users, Mountain, Sparkles, BookOpen, Calendar } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { pageQuery } from "@/lib/queries";
+import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
 
@@ -31,8 +31,11 @@ const DEFAULT_MENTORS: Mentor[] = [
 ];
 
 export const Route = createFileRoute("/life-architecture")({
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(pageQuery("life-architecture"));
+  loader: async ({ context }) => {
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("life-architecture"));
+    if (status.status === "published") {
+      await context.queryClient.ensureQueryData(pageContentQuery("life-architecture"));
+    }
   },
   head: () => ({
     meta: [
@@ -50,10 +53,15 @@ export const Route = createFileRoute("/life-architecture")({
 interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
 function LifeArchitecture() {
-  const { data: bundle } = useSuspenseQuery(pageQuery("life-architecture"));
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
-  const page = bundle?.content ?? {};
+  const { data: status } = useSuspenseQuery(pageStatusQuery("life-architecture"));
+  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
+  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
+  return <LifeArchitectureContent />;
+}
+
+function LifeArchitectureContent() {
+  const { data } = useSuspenseQuery(pageContentQuery("life-architecture"));
+  const page = data.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
   const mentors = mentorsRaw.length > 0 ? mentorsRaw : DEFAULT_MENTORS;
