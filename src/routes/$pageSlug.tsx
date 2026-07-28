@@ -24,7 +24,7 @@ export const Route = createFileRoute("/$pageSlug")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Not found" }, { name: "robots", content: "noindex" }] };
-    const content = (loaderData.content ?? {}) as Record<string, unknown>;
+    const content = ("content" in loaderData ? loaderData.content : {}) as Record<string, unknown>;
     const seoTitle = (content.seo_title as string) || loaderData.title || "Inshirah";
     const seoDesc = (content.seo_description as string) || "";
     return {
