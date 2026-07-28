@@ -46,6 +46,10 @@ function DynamicPage() {
   const { data: status } = useSuspenseQuery(pageBySlugStatusQuery(pageSlug));
   if (status?.status === "hidden") return <SystemTemplate mode="hidden" pageName={status.title ?? undefined} />;
   if (status?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName={status.title ?? undefined} />;
+  return <DynamicPageContent pageSlug={pageSlug} />;
+}
+
+function DynamicPageContent({ pageSlug }: { pageSlug: string }) {
   const { data } = useSuspenseQuery(pageBySlugContentQuery(pageSlug));
   const blocks = readBlocks((data?.content ?? {}) as Record<string, unknown>);
   if (blocks.length === 0) {
