@@ -17,7 +17,8 @@ export const Route = createFileRoute("/$pageSlug")({
     const status = await context.queryClient.fetchQuery(pageBySlugStatusQuery(params.pageSlug));
     if (!status) throw notFound();
     if (status.status === "published") {
-      await context.queryClient.fetchQuery(pageBySlugContentQuery(params.pageSlug));
+      const content = await context.queryClient.fetchQuery(pageBySlugContentQuery(params.pageSlug));
+      return { ...status, content: content?.content ?? {} };
     }
     return status;
   },
