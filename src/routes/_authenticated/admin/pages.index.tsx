@@ -75,6 +75,7 @@ function PagesAdmin() {
           "Page set to coming soon.",
       });
       qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms"] });
     },
     onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
   });
@@ -89,6 +90,7 @@ function PagesAdmin() {
       setToast({ kind: "ok", msg: "Page moved to archive." });
       if (activeKey === key) setActiveKey(null);
       qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms"] });
     },
     onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
   });
@@ -106,6 +108,7 @@ function PagesAdmin() {
     onSuccess: () => {
       setToast({ kind: "ok", msg: "Page restored." });
       qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms"] });
     },
     onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
   });
@@ -120,6 +123,7 @@ function PagesAdmin() {
       setToast({ kind: "ok", msg: "Page permanently deleted." });
       if (activeKey === key) setActiveKey(null);
       qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms"] });
     },
     onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
   });

@@ -157,6 +157,7 @@ export type PageStatus = "published" | "hidden" | "coming_soon";
 export interface PageStatusBundle {
   status: PageStatus;
   title: string | null;
+  archived_at: string | null;
 }
 
 export interface PageBundle {
@@ -171,13 +172,15 @@ export const pageStatusQuery = (key: string) =>
     queryFn: async (): Promise<PageStatusBundle> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("status,title")
+        .select("status,title,archived_at")
         .eq("key", key)
         .maybeSingle();
       if (error) throw error;
+      const archivedAt = typeof data?.archived_at === "string" ? data.archived_at : null;
       return {
-        status: (data?.status as PageStatus) ?? "published",
+        status: archivedAt ? "hidden" : ((data?.status as PageStatus) ?? "published"),
         title: data?.title ?? null,
+        archived_at: archivedAt,
       };
     },
   });
@@ -191,6 +194,7 @@ export const pageContentQuery = (key: string) =>
         .select("content,title")
         .eq("key", key)
         .eq("status", "published")
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return {
@@ -246,6 +250,7 @@ export const pageBySlugStatusQuery = (slug: string) =>
         .select("key,slug,title,is_published,status")
         .eq("slug", slug)
         .eq("is_published", true)
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return data as PageSlugStatusRow | null;
@@ -262,6 +267,7 @@ export const pageBySlugContentQuery = (slug: string) =>
         .eq("slug", slug)
         .eq("is_published", true)
         .eq("status", "published")
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return data ? { content: (data.content ?? {}) as PageContent } : null;
@@ -278,6 +284,7 @@ export const pageBySlugQuery = (slug: string) =>
         .select("key,slug,title,is_published,status,content")
         .eq("slug", slug)
         .eq("is_published", true)
+        .is("archived_at", null)
         .maybeSingle();
       if (error) throw error;
       return data;
