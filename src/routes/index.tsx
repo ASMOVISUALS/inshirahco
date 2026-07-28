@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "/" }],
   }),
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("home"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("home"));
     if (status.status === "published") {
       await Promise.all([
         context.queryClient.ensureQueryData(pageContentQuery("home")),

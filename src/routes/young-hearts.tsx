@@ -4,7 +4,7 @@ import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/young-hearts")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("pillar:young-hearts"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:young-hearts"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("pillar:young-hearts"));
     }

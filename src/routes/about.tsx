@@ -7,7 +7,7 @@ import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/about")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("about"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("about"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("about"));
     }

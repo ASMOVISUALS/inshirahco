@@ -4,7 +4,7 @@ import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/quranic-reflections")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("pillar:quranic-reflections"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:quranic-reflections"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("pillar:quranic-reflections"));
     }

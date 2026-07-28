@@ -4,7 +4,7 @@ import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/tazkiyah-toolkit")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("pillar:tazkiyah-toolkit"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:tazkiyah-toolkit"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("pillar:tazkiyah-toolkit"));
     }

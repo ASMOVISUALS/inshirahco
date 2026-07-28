@@ -9,7 +9,7 @@ import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/contact")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("contact"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("contact"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("contact"));
     }

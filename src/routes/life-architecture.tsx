@@ -32,7 +32,7 @@ const DEFAULT_MENTORS: Mentor[] = [
 
 export const Route = createFileRoute("/life-architecture")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.ensureQueryData(pageStatusQuery("life-architecture"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("life-architecture"));
     if (status.status === "published") {
       await context.queryClient.ensureQueryData(pageContentQuery("life-architecture"));
     }
