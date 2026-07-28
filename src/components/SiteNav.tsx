@@ -9,7 +9,7 @@ import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
 import { usePillars, useFormats } from "@/hooks/use-cms";
-import { supabase } from "@/integrations/supabase/client";
+
 import { SearchOverlay } from "./SearchOverlay";
 
 export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Admin" }: { minimal?: boolean; title?: string; eyebrow?: string } = {}) {
