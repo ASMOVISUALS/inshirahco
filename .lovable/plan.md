@@ -1,36 +1,63 @@
-## Problem
+## Goal
 
-Pages set to Hidden or Coming Soon flash their real content for a split second before the system template replaces it.
+Make "Sign out" a real teardown: no cached protected data, no in-flight query flashes, no back-button restore, and clear any user-scoped local storage.
 
-Cause: the affected routes (`about`, `contact`, `life-architecture`, and the pillar routes via `PillarArchive`) fetch the page bundle with `useQuery` (non-suspending). While the bundle is loading, `bundle?.status` is `undefined`, so the status guard falls through and the real page markup renders. When the query resolves as `hidden`/`coming_soon`, React swaps to `SystemTemplate` — hence the flash.
+## Current state (verified)
 
-`$pageSlug.tsx` already does this correctly (loader ensures data, component uses `useSuspenseQuery`, status is known on first paint), so no changes there.
+`src/components/SiteNav.tsx` does only:
+```ts
+await supabase.auth.signOut();
+navigate({ to: "/" });
+```
+- React Query cache (profile, bookmarks, admin data fetched during the session) stays in memory.
+- In-flight queries can resolve after `signOut()` and log 401s / flash errors.
+- `navigate` pushes history, so Back can re-render the previous protected shell against a cleared session.
+- Bookmarks and any other per-user data stored in `localStorage` are not cleared.
 
-## Fix
+The root `onAuthStateChange` in `__root.tsx` handles `SIGNED_OUT` with `router.invalidate()` — good, but doesn't touch the query cache or history.
 
-For every route that gates on page status, know the status before the first render and never mount the real page (or its sibling data queries) when locked.
+## Changes
 
-### Files to change
+### 1. Centralize sign-out — `src/lib/auth.ts` (new)
 
-1. `src/routes/about.tsx`
-   - Loader already calls `ensureQueryData(pageQuery("about"))`; swap the component's `useQuery` for `useSuspenseQuery`.
-   - Do the `hidden` / `coming_soon` status check first, before reading any other content fields.
+Single helper used by every sign-out entry point:
 
-2. `src/routes/contact.tsx`
-   - Add `loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("contact")); }` if missing.
-   - Switch the bundle read to `useSuspenseQuery`.
-   - Status check runs before any other rendering.
+```ts
+export async function signOutCompletely({ queryClient, navigate }) {
+  await queryClient.cancelQueries();      // stop in-flight before 401s land
+  queryClient.clear();                    // drop all cached protected data
+  // clear user-scoped local storage (bookmarks, any "inshirah:*" per-user keys)
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith("inshirah:bookmarks") || k.startsWith("inshirah:user:")) {
+        localStorage.removeItem(k);
+      }
+    }
+  } catch {}
+  await supabase.auth.signOut();          // clears sb-* auth token
+  navigate({ to: "/", replace: true });   // history REPLACE, not push
+}
+```
 
-3. `src/routes/life-architecture.tsx`
-   - Same treatment: ensure the page bundle in the loader, read it via `useSuspenseQuery`, status-check first.
+Exact `localStorage` key prefixes will be confirmed by grepping `localStorage.setItem` before writing the helper (bookmarks + any user-scoped keys).
 
-4. `src/components/PillarArchive.tsx`
-   - Switch `pageQuery(\`pillar:${pillar}\`)` from `useQuery` to `useSuspenseQuery`.
-   - Move the `hidden` / `coming_soon` check to the top of the component, **before** `useSuspenseQuery(articlesQuery())` and any `useMemo`/state that touches article data, so locked pillars never trigger the articles fetch.
-   - Update the three pillar route files (`quranic-reflections.tsx`, `tazkiyah-toolkit.tsx`, `young-hearts.tsx`) to add a loader that calls `context.queryClient.ensureQueryData(pageQuery(\`pillar:${pillar}\`))` so the suspense read has data on first paint (avoiding a suspense fallback where none existed before).
+### 2. Wire it into `SiteNav.tsx`
 
-### Notes
+Replace the inline `signOut` with `signOutCompletely`, passing `useQueryClient()` and `useNavigate()`. Applies to both desktop and mobile buttons.
 
-- No schema, RLS, or admin changes; purely a client-side fetch-order fix.
-- The `SystemTemplate` itself already blocks content until its own template query resolves, so no additional flash there.
-- Behavior for `published` pages is unchanged.
+### 3. Leave `__root.tsx` `onAuthStateChange` as-is
+
+It already calls `router.invalidate()` on `SIGNED_OUT` and (correctly) does NOT `invalidateQueries` on sign-out. The new helper owns cache teardown; the listener owns route re-evaluation → protected routes bounce to `/auth`.
+
+## What this does and does NOT do
+
+Does:
+- Clears Supabase session token from `localStorage`.
+- Clears the entire React Query cache (profile, admin lists, bookmarks queries, etc.).
+- Cancels in-flight queries so no 401 flashes.
+- Removes user-scoped `localStorage` entries (bookmarks).
+- Uses history REPLACE so Back can't restore a protected page shell.
+
+Does NOT (and can't, by design):
+- Purge JS module state from other tabs — those get signed out via Supabase's cross-tab `onAuthStateChange`, but their in-memory React state only fully resets on next navigation/refresh. If you want a hard guarantee, we can add `location.reload()` after `navigate` — trade-off is a visible full reload. Tell me if you want that.
+- Revoke the refresh token server-side beyond what `supabase.auth.signOut()` already does (it revokes the current session by default).
