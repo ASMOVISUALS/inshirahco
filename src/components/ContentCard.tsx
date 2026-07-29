@@ -52,7 +52,7 @@ export function ContentCard({ item, compact }: Props) {
 
       <div className={`flex flex-1 flex-col gap-3 p-6 ${compact ? "" : ""}`}>
         <div className="flex items-center justify-between">
-          <span className="eyebrow">{type.label} · {pillar.short_label}</span>
+          <span className="eyebrow">{pillar.short_label}</span>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); toggle(item.slug); }}
