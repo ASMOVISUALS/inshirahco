@@ -16,6 +16,7 @@ const chipCls = (on: boolean) =>
   }`;
 import { SortBar } from "@/components/admin/SortBar";
 import { surahsQuery } from "@/lib/queries";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/verses")({
   head: () => ({ meta: [{ title: "Verse of the Week — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -225,7 +226,7 @@ function VersesAdmin() {
     },
     onMutate: () => setError(null),
     onError: (e: Error) => setError(e.message),
-    onSuccess: () => { setDraft(null); invalidate(); },
+    onSuccess: () => { setDraft(null); setStatusFilter("pool"); invalidate(); },
   });
 
   const update = useMutation({
@@ -384,19 +385,30 @@ function VersesAdmin() {
         </p>
       )}
 
-      {(statusFilter !== "current" || draft) && (
+      <Dialog open={!!draft} onOpenChange={(o) => { if (!o) { setDraft(null); setError(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add a verse</DialogTitle>
+            <DialogDescription>It will be added to the end of the pool queue.</DialogDescription>
+          </DialogHeader>
+          {draft && (
+            <EditorCard
+              bare
+              value={draft}
+              surahs={surahs}
+              onChange={setDraft}
+              onCancel={() => { setDraft(null); setError(null); }}
+              onSave={() => save.mutate(draft)}
+              saving={save.isPending}
+              saveLabel={save.isPending ? "Saving…" : "Save"}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {statusFilter !== "current" && (
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {draft && (
-          <EditorCard
-            value={draft}
-            surahs={surahs}
-            onChange={setDraft}
-            onCancel={() => { setDraft(null); setError(null); }}
-            onSave={() => save.mutate(draft)}
-            saving={save.isPending}
-            saveLabel={save.isPending ? "Saving…" : "Save"}
-          />
-        )}
+
 
         {displayRows.map((r, i) => {
           if (editingId === r.id && editDraft) {
@@ -483,7 +495,7 @@ function VersesAdmin() {
           );
         })}
 
-        {displayRows.length === 0 && !draft && statusFilter !== "current" && (
+        {displayRows.length === 0 && (
           <p className="col-span-full text-sm text-muted-foreground">
             {statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
@@ -516,8 +528,9 @@ function IconBtn({ children, label, onClick, danger }: { children: React.ReactNo
 type Surah = { id: string; number: number; name_en: string; name_ar: string; verse_count: number };
 
 function EditorCard({
-  value, surahs, onChange, onCancel, onSave, saving, saveLabel,
+  value, surahs, onChange, onCancel, onSave, saving, saveLabel, bare,
 }: {
+  bare?: boolean;
   value: Draft;
   surahs: Surah[];
   onChange: (d: Draft) => void;
@@ -532,7 +545,7 @@ function EditorCard({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
+      className={bare ? "flex flex-col" : "flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"}
     >
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col text-xs text-muted-foreground">
