@@ -290,7 +290,7 @@ function VersesAdmin() {
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter("pool")}
+              onClick={() => { setStatusFilter("pool"); setSort("release"); setLocalIds(null); }}
               className={chipCls(statusFilter === "pool")}
             >
               In pool
@@ -298,23 +298,34 @@ function VersesAdmin() {
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter("used")}
+              onClick={() => { setStatusFilter("used"); setSort("added"); setLocalIds(null); }}
               className={chipCls(statusFilter === "used")}
             >
               Used
               <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.used}</span>
             </button>
           </div>
-          <div onClick={(e) => e.stopPropagation()}>
-            <SortBar
-              value={sort}
-              onChange={setSort}
-              options={[
-                { value: "chronology", label: "Order in the Qur'an" },
-                { value: "added", label: "Date added (newest)" },
-              ]}
-            />
-          </div>
+          {statusFilter !== "current" && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <SortBar
+                value={sort}
+                onChange={(v) => { setSort(v); setLocalIds(null); }}
+                options={
+                  statusFilter === "pool"
+                    ? [
+                        { value: "release" as SortKey, label: "Order of release" },
+                        { value: "chronology" as SortKey, label: "Order in the Qur'an" },
+                        { value: "added" as SortKey, label: "Date added (newest)" },
+                      ]
+                    : [
+                        { value: "added" as SortKey, label: "Date added (newest)" },
+                        { value: "chronology" as SortKey, label: "Order in the Qur'an" },
+                      ]
+                }
+              />
+            </div>
+          )}
+
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
