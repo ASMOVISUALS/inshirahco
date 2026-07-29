@@ -67,13 +67,13 @@ function VersesAdmin() {
   const { user } = useAuth();
 
   const currentVerse = useMemo(
-    () => data.find((r) => r.status === "current" && !r.archived_at) ?? null,
+    () => data.find((r) => r.status === "current") ?? null,
     [data],
   );
 
   const rollVerse = useMutation({
     mutationFn: async () => {
-      const pool = data.filter((r) => r.status === "pool" && !r.archived_at);
+      const pool = data.filter((r) => r.status === "pool");
       if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
       const pick = pool[Math.floor(Math.random() * pool.length)];
       const { error: retire } = await supabase
