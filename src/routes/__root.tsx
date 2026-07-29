@@ -117,6 +117,7 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthAccessEnforcer />
       <div className="flex min-h-screen flex-col">
         {!isBuilder && <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />}
         <main className="flex-1">
@@ -126,5 +127,26 @@ function RootComponent() {
       </div>
     </QueryClientProvider>
   );
+}
+
+function AuthAccessEnforcer() {
+  const { queryClient } = Route.useRouteContext();
+  // Import inside the component to avoid loading these on the server shell path.
+  const { useAuthAccess } = require("@/lib/auth-access") as typeof import("@/lib/auth-access");
+  const { useAuth } = require("@/hooks/use-auth") as typeof import("@/hooks/use-auth");
+  const { signOutCompletely } = require("@/lib/auth") as typeof import("@/lib/auth");
+  const router = useRouter();
+  const access = useAuthAccess();
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!user) return;
+    if (access.signinEnabled) return;
+    // Sign-in is closed but a session exists — sign the user out.
+    void signOutCompletely({
+      queryClient,
+      navigate: (opts) => router.navigate(opts),
+    });
+  }, [access.signinEnabled, user, queryClient, router]);
+  return null;
 }
 
