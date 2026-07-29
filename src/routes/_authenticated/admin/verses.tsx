@@ -56,8 +56,7 @@ function VersesAdmin() {
     },
   });
 
-  const [tab, setTab] = useState<ArchiveTab>("active");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pool" | "used">("all");
+  const [statusFilter, setStatusFilter] = useState<VerseStatus>("current");
   const [sort, setSort] = useState<SortKey>("chronology");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
