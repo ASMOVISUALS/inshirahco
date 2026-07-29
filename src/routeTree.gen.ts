@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YouthRouteImport } from './routes/youth'
+import { Route as VerseRouteImport } from './routes/verse'
 import { Route as TazkiyahRouteImport } from './routes/tazkiyah'
 import { Route as TadabburRouteImport } from './routes/tadabbur'
 import { Route as SuhbahRouteImport } from './routes/suhbah'
@@ -50,6 +51,11 @@ import { Route as AuthenticatedAdminPagesKeyBuilderRouteImport } from './routes/
 const YouthRoute = YouthRouteImport.update({
   id: '/youth',
   path: '/youth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerseRoute = VerseRouteImport.update({
+  id: '/verse',
+  path: '/verse',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TazkiyahRoute = TazkiyahRouteImport.update({
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/suhbah': typeof SuhbahRoute
   '/tadabbur': typeof TadabburRoute
   '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
   '/youth': typeof YouthRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/suhbah': typeof SuhbahRoute
   '/tadabbur': typeof TadabburRoute
   '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
   '/youth': typeof YouthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/suhbah': typeof SuhbahRoute
   '/tadabbur': typeof TadabburRoute
   '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
   '/youth': typeof YouthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/suhbah'
     | '/tadabbur'
     | '/tazkiyah'
+    | '/verse'
     | '/youth'
     | '/admin'
     | '/profile'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/suhbah'
     | '/tadabbur'
     | '/tazkiyah'
+    | '/verse'
     | '/youth'
     | '/auth/callback'
     | '/read/$slug'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/suhbah'
     | '/tadabbur'
     | '/tazkiyah'
+    | '/verse'
     | '/youth'
     | '/_authenticated/admin'
     | '/_authenticated/profile'
@@ -494,6 +506,7 @@ export interface RootRouteChildren {
   SuhbahRoute: typeof SuhbahRoute
   TadabburRoute: typeof TadabburRoute
   TazkiyahRoute: typeof TazkiyahRoute
+  VerseRoute: typeof VerseRoute
   YouthRoute: typeof YouthRoute
   ReadSlugRoute: typeof ReadSlugRoute
 }
@@ -505,6 +518,13 @@ declare module '@tanstack/react-router' {
       path: '/youth'
       fullPath: '/youth'
       preLoaderRoute: typeof YouthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verse': {
+      id: '/verse'
+      path: '/verse'
+      fullPath: '/verse'
+      preLoaderRoute: typeof VerseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tazkiyah': {
@@ -862,6 +882,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuhbahRoute: SuhbahRoute,
   TadabburRoute: TadabburRoute,
   TazkiyahRoute: TazkiyahRoute,
+  VerseRoute: VerseRoute,
   YouthRoute: YouthRoute,
   ReadSlugRoute: ReadSlugRoute,
 }
