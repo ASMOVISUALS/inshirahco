@@ -41,7 +41,9 @@ function PagesAdmin() {
         .select("key,slug,title,is_published,status,archived_at")
         .order("key");
       if (error) throw error;
-      return (data ?? []) as PageRow[];
+      // "join" visibility is controlled by the account-access setting toggle,
+      // so it is not managed here.
+      return ((data ?? []) as PageRow[]).filter((p) => p.slug !== "join" && p.key !== "join");
     },
   });
 
