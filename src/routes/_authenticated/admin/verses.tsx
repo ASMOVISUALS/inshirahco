@@ -50,7 +50,7 @@ function VersesAdmin() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("ayahs")
-        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number,status,created_at")
+        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number,status,created_at,queue_order")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -58,36 +58,21 @@ function VersesAdmin() {
   });
 
   const [statusFilter, setStatusFilter] = useState<VerseStatus>("current");
-  const [sort, setSort] = useState<SortKey>("chronology");
+  const [sort, setSort] = useState<SortKey>("release");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gateOpen, setGateOpen] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [localIds, setLocalIds] = useState<string[] | null>(null);
   const { user } = useAuth();
 
   const currentVerse = useMemo(
     () => data.find((r) => r.status === "current") ?? null,
     [data],
   );
-
-  const rollVerse = useMutation({
-    mutationFn: async () => {
-      const pool = data.filter((r) => r.status === "pool");
-      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      const { error: retire } = await supabase
-        .from("ayahs").update({ status: "used" }).eq("status", "current");
-      if (retire) throw retire;
-      const { error } = await supabase
-        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
-      if (error) throw error;
-    },
-    onError: (e: Error) => setError(e.message),
-    onSuccess: () => { setError(null); invalidate(); },
-  });
-
 
   const surahIdByNumber = useMemo(
     () => new Map(surahs.map((s) => [s.number, s.id] as const)),
@@ -103,20 +88,85 @@ function VersesAdmin() {
     pool: data.filter((r) => r.status === "pool").length,
     used: data.filter((r) => r.status === "used").length,
   }), [data]);
-  const base = data.filter((r) => r.status === statusFilter);
+
+  const byRelease = (a: Row, b: Row) =>
+    (a.queue_order ?? 1e9) - (b.queue_order ?? 1e9) || a.created_at.localeCompare(b.created_at);
+
   const rows = useMemo(() => {
-    const list = [...base];
+    if (statusFilter === "current") return [];
+    const list = data.filter((r) => r.status === statusFilter);
     if (sort === "added") {
       list.sort((a, b) => b.created_at.localeCompare(a.created_at));
-    } else {
+    } else if (sort === "chronology") {
       list.sort((a, b) => {
         const sa = a.surah_id ? surahNumberById.get(a.surah_id) ?? 999 : 999;
         const sb = b.surah_id ? surahNumberById.get(b.surah_id) ?? 999 : 999;
         return sa - sb || (a.ayah_number ?? 0) - (b.ayah_number ?? 0);
       });
+    } else {
+      list.sort(byRelease);
     }
-    return statusFilter === "current" ? [] : list;
-  }, [base, sort, surahNumberById, statusFilter]);
+    return list;
+  }, [data, sort, surahNumberById, statusFilter]);
+
+  const reorderable = statusFilter === "pool" && sort === "release";
+
+  /** Rows actually rendered — during a drag we show the optimistic local order. */
+  const displayRows = useMemo(() => {
+    if (!reorderable || !localIds) return rows;
+    const map = new Map(rows.map((r) => [r.id, r] as const));
+    const ordered = localIds.map((id) => map.get(id)).filter(Boolean) as Row[];
+    const extras = rows.filter((r) => !localIds.includes(r.id));
+    return [...ordered, ...extras];
+  }, [rows, localIds, reorderable]);
+
+  const saveOrder = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(
+        ids.map((id, i) => supabase.from("ayahs").update({ queue_order: i + 1 }).eq("id", id)),
+      );
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); invalidate(); },
+  });
+
+  const moveTo = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const ids = displayRows.map((r) => r.id);
+    const from = ids.indexOf(fromId);
+    const to = ids.indexOf(toId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setLocalIds(ids);
+    saveOrder.mutate(ids);
+  };
+
+  const nudge = (id: string, delta: number) => {
+    const ids = displayRows.map((r) => r.id);
+    const from = ids.indexOf(id);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= ids.length) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setLocalIds(ids);
+    saveOrder.mutate(ids);
+  };
+
+  const rollVerse = useMutation({
+    mutationFn: async () => {
+      const pool = data.filter((r) => r.status === "pool").sort(byRelease);
+      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
+      const pick = pool[0];
+      const { error: retire } = await supabase
+        .from("ayahs").update({ status: "used" }).eq("status", "current");
+      if (retire) throw retire;
+      const { error } = await supabase
+        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
+      if (error) throw error;
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); setLocalIds(null); invalidate(); },
+  });
+
 
 
   const invalidate = () => {
