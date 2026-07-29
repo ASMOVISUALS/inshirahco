@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Bookmark, Download } from "lucide-react";
 import type { ContentItem } from "@/lib/content";
 import { useBookmarks } from "@/hooks/use-theme";
-import { usePillarMap, useFormatMap, pillarLabel, formatLabel } from "@/hooks/use-cms";
+import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 const TINT_STYLES: Record<string, { grad: string }> = {
   "tadabbur": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
@@ -18,9 +18,7 @@ interface Props {
 
 export function ContentCard({ item, compact }: Props) {
   const pillars = usePillarMap();
-  const formats = useFormatMap();
   const pillar = pillarLabel(pillars, item.pillar);
-  const type = formatLabel(formats, item.type);
   const grad = TINT_STYLES[item.pillar]?.grad;
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);

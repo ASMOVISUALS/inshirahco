@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type FieldType = "toggle" | "text" | "textarea" | "number" | "select" | "multiselect" | "color";
-export type OptionsSource = "static" | "block_kinds" | "pillars" | "formats" | "newsletters" | "pages";
+export type OptionsSource = "static" | "block_kinds" | "pillars" | "newsletters" | "pages";
 
 export interface SettingField {
   id: string;
@@ -79,15 +79,11 @@ export const settingValueQuery = (key: string) =>
     },
   });
 
-/** Options for dynamic sources (block_kinds, pillars, formats, newsletters, pages). */
+/** Options for dynamic sources (block_kinds, pillars, newsletters, pages). */
 export async function resolveDynamicOptions(source: OptionsSource): Promise<Array<{ value: string; label: string }>> {
   if (source === "block_kinds") return BLOCK_KIND_OPTIONS;
   if (source === "pillars") {
     const { data } = await supabase.from("pillars").select("slug,label").is("archived_at", null).order("sort_order");
-    return (data ?? []).map((r) => ({ value: r.slug, label: r.label }));
-  }
-  if (source === "formats") {
-    const { data } = await supabase.from("resource_formats").select("slug,label").order("sort_order");
     return (data ?? []).map((r) => ({ value: r.slug, label: r.label }));
   }
   if (source === "newsletters") {
