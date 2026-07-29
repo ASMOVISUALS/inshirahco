@@ -91,7 +91,7 @@ function PageBuilderRoute() {
 
   const addBlock = (type: BlockType) => { const b = newBlock(type); commit([...blocks, b]); setSelectedId(b.id); };
   const removeBlock = (id: string) => { commit(blocks.filter((b) => b.id !== id)); if (selectedId === id) setSelectedId(null); };
-  void moveBlockNoop;
+  
   const updateBlock = (id: string, props: Record<string, unknown>) => {
     commit(blocks.map((b) => (b.id === id ? { ...b, props } : b)));
   };
