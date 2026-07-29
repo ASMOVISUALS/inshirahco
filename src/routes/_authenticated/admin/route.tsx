@@ -44,6 +44,7 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     items: [
       { title: "Articles", url: "/admin/articles", icon: FileText },
       { title: "Series", url: "/admin/series", icon: Layers },
+      { title: "Verse of the Week", url: "/admin/verses", icon: Sparkles },
       { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
       { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
     ],

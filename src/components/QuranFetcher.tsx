@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { fetchAyah, SURAH_VERSE_COUNTS, type FetchedAyah } from "@/lib/quran";
 
 type Props = {
-  onFetched: (ayah: FetchedAyah) => void;
+  onFetched: (ayah: FetchedAyah, meta: { surah: number; ayah: number }) => void;
   /** Optional layout tweaks */
   compact?: boolean;
 };
@@ -44,7 +44,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
     setLoading(true);
     try {
       const res = await fetchAyah(s, a);
-      onFetched(res);
+      onFetched(res, { surah: s, ayah: a });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch verse.");
     } finally {

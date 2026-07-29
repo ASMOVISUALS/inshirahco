@@ -7,7 +7,7 @@ import { usePillars, useFormats, useOnSiteFormatSlugs } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { VerseOfTheWeek } from "@/components/VerseOfTheWeek";
 import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVars } from "@/lib/template-vars";
 import { quoteTintStyle } from "@/lib/quote-tint";
 
@@ -100,7 +100,7 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       { type: "pillar_cards", label: "Pillar cards (auto)" },
       { type: "latest_articles", label: "Latest articles (auto)" },
       { type: "testimonials_row", label: "Testimonials (auto)" },
-      { type: "reflection_spotlight", label: "Reflection of the day" },
+      { type: "reflection_spotlight", label: "Verse of the week" },
       { type: "faq_accordion", label: "FAQ list" },
       { type: "newsletter", label: "Newsletter signup" },
     ],
@@ -456,7 +456,7 @@ function RenderBlock({ block }: { block: Block }) {
     case "reflection_spotlight":
       return (
         <section className="container-wide py-16 md:py-24">
-          <ReflectionOfTheDay />
+          <VerseOfTheWeek />
         </section>
       );
 
