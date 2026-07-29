@@ -147,10 +147,28 @@ function FormatsAdmin() {
 
               {isSelected && (
                 <div
-                  className="mt-4 flex justify-end border-t pt-3"
+                  className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-3"
                   style={{ borderColor: `color-mix(in oklab, ${color} 25%, transparent)` }}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <ToggleChip
+                    active={r.show_in_menu}
+                    color={color}
+                    onIcon={MenuSquare}
+                    offIcon={MenuIcon}
+                    label={r.show_in_menu ? "In menu" : "Not in menu"}
+                    disabled={!r.show_on_site || toggle.isPending}
+                    onClick={() => toggle.mutate({ slug: r.slug, field: "show_in_menu", value: !r.show_in_menu })}
+                  />
+                  <ToggleChip
+                    active={r.show_on_site}
+                    color={color}
+                    onIcon={Eye}
+                    offIcon={EyeOff}
+                    label={r.show_on_site ? "On site" : "Off site"}
+                    disabled={toggle.isPending}
+                    onClick={() => toggle.mutate({ slug: r.slug, field: "show_on_site", value: !r.show_on_site })}
+                  />
                   <button
                     type="button"
                     onClick={() => { setEditing(r); setSelected(null); }}
