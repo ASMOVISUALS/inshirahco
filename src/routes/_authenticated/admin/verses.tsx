@@ -320,7 +320,7 @@ function VersesAdmin() {
 
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {tab === "active" && draft && (
+        {draft && (
           <EditorCard
             value={draft}
             surahs={surahs}
@@ -348,17 +348,13 @@ function VersesAdmin() {
             );
           }
           const selected = selectedId === r.id;
-          const dimmed = tab === "active" && r.status === "paused" && !selected;
-          const isArchived = tab === "archive";
           return (
             <div
               key={r.id}
               onClick={(e) => { e.stopPropagation(); setSelectedId(selected ? null : r.id); }}
               className={
                 "group relative flex flex-col self-start rounded-2xl border p-4 cursor-pointer transition-all " +
-                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40 ") +
-                (dimmed ? " opacity-40 grayscale" : "") +
-                (isArchived ? " opacity-80" : "")
+                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40")
               }
             >
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
@@ -371,37 +367,17 @@ function VersesAdmin() {
 
               {selected && (
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
-                  {isArchived ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                      <Archive className="h-3.5 w-3.5" /> Archived
-                    </span>
-                  ) : (
-                    <StatusSlider
-                      value={r.status}
-                      onChange={(status) => setStatus.mutate({ id: r.id, status })}
-                    />
-                  )}
+                  <StatusSlider
+                    value={r.status}
+                    onChange={(status) => setStatus.mutate({ id: r.id, status })}
+                  />
                   <div className="flex items-center gap-2">
-                    {!isArchived && (
-                      <>
-                        <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
-                          <Pencil className="h-4 w-4" />
-                        </IconBtn>
-                        <IconBtn label="Move to archive" onClick={(e) => { e.stopPropagation(); archive.mutate(r.id); }}>
-                          <Trash2 className="h-4 w-4" />
-                        </IconBtn>
-                      </>
-                    )}
-                    {isArchived && (
-                      <>
-                        <IconBtn label="Restore verse" onClick={(e) => { e.stopPropagation(); restore.mutate(r.id); }}>
-                          <RotateCcw className="h-4 w-4" />
-                        </IconBtn>
-                        <IconBtn label="Delete permanently" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
-                          <Trash2 className="h-4 w-4" />
-                        </IconBtn>
-                      </>
-                    )}
+                    <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
+                      <Pencil className="h-4 w-4" />
+                    </IconBtn>
+                    <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
+                      <Trash2 className="h-4 w-4" />
+                    </IconBtn>
                   </div>
                 </div>
               )}
@@ -409,11 +385,12 @@ function VersesAdmin() {
           );
         })}
 
-        {rows.length === 0 && !(tab === "active" && draft) && (
+        {rows.length === 0 && !draft && (
           <p className="col-span-full text-sm text-muted-foreground">
-            {tab === "active" ? "No verses yet." : "Archive is empty."}
+            {statusFilter === "current" ? "No verse is set for this week yet." : statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
         )}
+      </div>
       </div>
     </div>
   );
