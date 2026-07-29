@@ -720,7 +720,282 @@ function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyeb
   );
 }
 
+// -------- Pillar-aware blocks --------
+
+function useCurrentPillar() {
+  const location = useLocation();
+  const pillars = usePillars();
+  const slug = location.pathname.split("/").filter(Boolean)[0] ?? "";
+  return pillars.find((p) => p.slug === slug) ?? null;
+}
+
+function PillarHeroBlock({ eyebrow, badge }: { eyebrow?: string; badge?: string }) {
+  const pillar = useCurrentPillar();
+  if (!pillar) return <PlaceholderBlock label="Pillar hero (only renders on a pillar page)" />;
+  const tint = (pillar.tint || "heart") as "heart" | "tazkiyah" | "heart-soft" | "gold";
+  return (
+    <section className="hero-radial">
+      <div className="container-wide py-24 md:py-32">
+        <div className="flex flex-col items-start gap-6">
+          {(badge || pillar.coming_soon) && (
+            <span className="rounded-pill px-4 py-1.5 text-xs font-bold uppercase tracking-widest" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>
+              {badge || "Coming soon"}
+            </span>
+          )}
+          <div className="flex items-start gap-5">
+            <LetterMark letter={pillar.arabic_letter} tint={tint} size={72} />
+            <div>
+              {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+              <h1 className="mt-2 text-5xl leading-tight md:text-7xl">{pillar.label}</h1>
+            </div>
+          </div>
+          {pillar.description && (
+            <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">{pillar.description}</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PillarArticlesBlock({ eyebrow, title, count }: { eyebrow?: string; title?: string; count: number }) {
+  const pillar = useCurrentPillar();
+  const { data = [] } = useSuspenseQuery(articlesQuery());
+  const [tag, setTag] = useState<string>("all");
+  const filtered = useMemo(() => {
+    const scoped = pillar ? data.filter((c) => c.pillar === pillar.slug) : data;
+    const tags = Array.from(new Set(scoped.flatMap((c) => c.tags))).sort();
+    return { tags, items: tag === "all" ? scoped.slice(0, count) : scoped.filter((c) => c.tags.includes(tag)).slice(0, count) };
+  }, [data, pillar, tag, count]);
+  return (
+    <section className="container-wide py-14 md:py-20">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          {title && <h2 className="mt-3 text-4xl md:text-5xl">{title}</h2>}
+        </div>
+      </div>
+      {filtered.tags.length > 0 && (
+        <div className="mb-8 flex flex-wrap gap-2">
+          <button onClick={() => setTag("all")} className="rounded-pill border px-4 py-1.5 text-sm font-semibold" style={tag === "all" ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}>All</button>
+          {filtered.tags.map((t) => (
+            <button key={t} onClick={() => setTag(t)} className="rounded-pill border px-4 py-1.5 text-sm font-semibold" style={tag === t ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}>{t}</button>
+          ))}
+        </div>
+      )}
+      {filtered.items.length === 0 ? (
+        <p className="rounded-3xl border border-border bg-card p-10 text-center text-muted-foreground">Nothing here yet.</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.items.map((it) => <ContentCard key={it.slug} item={it} />)}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PillarSeriesBlock({ title, count }: { title?: string; count: number }) {
+  const pillar = useCurrentPillar();
+  const { data = [] } = useQuery(publicSeriesQuery());
+  const items = (pillar ? data.filter((s) => s.pillar === pillar.slug) : data).slice(0, Math.max(1, count));
+  if (items.length === 0) return null;
+  return (
+    <section className="container-wide py-14 md:py-20">
+      {title && <h2 className="mb-8 text-4xl md:text-5xl">{title}</h2>}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {items.map((s) => (
+          <article key={s.id} className="card-soft flex flex-col !p-7">
+            <div className="flex items-center gap-3">
+              <LetterMark letter={s.arabic_letter || "س"} tint={(s.tint || "heart") as "heart" | "tazkiyah" | "heart-soft" | "gold"} size={44} />
+              <h3 className="text-2xl leading-tight">{s.title}</h3>
+            </div>
+            {s.description && <p className="mt-4 text-[0.98rem] leading-relaxed text-muted-foreground">{s.description}</p>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PreviewsGridBlock({ eyebrow, title, description, items }: { eyebrow?: string; title?: string; description?: string; items: { icon?: string; tag?: string; title: string; description: string }[] }) {
+  return (
+    <section className="container-wide py-16 md:py-24">
+      <div className="mb-12 max-w-2xl">
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+        {title && <h2 className="mt-3 text-4xl md:text-5xl">{title}</h2>}
+        {description && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{description}</p>}
+      </div>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {items.map((p, i) => {
+          const Icon = ICONS[p.icon ?? "sparkles"] ?? Sparkles;
+          return (
+            <div key={i} className="group relative flex flex-col gap-4 rounded-3xl border border-border bg-card p-7 transition-transform hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>
+                  <Icon className="h-5 w-5" strokeWidth={1.8} />
+                </span>
+                {p.tag && <span className="eyebrow" style={{ color: "var(--gold)" }}>{p.tag}</span>}
+              </div>
+              <h3 className="text-xl leading-snug md:text-2xl">{p.title}</h3>
+              <p className="text-[0.95rem] leading-relaxed text-muted-foreground">{p.description}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MentorsRowBlock({ title, description, items }: { title?: string; description?: string; items: { name: string; title?: string; role?: string; qualification?: string; image?: string }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="container-wide pb-24 md:pb-32">
+      <div className="mb-12 max-w-xl">
+        {title && <h2 className="text-4xl md:text-5xl">{title}</h2>}
+        {description && <p className="mt-3 text-lg leading-relaxed text-muted-foreground">{description}</p>}
+      </div>
+      <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3">
+        {items.map((m, i) => (
+          <div key={i} className="flex flex-col items-center text-center">
+            <div className="grid h-40 w-40 place-items-center overflow-hidden rounded-full ring-4 ring-[color:var(--paper-warm)]" style={{ background: "color-mix(in oklab, var(--gold-decorative) 22%, transparent)", color: "var(--gold)" }}>
+              {m.image ? <img src={m.image} alt={m.name} className="h-full w-full object-cover" /> : <span className="font-arabic text-6xl">م</span>}
+            </div>
+            <h3 className="mt-6 text-2xl">{m.name}</h3>
+            {m.title && <p className="mt-1.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground">{m.title}</p>}
+            {m.role && <p className="mt-1 text-sm text-muted-foreground">{m.role}</p>}
+            {m.qualification && <p className="mt-1 text-sm italic text-muted-foreground">{m.qualification}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ContactFormBlock({ successArabic, successTitle, successDescription, supportTitle, supportBody, supportFootnote }: { successArabic?: string; successTitle?: string; successDescription?: string; supportTitle?: string; supportBody?: string; supportFootnote?: string }) {
+  const [values, setValues] = useState({ name: "", email: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState(false);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!values.name.trim()) errs.name = "Please share your name.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errs.email = "Please enter a valid email.";
+    if (values.message.trim().length < 5) errs.message = "A little more, please.";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    setErrors({}); setSent(true);
+  };
+  return (
+    <section className="container-wide grid gap-8 py-14 md:grid-cols-[1.3fr_1fr]">
+      <div className="rounded-3xl border border-border bg-card p-8 md:p-10">
+        {sent ? (
+          <div className="text-center">
+            {successArabic && <p className="font-arabic text-5xl" style={{ color: "var(--heart)" }}>{successArabic}</p>}
+            {successTitle && <h2 className="mt-4 text-3xl">{successTitle}</h2>}
+            {successDescription && <p className="mt-3 text-muted-foreground">{successDescription}</p>}
+          </div>
+        ) : (
+          <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+            <ContactField label="Your name" error={errors.name}>
+              <input value={values.name} onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))} className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none focus:border-heart" required />
+            </ContactField>
+            <ContactField label="Email" error={errors.email}>
+              <input type="email" value={values.email} onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))} className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none focus:border-heart" required />
+            </ContactField>
+            <ContactField label="Message" error={errors.message}>
+              <textarea value={values.message} onChange={(e) => setValues((v) => ({ ...v, message: e.target.value }))} rows={6} className="w-full rounded-2xl border border-input bg-background px-4 py-3 outline-none focus:border-heart" required />
+            </ContactField>
+            <button type="submit" className="btn-primary self-start">Send message</button>
+          </form>
+        )}
+      </div>
+      <aside className="rounded-3xl p-8 md:p-10" style={{ background: "color-mix(in oklab, var(--heart-soft) 30%, var(--paper-warm))" }}>
+        <Heart className="h-8 w-8" strokeWidth={1.6} style={{ color: "var(--heart)" }} />
+        {supportTitle && <h2 className="mt-4 text-3xl leading-tight">{supportTitle}</h2>}
+        {supportBody && <p className="mt-3 text-[1rem] leading-relaxed" style={{ color: "var(--ink)" }}>{supportBody}</p>}
+        {supportFootnote && <p className="mt-4 text-sm font-semibold text-muted-foreground">{supportFootnote}</p>}
+      </aside>
+    </section>
+  );
+}
+
+function ContactField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-bold">{label}</span>
+      {children}
+      {error && <span className="text-sm" style={{ color: "var(--heart)" }}>{error}</span>}
+    </label>
+  );
+}
+
+function ResourcesLibraryBlock() {
+  const { data: content = [] } = useSuspenseQuery(articlesQuery());
+  const pillars = usePillars();
+  const formats = useFormats();
+  const onSiteSlugs = useOnSiteFormatSlugs();
+  const [type, setType] = useState("all");
+  const [pillar, setPillar] = useState("all");
+  const [q, setQ] = useState("");
+  const filtered = useMemo(() => content.filter((c) => {
+    if (!onSiteSlugs.has(c.type)) return false;
+    if (type !== "all" && c.type !== type) return false;
+    if (pillar !== "all" && c.pillar !== pillar) return false;
+    if (q) {
+      const query = q.toLowerCase();
+      if (!c.title.toLowerCase().includes(query) && !c.description.toLowerCase().includes(query) && !c.tags.some((t) => t.includes(query))) return false;
+    }
+    return true;
+  }), [content, type, pillar, q, onSiteSlugs]);
+  const anyFilter = type !== "all" || pillar !== "all" || q.length > 0;
+  return (
+    <>
+      <section className="container-wide py-10">
+        <div className="rounded-3xl border border-border bg-card p-5 md:p-6">
+          <label className="flex items-center gap-3 rounded-pill border border-border bg-background px-4 py-2.5">
+            <Search className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search resources…" className="w-full bg-transparent outline-none" aria-label="Search resources" />
+          </label>
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Pillar</p>
+            <div className="flex flex-wrap gap-2">
+              <ResChip active={pillar === "all"} onClick={() => setPillar("all")}>All</ResChip>
+              {pillars.map((p) => <ResChip key={p.slug} active={pillar === p.slug} onClick={() => setPillar(p.slug)}>{p.short_label}</ResChip>)}
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Format</p>
+            <div className="flex flex-wrap gap-2">
+              <ResChip active={type === "all"} onClick={() => setType("all")}>All</ResChip>
+              {formats.map((t) => <ResChip key={t.slug} active={type === t.slug} onClick={() => setType(t.slug)}>{t.plural}</ResChip>)}
+            </div>
+          </div>
+          {anyFilter && (
+            <button onClick={() => { setType("all"); setPillar("all"); setQ(""); }} className="mt-5 text-sm font-bold underline underline-offset-4" style={{ color: "var(--heart)" }}>Reset filters</button>
+          )}
+        </div>
+      </section>
+      <section className="container-wide pb-24">
+        <p className="mb-6 text-sm font-semibold text-muted-foreground">{filtered.length} {filtered.length === 1 ? "resource" : "resources"}</p>
+        {filtered.length === 0 ? (
+          <p className="rounded-3xl border border-border bg-card p-10 text-center text-muted-foreground">Nothing matches that combination just yet.</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((item) => <ContentCard key={item.slug} item={item} />)}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function ResChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors" style={active ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}>{children}</button>
+  );
+}
+
 // -------- Helpers --------
+
 
 export function isBlockArray(v: unknown): v is Block[] {
   return Array.isArray(v) && v.every((x) => x && typeof x === "object" && "type" in (x as object) && "id" in (x as object));
