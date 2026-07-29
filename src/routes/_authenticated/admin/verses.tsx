@@ -226,7 +226,7 @@ function VersesAdmin() {
     },
     onMutate: () => setError(null),
     onError: (e: Error) => setError(e.message),
-    onSuccess: () => { setDraft(null); invalidate(); },
+    onSuccess: () => { setDraft(null); setStatusFilter("pool"); invalidate(); },
   });
 
   const update = useMutation({
