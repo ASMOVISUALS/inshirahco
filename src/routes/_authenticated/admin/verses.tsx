@@ -28,13 +28,12 @@ type Row = {
   status: VerseStatus; created_at: string;
 };
 
-export type VerseStatus = "pool" | "current" | "used" | "paused";
+export type VerseStatus = "pool" | "current" | "used";
 
 const STATUSES: { value: VerseStatus; label: string; hint: string }[] = [
   { value: "pool", label: "In pool", hint: "Can be picked for a coming week" },
   { value: "current", label: "This week", hint: "Currently the verse of the week" },
   { value: "used", label: "Used", hint: "Already had its week" },
-  { value: "paused", label: "Paused", hint: "Never picked" },
 ];
 
 type SortKey = "chronology" | "added";
