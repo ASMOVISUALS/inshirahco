@@ -152,6 +152,14 @@ function PillarEdit() {
           <ArrowLeft className="h-4 w-4" /> Back to pillars
         </button>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            disabled={archive.isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" /> Delete pillar
+          </Button>
           <Button variant="outline" disabled={!dirty || save.isPending} onClick={() => data && setForm(data)}>
             Cancel
           </Button>
