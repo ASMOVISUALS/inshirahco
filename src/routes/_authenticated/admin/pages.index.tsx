@@ -268,9 +268,32 @@ function PagesAdmin() {
           onDelete={null}
           onRestore={(row) => setConfirm({ kind: "restore", key: row.key, title: row.title || row.slug })}
           onPurge={(row) => setConfirm({ kind: "purge", key: row.key, title: row.title || row.slug })}
+          isRestoreLocked={(row) => {
+            if (!row.key.startsWith("pillar:")) return false;
+            const pillarSlug = row.key.slice("pillar:".length);
+            return !activePillarSlugs.has(pillarSlug);
+          }}
+          onRestoreLocked={(row) => setPillarLocked({ title: row.title || row.slug, slug: row.key.slice("pillar:".length) })}
           note={archived.length === 0 ? "No archived pages. Deleted pages land here so you can restore them." : "Deleted pages live here. Restore or permanently delete."}
         />
       )}
+
+      {pillarLocked && (
+        <Dialog open onOpenChange={(o) => { if (!o) setPillarLocked(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>This page belongs to a pillar</DialogTitle>
+              <DialogDescription>
+                "{pillarLocked.title}" is the page for the archived pillar <span className="font-mono">{pillarLocked.slug}</span>. It can't be restored on its own — restore the pillar itself first, and this page will come back with it.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => setPillarLocked(null)}>Got it</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
 
       {creating && (
         <CreateDialog
