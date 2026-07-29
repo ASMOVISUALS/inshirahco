@@ -345,8 +345,6 @@ function VersesAdmin() {
 
       </div>
 
-      {statusFilter === "current" && <VotwSchedule poolEmpty={counts.pool === 0} />}
-
       {statusFilter === "current" && currentVerse && (
 
         <section
@@ -367,6 +365,8 @@ function VersesAdmin() {
         </section>
       )}
 
+      {statusFilter === "current" && <VotwSchedule poolEmpty={counts.pool === 0} />}
+
       <AdminPasswordGate
         open={gateOpen}
         onOpenChange={setGateOpen}
@@ -384,6 +384,7 @@ function VersesAdmin() {
         </p>
       )}
 
+      {(statusFilter !== "current" || draft) && (
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {draft && (
           <EditorCard
@@ -482,12 +483,13 @@ function VersesAdmin() {
           );
         })}
 
-        {displayRows.length === 0 && !draft && (
+        {displayRows.length === 0 && !draft && statusFilter !== "current" && (
           <p className="col-span-full text-sm text-muted-foreground">
-            {statusFilter === "current" ? "No verse is set for this week yet." : statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
+            {statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
         )}
       </div>
+      )}
 
     </div>
   );

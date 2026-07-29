@@ -17,45 +17,69 @@ export function nextFridayUtc(from = new Date()): Date {
   return d;
 }
 
-const fmt = (iso: string) =>
-  new Date(iso).toLocaleString("en-GB", {
-    weekday: "long", day: "numeric", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit", timeZone: "UTC",
-  }) + " UTC";
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
+  });
 
-/** "in 2 days, 4 hrs" style countdown. */
-function countdown(iso: string) {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return "due now";
-  const mins = Math.floor(ms / 60000);
-  const days = Math.floor(mins / 1440);
-  const hrs = Math.floor((mins % 1440) / 60);
-  if (days > 0) return `in ${days}d ${hrs}h`;
-  if (hrs > 0) return `in ${hrs}h ${mins % 60}m`;
-  return `in ${mins}m`;
-}
+const fmtTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
 
-/** Convert an ISO timestamp to the value a datetime-local input expects (UTC wall clock). */
-const toLocalInput = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
+const isoDatePart = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
+const isoTimePart = (iso: string | null) => (iso ? new Date(iso).toISOString().slice(11, 16) : "");
 
 const chip = (on: boolean) =>
   `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
     on ? "border-heart bg-heart/10 text-heart" : "border-border text-muted-foreground hover:border-heart/40"
   }`;
 
+function useNow(intervalMs = 1000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(t);
+  }, [intervalMs]);
+  return now;
+}
+
+function Countdown({ target, now }: { target: string | null; now: number }) {
+  if (!target) {
+    return <p className="font-display text-2xl text-muted-foreground">No change scheduled</p>;
+  }
+  const ms = Math.max(0, new Date(target).getTime() - now);
+  const total = Math.floor(ms / 1000);
+  const parts = [
+    { v: Math.floor(total / 86400), l: "Days" },
+    { v: Math.floor((total % 86400) / 3600), l: "Hours" },
+    { v: Math.floor((total % 3600) / 60), l: "Minutes" },
+    { v: total % 60, l: "Seconds" },
+  ];
+  return (
+    <div className="flex flex-wrap items-end gap-6">
+      {parts.map((p) => (
+        <div key={p.l} className="text-center">
+          <div
+            className="font-display text-4xl leading-none tabular-nums md:text-5xl"
+            style={{ color: "var(--heart)" }}
+          >
+            {String(p.v).padStart(2, "0")}
+          </div>
+          <div className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.l}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function VotwSchedule({ poolEmpty }: { poolEmpty: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const now = useNow();
   const [error, setError] = useState<string | null>(null);
   const [gateOpen, setGateOpen] = useState(false);
   const [pending, setPending] = useState<{ mode: VotwMode; next_change_at: string | null } | null>(null);
   const [dateInput, setDateInput] = useState("");
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 60000);
-    return () => clearInterval(t);
-  }, []);
+  const [timeInput, setTimeInput] = useState("");
 
   const { data: schedule } = useQuery({
     queryKey: ["votw-schedule"],
@@ -70,7 +94,10 @@ export function VotwSchedule({ poolEmpty }: { poolEmpty: boolean }) {
   });
 
   useEffect(() => {
-    if (schedule?.mode === "date") setDateInput(toLocalInput(schedule.next_change_at));
+    if (schedule?.mode === "date") {
+      setDateInput(isoDatePart(schedule.next_change_at));
+      setTimeInput(isoTimePart(schedule.next_change_at));
+    }
   }, [schedule?.mode, schedule?.next_change_at]);
 
   const save = useMutation({
@@ -93,31 +120,60 @@ export function VotwSchedule({ poolEmpty }: { poolEmpty: boolean }) {
   };
 
   const mode = schedule?.mode ?? "weekly";
+  const editingDate = mode === "date";
 
-  const summary = useMemo(() => {
-    if (!schedule) return "Loading…";
-    if (schedule.mode === "manual") return "Manual — the verse only changes when you click Set next verse.";
-    if (!schedule.next_change_at) return "No change scheduled yet.";
-    return `${fmt(schedule.next_change_at)} · ${countdown(schedule.next_change_at)}`;
+  const saveDate = () => {
+    if (!dateInput || !timeInput) return;
+    request({ mode: "date", next_change_at: new Date(`${dateInput}T${timeInput}:00Z`).toISOString() });
+  };
+
+  const target = useMemo(() => {
+    if (!schedule) return null;
+    if (schedule.mode === "manual") return null;
+    return schedule.next_change_at;
   }, [schedule]);
 
   return (
     <section className="rounded-3xl border border-border bg-card p-6" onClick={(e) => e.stopPropagation()}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <p className="eyebrow text-muted-foreground">Next change</p>
-          <p className="mt-1 font-display text-lg">{summary}</p>
-          {mode === "date" && schedule?.next_change_at && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              After this one-off change the schedule falls back to Manual.
-            </p>
-          )}
-          {mode !== "manual" && poolEmpty && (
-            <p className="mt-2 text-xs font-semibold text-destructive">
-              The pool is empty — nothing will rotate until you add a verse.
-            </p>
+          {mode === "manual" ? (
+            <p className="font-display text-lg">Manual — only changes when you click Set next verse.</p>
+          ) : editingDate ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={dateInput}
+                onChange={(e) => setDateInput(e.target.value)}
+                className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm"
+              />
+              <input
+                type="time"
+                value={timeInput}
+                onChange={(e) => setTimeInput(e.target.value)}
+                className="rounded-xl border border-border bg-background px-3 py-1.5 text-sm"
+              />
+              <span className="text-xs text-muted-foreground">UTC</span>
+              <button
+                type="button"
+                disabled={!dateInput || !timeInput || save.isPending}
+                className="btn-primary text-xs disabled:opacity-50"
+                onClick={saveDate}
+              >
+                {save.isPending ? "Saving…" : "Save"}
+              </button>
+            </div>
+          ) : schedule?.next_change_at ? (
+            <div className="flex flex-wrap items-baseline gap-4">
+              <span className="font-display text-lg">{fmtDate(schedule.next_change_at)}</span>
+              <span className="font-display text-lg text-muted-foreground">{fmtTime(schedule.next_change_at)}</span>
+            </div>
+          ) : (
+            <span className="font-display text-lg text-muted-foreground">Not scheduled</span>
           )}
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -130,7 +186,11 @@ export function VotwSchedule({ poolEmpty }: { poolEmpty: boolean }) {
             type="button"
             className={chip(mode === "date")}
             onClick={() => {
-              if (mode !== "date") { setDateInput(toLocalInput(nextFridayUtc().toISOString())); }
+              if (mode !== "date") {
+                const base = schedule?.next_change_at ?? nextFridayUtc().toISOString();
+                setDateInput(isoDatePart(base));
+                setTimeInput(isoTimePart(base));
+              }
               setError(null);
               qc.setQueryData(["votw-schedule"], (s: Schedule | null) => (s ? { ...s, mode: "date" as VotwMode } : s));
             }}
@@ -147,25 +207,20 @@ export function VotwSchedule({ poolEmpty }: { poolEmpty: boolean }) {
         </div>
       </div>
 
-      {mode === "date" && (
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <input
-            type="datetime-local"
-            value={dateInput}
-            onChange={(e) => setDateInput(e.target.value)}
-            className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
-          />
-          <span className="text-xs text-muted-foreground">Times are UTC</span>
-          <button
-            type="button"
-            disabled={!dateInput || save.isPending}
-            className="btn-primary text-sm disabled:opacity-50"
-            onClick={() => request({ mode: "date", next_change_at: new Date(`${dateInput}:00Z`).toISOString() })}
-          >
-            {save.isPending ? "Saving…" : "Save date"}
-          </button>
-        </div>
+      {mode === "date" && schedule?.next_change_at && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          After this one-off change the schedule falls back to Manual.
+        </p>
       )}
+      {mode !== "manual" && poolEmpty && (
+        <p className="mt-2 text-xs font-semibold text-destructive">
+          The pool is empty — nothing will rotate until you add a verse.
+        </p>
+      )}
+
+      <hr className="my-6 border-border" />
+
+      <Countdown target={target} now={now} />
 
       {error && (
         <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>
