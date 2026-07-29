@@ -507,6 +507,101 @@ export type Database = {
           },
         ]
       }
+      setting_fields: {
+        Row: {
+          created_at: string
+          default_value: Json | null
+          field_key: string
+          field_type: string
+          group_id: string
+          help: string
+          id: string
+          label: string
+          max_value: number | null
+          min_value: number | null
+          options: Json
+          options_source: string
+          required: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_value?: Json | null
+          field_key: string
+          field_type: string
+          group_id: string
+          help?: string
+          id?: string
+          label: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json
+          options_source?: string
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_value?: Json | null
+          field_key?: string
+          field_type?: string
+          group_id?: string
+          help?: string
+          id?: string
+          label?: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json
+          options_source?: string
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setting_fields_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "setting_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setting_groups: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string | null
+          id: string
+          label: string
+          settings_key: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          label: string
+          settings_key: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          label?: string
+          settings_key?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string

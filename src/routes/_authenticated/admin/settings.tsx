@@ -1,79 +1,246 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  settingGroupsQuery,
+  settingValueQuery,
+  dynamicOptionsQuery,
+  type SettingGroup,
+  type SettingField,
+} from "@/lib/settings-schema";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({ meta: [{ title: "Site settings — Admin" }, { name: "robots", content: "noindex" }] }),
   component: SettingsAdmin,
 });
 
-interface Row { key: string; value: unknown }
-
 function SettingsAdmin() {
-  const qc = useQueryClient();
-  const { data = [], isLoading } = useQuery({
-    queryKey: ["admin", "settings"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("site_settings").select("key,value").order("key");
-      if (error) throw error;
-      return (data ?? []) as Row[];
-    },
-  });
-  const [selected, setSelected] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+  const { data: groups = [], isLoading } = useQuery(settingGroupsQuery());
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  useEffect(() => { if (!selected && data.length > 0) setSelected(data[0].key); }, [data, selected]);
   useEffect(() => {
-    const r = data.find((x) => x.key === selected);
-    if (r) { setDraft(JSON.stringify(r.value ?? {}, null, 2)); setErr(null); }
-  }, [selected, data]);
-
-  const save = useMutation({
-    mutationFn: async () => {
-      if (!selected) return;
-      let parsed: unknown;
-      try { parsed = JSON.parse(draft); } catch { throw new Error("Invalid JSON"); }
-      const { error } = await supabase.from("site_settings").update({ value: parsed as never }).eq("key", selected);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setErr(null);
-      qc.invalidateQueries({ queryKey: ["admin", "settings"] });
-      qc.invalidateQueries({ queryKey: ["cms", "settings"] });
-    },
-    onError: (e: Error) => setErr(e.message),
-  });
+    if (!selectedKey && groups.length > 0) setSelectedKey(groups[0].settings_key);
+  }, [groups, selectedKey]);
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (groups.length === 0) return <p className="text-muted-foreground">No settings defined yet.</p>;
+
+  const selected = groups.find((g) => g.settings_key === selectedKey) ?? groups[0];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
       <aside className="rounded-3xl border border-border bg-card p-4">
         <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Settings</p>
         <ul className="flex flex-col gap-1">
-          {data.map((r) => (
-            <li key={r.key}>
-              <button onClick={() => setSelected(r.key)} className={`w-full rounded-xl px-3 py-2 text-left text-sm font-semibold ${selected === r.key ? "bg-secondary" : "hover:bg-secondary"}`}>
-                {r.key}
+          {groups.map((g) => (
+            <li key={g.id}>
+              <button
+                onClick={() => setSelectedKey(g.settings_key)}
+                className={`w-full rounded-xl px-3 py-2 text-left text-sm font-semibold ${selected.settings_key === g.settings_key ? "bg-secondary" : "hover:bg-secondary"}`}
+              >
+                {g.label}
               </button>
             </li>
           ))}
         </ul>
       </aside>
-      <div className="rounded-3xl border border-border bg-card p-6">
-        {selected ? (
-          <>
-            <p className="mb-3 font-mono text-xs text-muted-foreground">{selected}</p>
-            <textarea rows={26} className="w-full rounded-2xl border border-input bg-background px-4 py-3 font-mono text-xs outline-none focus:border-heart" value={draft} onChange={(e) => setDraft(e.target.value)} />
-            {err && <p className="mt-3 text-sm" style={{ color: "var(--heart)" }}>{err}</p>}
-            <button className="btn-primary mt-4" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</button>
-          </>
-        ) : (
-          <p className="text-muted-foreground">Pick a setting.</p>
+      <SettingForm group={selected} />
+    </div>
+  );
+}
+
+function SettingForm({ group }: { group: SettingGroup }) {
+  const qc = useQueryClient();
+  const { data: initialValue = {}, isLoading } = useQuery(settingValueQuery(group.settings_key));
+  const [draft, setDraft] = useState<Record<string, unknown>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const seeded: Record<string, unknown> = {};
+    for (const f of group.fields) {
+      seeded[f.field_key] = (initialValue as Record<string, unknown>)[f.field_key] ?? f.default_value ?? defaultForType(f);
+    }
+    setDraft(seeded);
+    setSaved(false);
+    setError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group.id, isLoading]);
+
+  const dirty = useMemo(() => {
+    for (const f of group.fields) {
+      const a = draft[f.field_key];
+      const b = (initialValue as Record<string, unknown>)[f.field_key];
+      if (JSON.stringify(a) !== JSON.stringify(b)) return true;
+    }
+    return false;
+  }, [draft, initialValue, group.fields]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      for (const f of group.fields) {
+        if (f.required && (draft[f.field_key] === undefined || draft[f.field_key] === "" || draft[f.field_key] === null)) {
+          throw new Error(`"${f.label}" is required`);
+        }
+      }
+      const payload = { ...draft };
+      const { error: err } = await supabase
+        .from("site_settings")
+        .upsert({ key: group.settings_key, value: payload as never }, { onConflict: "key" });
+      if (err) throw err;
+    },
+    onSuccess: () => {
+      setError(null);
+      setSaved(true);
+      qc.invalidateQueries({ queryKey: ["cms", "settings", group.settings_key] });
+      qc.invalidateQueries({ queryKey: ["cms", "setting-value", group.settings_key] });
+    },
+    onError: (e: Error) => {
+      setSaved(false);
+      setError(e.message);
+    },
+  });
+
+  if (isLoading) return <div className="rounded-3xl border border-border bg-card p-6">Loading…</div>;
+
+  return (
+    <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
+      <header className="mb-6">
+        <h2 className="text-2xl font-semibold">{group.label}</h2>
+        {group.description && <p className="mt-1 text-sm text-muted-foreground">{group.description}</p>}
+      </header>
+
+      <div className="flex flex-col gap-6">
+        {group.fields.map((f) => (
+          <FieldRow
+            key={f.id}
+            field={f}
+            value={draft[f.field_key]}
+            onChange={(v) => setDraft((prev) => ({ ...prev, [f.field_key]: v }))}
+          />
+        ))}
+      </div>
+
+      {error && (
+        <p className="mt-4 text-sm" style={{ color: "var(--heart)" }}>
+          {error}
+        </p>
+      )}
+      {saved && !dirty && !error && (
+        <p className="mt-4 text-sm text-muted-foreground">Saved.</p>
+      )}
+
+      <div className="mt-6 flex items-center gap-3">
+        <button
+          className="btn-primary"
+          onClick={() => save.mutate()}
+          disabled={save.isPending || !dirty}
+        >
+          {save.isPending ? "Saving…" : "Save changes"}
+        </button>
+        {dirty && <span className="text-xs text-muted-foreground">Unsaved changes</span>}
+      </div>
+    </div>
+  );
+}
+
+function defaultForType(f: SettingField): unknown {
+  switch (f.field_type) {
+    case "toggle": return false;
+    case "number": return f.min_value ?? 0;
+    case "multiselect": return [];
+    default: return "";
+  }
+}
+
+function FieldRow({ field, value, onChange }: { field: SettingField; value: unknown; onChange: (v: unknown) => void }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <Label className="text-sm font-semibold">{field.label}</Label>
+          {field.help && <p className="mt-0.5 text-xs text-muted-foreground">{field.help}</p>}
+        </div>
+        {field.field_type === "toggle" && (
+          <Switch checked={!!value} onCheckedChange={(v) => onChange(v)} aria-label={field.label} />
         )}
       </div>
+
+      {field.field_type === "text" && (
+        <Input value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} />
+      )}
+      {field.field_type === "textarea" && (
+        <Textarea rows={4} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className="rounded-xl" />
+      )}
+      {field.field_type === "number" && (
+        <Input
+          type="number"
+          value={value === undefined || value === null || value === "" ? "" : Number(value)}
+          min={field.min_value ?? undefined}
+          max={field.max_value ?? undefined}
+          onChange={(e) => {
+            const n = e.target.value === "" ? "" : Number(e.target.value);
+            onChange(n === "" ? null : n);
+          }}
+        />
+      )}
+      {field.field_type === "color" && (
+        <Input type="color" value={String(value ?? "#000000")} onChange={(e) => onChange(e.target.value)} className="h-10 w-24 p-1" />
+      )}
+      {field.field_type === "select" && <SelectField field={field} value={value} onChange={onChange} />}
+      {field.field_type === "multiselect" && <MultiselectField field={field} value={value} onChange={onChange} />}
+    </div>
+  );
+}
+
+function useFieldOptions(field: SettingField) {
+  const dyn = useQuery(dynamicOptionsQuery(field.options_source));
+  if (field.options_source === "static") return field.options ?? [];
+  return dyn.data ?? [];
+}
+
+function SelectField({ field, value, onChange }: { field: SettingField; value: unknown; onChange: (v: unknown) => void }) {
+  const options = useFieldOptions(field);
+  return (
+    <Select value={String(value ?? "")} onValueChange={(v) => onChange(v)}>
+      <SelectTrigger>
+        <SelectValue placeholder="Choose…" />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function MultiselectField({ field, value, onChange }: { field: SettingField; value: unknown; onChange: (v: unknown) => void }) {
+  const options = useFieldOptions(field);
+  const arr = Array.isArray(value) ? (value as string[]) : [];
+  const toggle = (v: string) => {
+    onChange(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  };
+  return (
+    <div className="grid grid-cols-1 gap-2 rounded-2xl border border-border bg-background p-3 sm:grid-cols-2">
+      {options.map((o) => {
+        const checked = arr.includes(o.value);
+        return (
+          <label key={o.value} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-secondary">
+            <Checkbox checked={checked} onCheckedChange={() => toggle(o.value)} />
+            <span className="text-sm">{o.label}</span>
+          </label>
+        );
+      })}
+      {options.length === 0 && <p className="text-xs text-muted-foreground">No options available.</p>}
     </div>
   );
 }
