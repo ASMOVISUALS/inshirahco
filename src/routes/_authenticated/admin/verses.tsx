@@ -384,19 +384,30 @@ function VersesAdmin() {
         </p>
       )}
 
-      {(statusFilter !== "current" || draft) && (
+      <Dialog open={!!draft} onOpenChange={(o) => { if (!o) { setDraft(null); setError(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add a verse</DialogTitle>
+            <DialogDescription>It will be added to the end of the pool queue.</DialogDescription>
+          </DialogHeader>
+          {draft && (
+            <EditorCard
+              bare
+              value={draft}
+              surahs={surahs}
+              onChange={setDraft}
+              onCancel={() => { setDraft(null); setError(null); }}
+              onSave={() => save.mutate(draft)}
+              saving={save.isPending}
+              saveLabel={save.isPending ? "Saving…" : "Save"}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {statusFilter !== "current" && (
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {draft && (
-          <EditorCard
-            value={draft}
-            surahs={surahs}
-            onChange={setDraft}
-            onCancel={() => { setDraft(null); setError(null); }}
-            onSave={() => save.mutate(draft)}
-            saving={save.isPending}
-            saveLabel={save.isPending ? "Saving…" : "Save"}
-          />
-        )}
+
 
         {displayRows.map((r, i) => {
           if (editingId === r.id && editDraft) {
