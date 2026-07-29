@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, RotateCcw, Archive, Shuffle } from "lucide-react";
+import { Trash2, Plus, Pencil, RotateCcw, Archive, Shuffle, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
-import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
+import { type ArchiveTab } from "@/components/admin/ArchiveTabs";
+
+const chipCls = (on: boolean) =>
+  `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+    on ? "border-heart bg-heart/10 text-heart" : "border-border text-muted-foreground hover:border-heart/40"
+  }`;
 import { SortBar } from "@/components/admin/SortBar";
 import { surahsQuery } from "@/lib/queries";
 
@@ -53,6 +58,7 @@ function VersesAdmin() {
   });
 
   const [tab, setTab] = useState<ArchiveTab>("active");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pool" | "used">("all");
   const [sort, setSort] = useState<SortKey>("chronology");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -97,7 +103,11 @@ function VersesAdmin() {
     active: data.filter((r) => !r.archived_at),
     archived: data.filter((r) => r.archived_at),
   }), [data]);
-  const base = tab === "active" ? active : archived;
+  const poolCount = active.filter((r) => r.status === "pool").length;
+  const usedCount = active.filter((r) => r.status === "used").length;
+  const base = tab === "active"
+    ? statusFilter === "all" ? active : active.filter((r) => r.status === statusFilter)
+    : archived;
   const rows = useMemo(() => {
     const list = [...base];
     if (sort === "added") {
@@ -111,6 +121,7 @@ function VersesAdmin() {
     }
     return list;
   }, [base, sort, surahNumberById]);
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
@@ -237,8 +248,39 @@ function VersesAdmin() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-display">Verse of the Week</h2>
-          <div onClick={(e) => e.stopPropagation()}>
-            <ArchiveTabs tab={tab} onChange={setTab} activeCount={active.length} archiveCount={archived.length} />
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("all"); }}
+              className={chipCls(tab === "active" && statusFilter === "all")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Active
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{active.length}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("pool"); }}
+              className={chipCls(tab === "active" && statusFilter === "pool")}
+            >
+              In pool
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{poolCount}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("used"); }}
+              className={chipCls(tab === "active" && statusFilter === "used")}
+            >
+              Used
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{usedCount}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("archive")}
+              className={chipCls(tab === "archive")}
+            >
+              <Archive className="h-3.5 w-3.5" /> Archive
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{archived.length}</span>
+            </button>
           </div>
           <div onClick={(e) => e.stopPropagation()}>
             <SortBar
