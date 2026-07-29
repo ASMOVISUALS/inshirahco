@@ -9,6 +9,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVars } from "@/lib/template-vars";
+import { quoteTintStyle } from "@/lib/quote-tint";
 
 
 export type BlockType =
@@ -193,7 +194,7 @@ export function newBlock(type: BlockType): Block {
     },
     faq_accordion: { page_key: "", items: [] },
     founder_letter: { eyebrow: "Behind the words", title: "The founder", letter: "ف", name: "Founder", role: "", bio: "", tint: "heart" },
-    arabic_verse: { arabic: "", translation: "", reference: "" },
+    arabic_verse: { arabic: "", translation: "", reference: "", tint: "tazkiyah" },
     divider: {},
     spacer: { size: "md" },
     pillar_hero: { eyebrow: "", badge: "" },
@@ -521,8 +522,8 @@ function RenderBlock({ block }: { block: Block }) {
     case "arabic_verse":
       return (
         <section className="container-wide py-14">
-          <figure className="mx-auto max-w-3xl rounded-3xl border border-border bg-card p-8 text-center">
-            <p className="font-arabic text-3xl leading-[1.9] md:text-4xl" dir="rtl" style={{ color: "var(--heart)" }}>{s("arabic")}</p>
+          <figure className="mx-auto max-w-3xl rounded-3xl border-l-4 p-8 text-center" style={quoteTintStyle(s("tint", "tazkiyah"))}>
+            <p className="font-arabic text-3xl leading-[1.9] md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>{s("arabic")}</p>
             {s("translation") && (
               <blockquote className="mt-6 font-display text-lg italic leading-relaxed text-muted-foreground md:text-xl">"{s("translation")}"</blockquote>
             )}

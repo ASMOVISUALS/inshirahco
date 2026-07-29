@@ -32,6 +32,7 @@ import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBl
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
 import { QuranFetcher } from "@/components/QuranFetcher";
+import { quoteTintStyle, QUOTE_TINT_OPTIONS } from "@/lib/quote-tint";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
   head: () => ({ meta: [{ title: "Edit article — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -1077,8 +1078,22 @@ function EditableBlock({
     );
   }
   if (block.kind === "quote") {
+    const tint = block.tint ?? "tazkiyah";
     return (
-      <blockquote className="rounded-3xl border-l-4 p-8" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}>
+      <blockquote className="rounded-3xl border-l-4 p-8" style={quoteTintStyle(tint)}>
+        <div className="mb-3 flex items-center justify-end gap-1.5">
+          {QUOTE_TINT_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => commitPatch({ tint: o.value } as Partial<ContentBlock>)}
+              title={o.label}
+              aria-label={`Tint: ${o.label}`}
+              className={`h-5 w-5 rounded-full border-2 transition ${tint === o.value ? "border-foreground" : "border-transparent hover:border-border"}`}
+              style={{ background: o.swatch }}
+            />
+          ))}
+        </div>
         <AutoTextarea dir="rtl" className={`${base} font-arabic text-3xl leading-loose md:text-4xl`} placeholder="النص العربي (اختياري)" value={block.arabic ?? ""} onChange={(v) => set({ arabic: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ arabic: v } as Partial<ContentBlock>)} />
         <AutoTextarea className={`${base} mt-4 font-display text-xl italic md:text-2xl`} placeholder="Translation / quote" value={block.text} onChange={(v) => set({ text: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ text: v } as Partial<ContentBlock>)} />
         <input className={`${base} mt-3 text-sm text-muted-foreground`} placeholder="Source (e.g. Qur'an 94:5–6)" value={block.source ?? ""} onChange={(e) => set({ source: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ source: e.target.value } as Partial<ContentBlock>)} />
