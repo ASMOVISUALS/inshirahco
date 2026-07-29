@@ -5,21 +5,33 @@ import { Trash2, Plus, Pencil, RotateCcw, Archive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
+import { surahsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/admin/verses")({
-  head: () => ({ meta: [{ title: "Reflections — Admin" }, { name: "robots", content: "noindex" }] }),
-  component: ReflectionsAdmin,
+  head: () => ({ meta: [{ title: "Verse of the Week — Admin" }, { name: "robots", content: "noindex" }] }),
+  component: VersesAdmin,
 });
 
-type Draft = { arabic: string; translation: string; reference: string };
-type Row = { id: string; arabic: string; translation: string; reference: string; sort_order: number; active: boolean; archived_at: string | null };
+type Draft = { arabic: string; translation: string; reference: string; surah_number: number | null; ayah_number: number | null };
+type Row = {
+  id: string; arabic: string; translation: string; reference: string;
+  sort_order: number; active: boolean; archived_at: string | null;
+  surah_id: string | null; ayah_number: number | null;
+};
 
-function ReflectionsAdmin() {
+const emptyDraft: Draft = { arabic: "", translation: "", reference: "", surah_number: null, ayah_number: null };
+
+function VersesAdmin() {
   const qc = useQueryClient();
+  const { data: surahs = [] } = useQuery(surahsQuery());
+
   const { data = [] } = useQuery({
-    queryKey: ["admin-reflections"],
+    queryKey: ["admin-ayahs"],
     queryFn: async (): Promise<Row[]> => {
-      const { data, error } = await supabase.from("reflections").select("id,arabic,translation,reference,sort_order,active,archived_at").order("sort_order");
+      const { data, error } = await supabase
+        .from("ayahs")
+        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number")
+        .order("sort_order");
       if (error) throw error;
       return (data ?? []) as Row[];
     },
@@ -30,6 +42,16 @@ function ReflectionsAdmin() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const surahIdByNumber = useMemo(
+    () => new Map(surahs.map((s) => [s.number, s.id] as const)),
+    [surahs],
+  );
+  const surahNumberById = useMemo(
+    () => new Map(surahs.map((s) => [s.id, s.number] as const)),
+    [surahs],
+  );
 
   const { active, archived } = useMemo(() => ({
     active: data.filter((r) => !r.archived_at),
@@ -38,34 +60,73 @@ function ReflectionsAdmin() {
   const rows = tab === "active" ? active : archived;
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["admin-reflections"] });
-    qc.invalidateQueries({ queryKey: ["reflections"] });
+    qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
+    qc.invalidateQueries({ queryKey: ["ayahs"] });
+  };
+
+  /** Duplicate guard — the same surah/ayah may only ever exist once. */
+  const findDuplicate = (d: Draft, ignoreId?: string) =>
+    data.find(
+      (r) =>
+        r.id !== ignoreId &&
+        r.ayah_number === d.ayah_number &&
+        r.surah_id != null &&
+        surahNumberById.get(r.surah_id) === d.surah_number,
+    );
+
+  const resolve = (d: Draft) => {
+    if (!d.surah_number || !d.ayah_number) throw new Error("Pick a surah and ayah number first.");
+    const surah_id = surahIdByNumber.get(d.surah_number);
+    if (!surah_id) throw new Error("Unknown surah.");
+    const surah = surahs.find((s) => s.id === surah_id)!;
+    if (d.ayah_number < 1 || d.ayah_number > surah.verse_count)
+      throw new Error(`${surah.name_en} has ${surah.verse_count} ayahs.`);
+    return { surah_id, surah };
   };
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
-      const { error } = await supabase.from("reflections").insert({
-        arabic: d.arabic, translation: d.translation, reference: d.reference,
-        active: true, sort_order: active.length,
+      const dup = findDuplicate(d);
+      if (dup) throw new Error(`This ayah already exists (${dup.reference})${dup.archived_at ? " in the archive" : ""}.`);
+      const { surah_id, surah } = resolve(d);
+      const { error } = await supabase.from("ayahs").insert({
+        arabic: d.arabic,
+        translation: d.translation,
+        reference: d.reference || `${surah.name_en} ${surah.number}:${d.ayah_number}`,
+        surah_id,
+        ayah_number: d.ayah_number,
+        active: true,
+        sort_order: active.length,
       });
-      if (error) throw error;
+      if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
+    onMutate: () => setError(null),
+    onError: (e: Error) => setError(e.message),
     onSuccess: () => { setDraft(null); invalidate(); },
   });
 
   const update = useMutation({
     mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
-      const { error } = await supabase.from("reflections").update({
-        arabic: d.arabic, translation: d.translation, reference: d.reference,
+      const dup = findDuplicate(d, id);
+      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
+      const { surah_id, surah } = resolve(d);
+      const { error } = await supabase.from("ayahs").update({
+        arabic: d.arabic,
+        translation: d.translation,
+        reference: d.reference || `${surah.name_en} ${surah.number}:${d.ayah_number}`,
+        surah_id,
+        ayah_number: d.ayah_number,
       }).eq("id", id);
-      if (error) throw error;
+      if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
+    onMutate: () => setError(null),
+    onError: (e: Error) => setError(e.message),
     onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
   });
 
   const toggle = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const { error } = await supabase.from("reflections").update({ active }).eq("id", id);
+      const { error } = await supabase.from("ayahs").update({ active }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -73,7 +134,7 @@ function ReflectionsAdmin() {
 
   const archive = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reflections").update({ archived_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("ayahs").update({ archived_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { setSelectedId(null); invalidate(); },
@@ -81,7 +142,7 @@ function ReflectionsAdmin() {
 
   const restore = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reflections").update({ archived_at: null }).eq("id", id);
+      const { error } = await supabase.from("ayahs").update({ archived_at: null }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { setSelectedId(null); invalidate(); },
@@ -89,7 +150,7 @@ function ReflectionsAdmin() {
 
   const purge = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reflections").delete().eq("id", id);
+      const { error } = await supabase.from("ayahs").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { setSelectedId(null); invalidate(); },
@@ -97,7 +158,13 @@ function ReflectionsAdmin() {
 
   const beginEdit = (r: Row) => {
     setEditingId(r.id);
-    setEditDraft({ arabic: r.arabic, translation: r.translation, reference: r.reference });
+    setEditDraft({
+      arabic: r.arabic,
+      translation: r.translation,
+      reference: r.reference,
+      surah_number: r.surah_id ? surahNumberById.get(r.surah_id) ?? null : null,
+      ayah_number: r.ayah_number,
+    });
     setSelectedId(null);
   };
 
@@ -105,7 +172,7 @@ function ReflectionsAdmin() {
     <div className="grid gap-6" onClick={() => setSelectedId(null)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-display">Reflections</h2>
+          <h2 className="text-xl font-display">Verse of the Week</h2>
           <div onClick={(e) => e.stopPropagation()}>
             <ArchiveTabs tab={tab} onChange={setTab} activeCount={active.length} archiveCount={archived.length} />
           </div>
@@ -113,21 +180,24 @@ function ReflectionsAdmin() {
         {tab === "active" && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); if (!draft) setDraft({ arabic: "", translation: "", reference: "" }); }}
+            onClick={(e) => { e.stopPropagation(); setError(null); if (!draft) setDraft(emptyDraft); }}
             disabled={!!draft}
             className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
           >
-            <Plus className="h-4 w-4" /> Add reflection
+            <Plus className="h-4 w-4" /> Add verse
           </button>
         )}
       </div>
+
+      {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {tab === "active" && draft && (
           <EditorCard
             value={draft}
+            surahs={surahs}
             onChange={setDraft}
-            onCancel={() => setDraft(null)}
+            onCancel={() => { setDraft(null); setError(null); }}
             onSave={() => save.mutate(draft)}
             saving={save.isPending}
             saveLabel={save.isPending ? "Saving…" : "Save"}
@@ -140,8 +210,9 @@ function ReflectionsAdmin() {
               <EditorCard
                 key={r.id}
                 value={editDraft}
+                surahs={surahs}
                 onChange={setEditDraft}
-                onCancel={() => { setEditingId(null); setEditDraft(null); }}
+                onCancel={() => { setEditingId(null); setEditDraft(null); setError(null); }}
                 onSave={() => update.mutate({ id: r.id, d: editDraft })}
                 saving={update.isPending}
                 saveLabel={update.isPending ? "Saving…" : "Save changes"}
@@ -165,6 +236,7 @@ function ReflectionsAdmin() {
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
               <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
               <p className="mt-2 text-xs text-muted-foreground">— {r.reference}</p>
+              {!r.surah_id && <p className="mt-1 text-xs text-destructive">Not linked to a surah — edit to fix.</p>}
 
               {selected && (
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
@@ -187,7 +259,7 @@ function ReflectionsAdmin() {
                   <div className="flex items-center gap-2">
                     {!isArchived && (
                       <>
-                        <IconBtn label="Edit reflection" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
+                        <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
                           <Pencil className="h-4 w-4" />
                         </IconBtn>
                         <IconBtn label="Move to archive" onClick={(e) => { e.stopPropagation(); archive.mutate(r.id); }}>
@@ -197,10 +269,10 @@ function ReflectionsAdmin() {
                     )}
                     {isArchived && (
                       <>
-                        <IconBtn label="Restore reflection" onClick={(e) => { e.stopPropagation(); restore.mutate(r.id); }}>
+                        <IconBtn label="Restore verse" onClick={(e) => { e.stopPropagation(); restore.mutate(r.id); }}>
                           <RotateCcw className="h-4 w-4" />
                         </IconBtn>
-                        <IconBtn label="Delete permanently" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this reflection?")) purge.mutate(r.id); }}>
+                        <IconBtn label="Delete permanently" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
                           <Trash2 className="h-4 w-4" />
                         </IconBtn>
                       </>
@@ -214,7 +286,7 @@ function ReflectionsAdmin() {
 
         {rows.length === 0 && !(tab === "active" && draft) && (
           <p className="col-span-full text-sm text-muted-foreground">
-            {tab === "active" ? "No reflections yet." : "Archive is empty."}
+            {tab === "active" ? "No verses yet." : "Archive is empty."}
           </p>
         )}
       </div>
@@ -237,27 +309,61 @@ function IconBtn({ children, label, onClick, danger }: { children: React.ReactNo
   );
 }
 
+type Surah = { id: string; number: number; name_en: string; name_ar: string; verse_count: number };
+
 function EditorCard({
-  value, onChange, onCancel, onSave, saving, saveLabel,
+  value, surahs, onChange, onCancel, onSave, saving, saveLabel,
 }: {
   value: Draft;
+  surahs: Surah[];
   onChange: (d: Draft) => void;
   onCancel: () => void;
   onSave: () => void;
   saving: boolean;
   saveLabel: string;
 }) {
+  const surah = surahs.find((s) => s.number === value.surah_number);
+  const complete = !!value.arabic && !!value.translation && !!value.surah_number && !!value.ayah_number;
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
       className="flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
     >
+      <div className="grid grid-cols-2 gap-2">
+        <label className="flex flex-col text-xs text-muted-foreground">
+          Surah
+          <select
+            value={value.surah_number ?? ""}
+            onChange={(e) => onChange({ ...value, surah_number: e.target.value ? Number(e.target.value) : null })}
+            className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-heart"
+          >
+            <option value="">Select…</option>
+            {surahs.map((s) => (
+              <option key={s.id} value={s.number}>{s.number}. {s.name_en} — {s.name_ar}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col text-xs text-muted-foreground">
+          Ayah {surah ? `(1–${surah.verse_count})` : ""}
+          <input
+            inputMode="numeric"
+            value={value.ayah_number ?? ""}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D+/g, "");
+              onChange({ ...value, ayah_number: digits ? Number(digits) : null });
+            }}
+            className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-heart"
+          />
+        </label>
+      </div>
+
       <textarea
         dir="rtl"
         placeholder="العربية"
         value={value.arabic}
         onChange={(e) => onChange({ ...value, arabic: e.target.value })}
-        className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-arabic text-lg outline-none focus:border-heart"
+        className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 font-arabic text-lg outline-none focus:border-heart"
         rows={3}
       />
       <textarea
@@ -268,7 +374,7 @@ function EditorCard({
         rows={3}
       />
       <input
-        placeholder="Reference"
+        placeholder="Reference (auto if left blank)"
         value={value.reference}
         onChange={(e) => onChange({ ...value, reference: e.target.value })}
         className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground outline-none focus:border-heart"
@@ -277,13 +383,21 @@ function EditorCard({
       <div className="mt-3 border-t border-heart/20 pt-3">
         <QuranFetcher
           compact
-          onFetched={(a) => onChange({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
+          onFetched={(a, meta) =>
+            onChange({
+              arabic: a.arabic,
+              translation: a.translation,
+              reference: a.reference,
+              surah_number: meta.surah,
+              ayah_number: meta.ayah,
+            })
+          }
         />
       </div>
 
       <div className="mt-3 flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary">Cancel</button>
-        <button type="button" disabled={saving || !value.arabic || !value.translation || !value.reference} onClick={onSave} className="btn-primary text-sm disabled:opacity-50">{saveLabel}</button>
+        <button type="button" disabled={saving || !complete} onClick={onSave} className="btn-primary text-sm disabled:opacity-50">{saveLabel}</button>
       </div>
     </div>
   );
