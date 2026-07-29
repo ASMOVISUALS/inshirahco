@@ -68,6 +68,7 @@ function ResetPasswordPage() {
         eyebrow="Sign in paused"
         title="Come back soon"
         message={access.signinLockedMessage || "Account access is temporarily closed. Please check back soon."}
+        adminEntry
       />
     );
   }
