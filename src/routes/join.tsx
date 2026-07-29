@@ -5,6 +5,9 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
 import { siteUrl } from "@/lib/site-url";
+import { useAuthAccess } from "@/lib/auth-access";
+import { AccessLocked } from "@/components/AccessLocked";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 export const Route = createFileRoute("/join")({
   head: () => ({

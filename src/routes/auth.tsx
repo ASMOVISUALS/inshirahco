@@ -5,6 +5,8 @@ import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { siteUrl } from "@/lib/site-url";
+import { useAuthAccess } from "@/lib/auth-access";
+import { AccessLocked } from "@/components/AccessLocked";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -32,6 +34,7 @@ const resetSchema = z.object({
 function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const access = useAuthAccess();
   const [mode, setMode] = useState<"signin" | "forgot" | "magic">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,8 +43,18 @@ function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user) navigate({ to: "/" });
-  }, [user, navigate]);
+    if (user && access.signinEnabled) navigate({ to: "/" });
+  }, [user, navigate, access.signinEnabled]);
+
+  if (!access.signinEnabled) {
+    return (
+      <AccessLocked
+        eyebrow="Sign in paused"
+        title="Come back soon"
+        message={access.signinLockedMessage || "Account access is temporarily closed. Please check back soon."}
+      />
+    );
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
