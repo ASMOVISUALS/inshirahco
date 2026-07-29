@@ -32,35 +32,35 @@ const DEFAULT_MENTORS: Mentor[] = [
 
 export const Route = createFileRoute("/suhbah")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.fetchQuery(pageStatusQuery("life-architecture"));
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:suhbah"));
     if (status.status === "published") {
-      await context.queryClient.ensureQueryData(pageContentQuery("life-architecture"));
+      await context.queryClient.ensureQueryData(pageContentQuery("pillar:suhbah"));
     }
   },
   head: () => ({
     meta: [
-      { title: "Life Architecture — Coming soon | Inshirah" },
+      { title: "Suhbah — Coming soon | Inshirah" },
       { name: "description", content: "A mentor-led course on building an intentional life — career, purpose, and long-term direction, rooted in Islamic principles. Currently in development." },
-      { property: "og:title", content: "Life Architecture — Coming soon" },
+      { property: "og:title", content: "Suhbah — Coming soon" },
       { property: "og:description", content: "Mentor-led course on the intentional life. Join the waitlist." },
-      { property: "og:url", content: "/life-architecture" },
+      { property: "og:url", content: "/suhbah" },
     ],
-    links: [{ rel: "canonical", href: "/life-architecture" }],
+    links: [{ rel: "canonical", href: "/suhbah" }],
   }),
-  component: LifeArchitecture,
+  component: Suhbah,
 });
 
 interface Mentor { name: string; title?: string; role?: string; qualification?: string; bio?: string; image?: string }
 
-function LifeArchitecture() {
-  const { data: status } = useSuspenseQuery(pageStatusQuery("life-architecture"));
-  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="Life Architecture" />;
-  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Life Architecture" />;
-  return <LifeArchitectureContent />;
+function Suhbah() {
+  const { data: status } = useSuspenseQuery(pageStatusQuery("pillar:suhbah"));
+  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="Suhbah" />;
+  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="Suhbah" />;
+  return <SuhbahContent />;
 }
 
-function LifeArchitectureContent() {
-  const { data } = useSuspenseQuery(pageContentQuery("life-architecture"));
+function SuhbahContent() {
+  const { data } = useSuspenseQuery(pageContentQuery("pillar:suhbah"));
   const page = data.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const mentorsRaw = (Array.isArray(page.mentors) ? page.mentors : []) as Mentor[];
