@@ -366,15 +366,23 @@ function BlockList({
 function BlockInspector({ block, onChange }: { block: Block; onChange: (props: Record<string, unknown>) => void }) {
   const props = block.props as Record<string, unknown>;
   const set = (k: string, v: unknown) => onChange({ ...props, [k]: v });
+  const setMany = (patch: Record<string, unknown>) => onChange({ ...props, ...patch });
   const fields = FIELDS[block.type] ?? [];
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold">{BLOCK_LABEL[block.type]}</div>
       {fields.length === 0 && <p className="text-xs text-muted-foreground">This block has no editable fields.</p>}
       {fields.map((f) => (
         <Field key={f.key} field={f} value={props[f.key]} onChange={(v) => set(f.key, v)} />
       ))}
+      {block.type === "arabic_verse" && (
+        <div className="rounded-md border border-border bg-secondary/30 p-2">
+          <QuranFetcher
+            compact
+            onFetched={(a) => setMany({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
+          />
+        </div>
+      )}
     </div>
   );
 }
