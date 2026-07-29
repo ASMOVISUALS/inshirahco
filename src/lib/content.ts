@@ -41,7 +41,7 @@ export interface ContentItem {
   title: string;
   description: string;
   pillar: Pillar;
-  type: ResourceType;
+  
   readTime?: string;
   date: string; // ISO
   author: { name: string; role?: string };
