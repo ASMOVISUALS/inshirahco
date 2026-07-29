@@ -482,14 +482,25 @@ function PageTile({
             </button>
           )}
           {onRestore && (
-            <button
-              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
-              onClick={onRestore}
-              title="Restore page"
-            >
-              <RotateCcw className="h-3 w-3" /> Restore
-            </button>
+            restoreLocked ? (
+              <button
+                className="inline-flex cursor-not-allowed items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground opacity-60"
+                onClick={onRestoreLocked ?? undefined}
+                title="This page is a pillar — restore the pillar first"
+              >
+                <RotateCcw className="h-3 w-3" /> Restore
+              </button>
+            ) : (
+              <button
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+                onClick={onRestore}
+                title="Restore page"
+              >
+                <RotateCcw className="h-3 w-3" /> Restore
+              </button>
+            )
           )}
+
           {onPurge && (
             <button
               className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"
