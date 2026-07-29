@@ -871,6 +871,33 @@ export type Database = {
           },
         ]
       }
+      votw_schedule: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          next_change_at: string | null
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string
+          next_change_at?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          next_change_at?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -910,6 +937,8 @@ export type Database = {
         Returns: boolean
       }
       rotate_verse_of_the_week: { Args: never; Returns: undefined }
+      rotate_verse_of_the_week_if_due: { Args: never; Returns: undefined }
+      votw_next_friday: { Args: { _from?: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "member"
