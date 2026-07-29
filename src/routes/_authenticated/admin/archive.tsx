@@ -320,14 +320,25 @@ function PagesArchive() {
       return (data ?? []) as { key: string; slug: string; title: string; archived_at: null }[];
     },
   });
+  // Active (non-archived) pillar slugs — used to lock restore of pillar pages
+  const { data: activePillarSlugs = new Set<string>() } = useQuery({
+    queryKey: ["archive-pages-active-pillars"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("pillars").select("slug").is("archived_at", null);
+      if (error) throw error;
+      return new Set<string>(((data ?? []) as { slug: string }[]).map((r) => r.slug));
+    },
+  });
 
   const [gateOpen, setGateOpen] = useState(false);
   const [pending, setPending] = useState<{ kind: "restore" | "purge"; key: string; title: string } | null>(null);
+  const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["archive-pages"] });
     qc.invalidateQueries({ queryKey: ["archive-pages-active-slugs"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages-active-pillars"] });
     qc.invalidateQueries({ queryKey: ["admin", "pages"] });
     qc.invalidateQueries({ queryKey: ["cms"] });
   };
@@ -373,14 +384,26 @@ function PagesArchive() {
         <EmptyArchive label="pages" />
       ) : (
         <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {data.map((r) => (
-            <PageArchiveTile
-              key={r.key}
-              row={r}
-              onRestore={() => { setPending({ kind: "restore", key: r.key, title: r.title || r.slug }); setGateOpen(true); }}
-              onPurge={() => { if (confirm(`Permanently delete "${r.title || r.slug}"? This cannot be undone.`)) { setPending({ kind: "purge", key: r.key, title: r.title || r.slug }); setGateOpen(true); } }}
-            />
-          ))}
+          {data.map((r) => {
+            const pillarSlug = r.key.startsWith("pillar:") ? r.key.slice("pillar:".length) : null;
+            const locked = pillarSlug !== null && !activePillarSlugs.has(pillarSlug);
+            return (
+              <PageArchiveTile
+                key={r.key}
+                row={r}
+                restoreLocked={locked}
+                onRestore={() => {
+                  if (locked) {
+                    setPillarLocked({ title: r.title || r.slug, slug: pillarSlug! });
+                    return;
+                  }
+                  setPending({ kind: "restore", key: r.key, title: r.title || r.slug });
+                  setGateOpen(true);
+                }}
+                onPurge={() => { if (confirm(`Permanently delete "${r.title || r.slug}"? This cannot be undone.`)) { setPending({ kind: "purge", key: r.key, title: r.title || r.slug }); setGateOpen(true); } }}
+              />
+            );
+          })}
         </div>
       )}
       <AdminPasswordGate
@@ -389,11 +412,26 @@ function PagesArchive() {
         email={user?.email ?? ""}
         onVerified={onVerified}
       />
+      {pillarLocked && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => setPillarLocked(null)}>
+          <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold">Pillar is archived</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{pillarLocked.title}</span> is linked to
+              the pillar <span className="font-mono">/{pillarLocked.slug}</span>, which is currently
+              archived. Restore the pillar from the Pillars admin — its page will come back automatically.
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold hover:bg-secondary" onClick={() => setPillarLocked(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function PageArchiveTile({ row, onRestore, onPurge }: { row: PageRow; onRestore: () => void; onPurge: () => void }) {
+function PageArchiveTile({ row, onRestore, onPurge, restoreLocked }: { row: PageRow; onRestore: () => void; onPurge: () => void; restoreLocked?: boolean }) {
   const statusMeta =
     row.status === "published" ? { label: "Was published", icon: Eye, color: "var(--ink)" } :
     row.status === "hidden" ? { label: "Was hidden", icon: EyeOff, color: "var(--heart)" } :
@@ -414,7 +452,10 @@ function PageArchiveTile({ row, onRestore, onPurge }: { row: PageRow; onRestore:
       <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3">
         <button
           onClick={onRestore}
-          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+          title={restoreLocked ? "Linked pillar is archived — restore the pillar first" : "Restore"}
+          className={`inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold ${
+            restoreLocked ? "cursor-not-allowed opacity-50" : "hover:bg-secondary"
+          }`}
         >
           <RotateCcw className="h-3 w-3" /> Restore
         </button>

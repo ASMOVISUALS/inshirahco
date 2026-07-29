@@ -216,7 +216,7 @@ function PagesAdmin() {
             activeKey={activeKey}
             onSelect={setActiveKey}
             onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
-            onDelete={null}
+            onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
             onRestore={null}
             onPurge={null}
           />
