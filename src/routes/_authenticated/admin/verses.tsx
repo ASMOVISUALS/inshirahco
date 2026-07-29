@@ -25,7 +25,7 @@ type Row = {
   id: string; arabic: string; translation: string; reference: string;
   sort_order: number; active: boolean; archived_at: string | null;
   surah_id: string | null; ayah_number: number | null;
-  status: VerseStatus; created_at: string;
+  status: VerseStatus; created_at: string; queue_order: number | null;
 };
 
 export type VerseStatus = "pool" | "current" | "used";
@@ -36,9 +36,10 @@ const STATUSES: { value: VerseStatus; label: string; hint: string }[] = [
   { value: "used", label: "Used", hint: "Already had its week" },
 ];
 
-type SortKey = "chronology" | "added";
+type SortKey = "release" | "chronology" | "added";
 
 const emptyDraft: Draft = { arabic: "", translation: "", reference: "", surah_number: null, ayah_number: null };
+
 
 function VersesAdmin() {
   const qc = useQueryClient();
