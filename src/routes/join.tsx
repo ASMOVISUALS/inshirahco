@@ -50,6 +50,18 @@ function JoinPage() {
   const navigate = useNavigate();
   const access = useAuthAccess();
   const [step, setStep] = useState<Step>(1);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [name, setName] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "prefer_not_to_say" | "">("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const progress = useMemo(() => (done ? 100 : (step / 3) * 100), [step, done]);
 
   if (!access.signupEnabled) {
     return (
@@ -67,19 +79,6 @@ function JoinPage() {
       </AccessLocked>
     );
   }
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [name, setName] = useState("");
-  const [dob, setDob] = useState("");
-  const [gender, setGender] = useState<"male" | "female" | "prefer_not_to_say" | "">("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [done, setDone] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
-
-  const progress = useMemo(() => (done ? 100 : (step / 3) * 100), [step, done]);
 
   const goNext = async () => {
     setErrors({});
