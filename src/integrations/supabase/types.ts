@@ -141,6 +141,7 @@ export type Database = {
           day_end: string | null
           day_start: string | null
           id: string
+          queue_order: number | null
           reference: string
           sort_order: number
           status: string
@@ -157,6 +158,7 @@ export type Database = {
           day_end?: string | null
           day_start?: string | null
           id?: string
+          queue_order?: number | null
           reference: string
           sort_order?: number
           status?: string
@@ -173,6 +175,7 @@ export type Database = {
           day_end?: string | null
           day_start?: string | null
           id?: string
+          queue_order?: number | null
           reference?: string
           sort_order?: number
           status?: string
@@ -884,6 +887,7 @@ export type Database = {
           day_end: string | null
           day_start: string | null
           id: string
+          queue_order: number | null
           reference: string
           sort_order: number
           status: string
@@ -905,6 +909,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      rotate_verse_of_the_week: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "member"
