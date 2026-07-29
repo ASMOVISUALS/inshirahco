@@ -117,7 +117,7 @@ export function mapArticleRow(row: {
     title: row.title,
     description: row.description,
     pillar: row.pillar as Pillar,
-    type: row.type as ResourceType,
+    
     readTime: row.read_time ?? undefined,
     author: { name: row.author_name, role: row.author_role ?? undefined },
     tags: row.tags ?? [],
