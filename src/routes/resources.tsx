@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import { z } from "zod";
 import { articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
-import { usePillars, useFormats } from "@/hooks/use-cms";
+import { usePillars, useFormats, useOnSiteFormatSlugs } from "@/hooks/use-cms";
 
 const searchSchema = z.object({
   type: z.string().optional(),
