@@ -358,7 +358,7 @@ function PagesAdmin() {
 
 
 function Section({
-  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, note,
+  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, isRestoreLocked, onRestoreLocked, note,
 }: {
   label: string;
   rows: PageRow[];
@@ -368,6 +368,8 @@ function Section({
   onDelete: ((row: PageRow) => void) | null;
   onRestore: ((row: PageRow) => void) | null;
   onPurge: ((row: PageRow) => void) | null;
+  isRestoreLocked?: (row: PageRow) => boolean;
+  onRestoreLocked?: (row: PageRow) => void;
   note?: string;
 }) {
   return (
@@ -378,18 +380,23 @@ function Section({
       </div>
       {rows.length > 0 && (
         <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {rows.map((r) => (
-            <PageTile
-              key={r.key}
-              row={r}
-              active={activeKey === r.key}
-              onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
-              onStatus={onStatus ? () => onStatus(r) : null}
-              onDelete={onDelete ? () => onDelete(r) : null}
-              onRestore={onRestore ? () => onRestore(r) : null}
-              onPurge={onPurge ? () => onPurge(r) : null}
-            />
-          ))}
+          {rows.map((r) => {
+            const locked = onRestore && isRestoreLocked ? isRestoreLocked(r) : false;
+            return (
+              <PageTile
+                key={r.key}
+                row={r}
+                active={activeKey === r.key}
+                onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
+                onStatus={onStatus ? () => onStatus(r) : null}
+                onDelete={onDelete ? () => onDelete(r) : null}
+                onRestore={onRestore ? () => onRestore(r) : null}
+                onPurge={onPurge ? () => onPurge(r) : null}
+                restoreLocked={locked}
+                onRestoreLocked={onRestoreLocked ? () => onRestoreLocked(r) : null}
+              />
+            );
+          })}
         </div>
       )}
     </section>
@@ -397,7 +404,7 @@ function Section({
 }
 
 function PageTile({
-  row, active, onSelect, onStatus, onDelete, onRestore, onPurge,
+  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, restoreLocked, onRestoreLocked,
 }: {
   row: PageRow;
   active: boolean;
@@ -406,7 +413,10 @@ function PageTile({
   onDelete: (() => void) | null;
   onRestore: (() => void) | null;
   onPurge: (() => void) | null;
+  restoreLocked?: boolean;
+  onRestoreLocked?: (() => void) | null;
 }) {
+
   const statusMeta =
     row.archived_at ? { label: "Archived", icon: Archive, color: "var(--muted-foreground)" } :
     row.status === "published" ? { label: "Published", icon: Eye, color: "var(--ink)" } :
