@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Play, Headphones } from "lucide-react";
 import type { ContentItem } from "@/lib/content";
-import { useFormatMap, formatLabel } from "@/hooks/use-cms";
+import { useFormatMap, formatLabel, useOnSiteFormatSlugs } from "@/hooks/use-cms";
 
 interface Props {
   items: ContentItem[];
@@ -11,6 +11,8 @@ export function MediaCarousel({ items }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
   const formats = useFormatMap();
+  const onSiteSlugs = useOnSiteFormatSlugs();
+  const visibleItems = items.filter((i) => onSiteSlugs.has(i.type));
 
   useEffect(() => {
     const el = trackRef.current;
