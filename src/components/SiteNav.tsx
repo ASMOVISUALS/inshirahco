@@ -9,7 +9,6 @@ import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
 import { usePillars, useMenuFormats } from "@/hooks/use-cms";
-import { useAuthAccess } from "@/lib/auth-access";
 
 import { SearchOverlay } from "./SearchOverlay";
 
@@ -22,7 +21,6 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { slugs } = useBookmarks();
   const { user } = useAuth();
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
-  const access = useAuthAccess();
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
   const pillars = usePillars();
   const formats = useMenuFormats();
@@ -201,11 +199,9 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
               </>
             ) : (
               <>
-                {access.signinEnabled && (
-                  <Link to="/auth" className="hidden md:inline-flex rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
-                    Sign in
-                  </Link>
-                )}
+                <Link to="/auth" className="hidden md:inline-flex rounded-pill px-4 py-2 text-sm font-semibold text-foreground/85 hover:bg-secondary">
+                  Sign in
+                </Link>
                 <Link to="/join" className="ml-1 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm">
                   Join
                 </Link>
@@ -272,9 +268,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
               </div>
             ) : (
               <div className="mt-6 flex flex-col gap-2">
-                {access.signinEnabled && (
-                  <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
-                )}
+                <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
                 <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
 
               </div>
