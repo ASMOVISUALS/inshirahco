@@ -45,7 +45,11 @@ interface Row {
   coming_soon: boolean;
 }
 
-type GateIntent = { kind: "edit"; slug: string } | { kind: "create" };
+type GateIntent =
+  | { kind: "edit"; slug: string }
+  | { kind: "create" }
+  | { kind: "restore"; slug: string; label: string }
+  | { kind: "purge"; slug: string; label: string };
 
 function slugify(s: string) {
   return s.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
