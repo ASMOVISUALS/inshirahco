@@ -16,6 +16,7 @@ const chipCls = (on: boolean) =>
   }`;
 import { SortBar } from "@/components/admin/SortBar";
 import { surahsQuery } from "@/lib/queries";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/verses")({
   head: () => ({ meta: [{ title: "Verse of the Week — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -494,7 +495,7 @@ function VersesAdmin() {
           );
         })}
 
-        {displayRows.length === 0 && !draft && statusFilter !== "current" && (
+        {displayRows.length === 0 && (
           <p className="col-span-full text-sm text-muted-foreground">
             {statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
@@ -527,8 +528,9 @@ function IconBtn({ children, label, onClick, danger }: { children: React.ReactNo
 type Surah = { id: string; number: number; name_en: string; name_ar: string; verse_count: number };
 
 function EditorCard({
-  value, surahs, onChange, onCancel, onSave, saving, saveLabel,
+  value, surahs, onChange, onCancel, onSave, saving, saveLabel, bare,
 }: {
+  bare?: boolean;
   value: Draft;
   surahs: Surah[];
   onChange: (d: Draft) => void;
@@ -543,7 +545,7 @@ function EditorCard({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"
+      className={bare ? "flex flex-col" : "flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"}
     >
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col text-xs text-muted-foreground">
