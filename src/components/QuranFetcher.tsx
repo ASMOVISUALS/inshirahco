@@ -53,7 +53,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
   };
 
   const inputCls =
-    "rounded-md border border-border bg-background px-2 py-1 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+    "rounded-md border border-tazkiyah/50 bg-tazkiyah/5 px-2 py-1 text-tazkiyah outline-none placeholder:text-tazkiyah/50 focus:border-tazkiyah [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
   return (
     <div className={compact ? "flex flex-col gap-2 text-sm" : "mt-4 flex flex-wrap items-end gap-2 border-t pt-3 text-sm"}
@@ -61,7 +61,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
     >
       <div className={compact ? "grid grid-cols-2 gap-2" : "contents"}>
         <div className="flex flex-col">
-          <label className="text-xs text-muted-foreground">Surah</label>
+          <label className="text-xs font-medium text-tazkiyah">Surah</label>
           <input
             key={`s-${glowKey.current}-${surahGlow}`}
             type="text"
