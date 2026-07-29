@@ -126,6 +126,12 @@ function VersePage() {
             <p className="text-sm">Sign in to share your reflection on this verse.</p>
             <Link to="/auth" className="btn-primary mt-4 inline-flex">Sign in</Link>
           </div>
+        ) : hasReflected ? (
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your reflection</p>
+            <p className="mx-auto mt-3 max-w-xl whitespace-pre-wrap text-sm leading-relaxed">{mine[0].body}</p>
+            <p className="mt-4 text-xs text-muted-foreground">You've shared your reflection for this week's verse.</p>
+          </div>
         ) : (
           <>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your reflection</p>
