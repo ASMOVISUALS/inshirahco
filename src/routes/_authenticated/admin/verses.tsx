@@ -252,15 +252,6 @@ function VersesAdmin() {
           </div>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            onClick={() => { setError(null); setGateOpen(true); }}
-            disabled={rollVerse.isPending}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5 disabled:opacity-50"
-            style={{ background: "var(--tazkiyah, #2f7d5c)" }}
-          >
-            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
-          </button>
           {tab === "active" && (
             <button
               type="button"
@@ -271,7 +262,20 @@ function VersesAdmin() {
               <Plus className="h-4 w-4" /> Add verse
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => { setError(null); setGateOpen(true); }}
+            disabled={rollVerse.isPending}
+            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+            style={{
+              background: "color-mix(in oklab, var(--tazkiyah) 80%, black)",
+              boxShadow: "0 6px 20px -8px color-mix(in oklab, var(--tazkiyah) 60%, transparent)",
+            }}
+          >
+            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
+          </button>
         </div>
+
       </div>
 
       {currentVerse && (
