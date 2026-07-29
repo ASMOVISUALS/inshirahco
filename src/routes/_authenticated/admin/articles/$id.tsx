@@ -32,6 +32,7 @@ import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBl
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
 import { QuranFetcher } from "@/components/QuranFetcher";
+import { quoteTintStyle, QUOTE_TINT_OPTIONS } from "@/lib/quote-tint";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
   head: () => ({ meta: [{ title: "Edit article — Admin" }, { name: "robots", content: "noindex" }] }),
