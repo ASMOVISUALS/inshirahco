@@ -159,27 +159,21 @@ function VersePage() {
         )}
       </section>
 
-      {/* Orbiting reflections */}
+      {/* Floating reflections */}
       <section className="mt-14">
-        <h2 className="text-center font-display text-2xl">Reflections orbiting this verse</h2>
         {reflections.length === 0 ? (
           <p className="mt-6 text-center text-sm text-muted-foreground">No reflections yet — be the first.</p>
         ) : (
-          <div className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {reflections.map((r, i) => (
-              <ReflectionTile
-                key={r.id}
-                reflection={r}
-                index={i}
-                liked={likedSet.has(r.id)}
-                canAct={!!user}
-                onLike={() => like.mutate(r.id)}
-                onReport={() => setReportId(r.id)}
-              />
-            ))}
-          </div>
+          <FloatingReflections
+            reflections={reflections}
+            likedIds={likedSet}
+            canAct={!!user}
+            onLike={(id) => like.mutate(id)}
+            onReport={(id) => setReportId(id)}
+          />
         )}
       </section>
+
 
       {reportId && user && (
         <ReportDialog
