@@ -64,6 +64,114 @@ function ArchivePage() {
       {active === "reflections" && <ReflectionsArchive />}
       {active === "testimonials" && <TestimonialsArchive />}
       {active === "pages" && <PagesArchive />}
+      {active === "pillars" && <PillarsArchive />}
+    </div>
+  );
+}
+
+/* ---------------------------- Pillars ---------------------------- */
+
+type PillarArchiveRow = {
+  slug: string; label: string; short_label: string; arabic_letter: string;
+  tint: string; description: string; archived_at: string;
+};
+
+function PillarsArchive() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["archive-pillars"],
+    queryFn: async (): Promise<PillarArchiveRow[]> => {
+      const { data, error } = await supabase
+        .from("pillars")
+        .select("slug,label,short_label,arabic_letter,tint,description,archived_at")
+        .not("archived_at", "is", null)
+        .order("archived_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PillarArchiveRow[];
+    },
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["archive-pillars"] });
+    qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
+    qc.invalidateQueries({ queryKey: ["admin", "pillars", "archived"] });
+    qc.invalidateQueries({ queryKey: ["cms"] });
+    qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages-active-pillars"] });
+  };
+  const restore = useMutation({
+    mutationFn: async (slug: string) => {
+      const { error } = await supabase.from("pillars").update({ archived_at: null }).eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+  const purge = useMutation({
+    mutationFn: async (slug: string) => {
+      const { error } = await supabase.from("pillars").delete().eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const [gateOpen, setGateOpen] = useState(false);
+  const [pending, setPending] = useState<{ kind: "restore" | "purge"; slug: string } | null>(null);
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (data.length === 0) return <EmptyArchive label="pillars" />;
+
+  return (
+    <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {data.map((p) => (
+        <div key={p.slug} className="flex flex-col self-start rounded-2xl border border-border bg-card p-4 opacity-90">
+          <div className="flex items-start gap-3">
+            <span
+              className="grid h-10 w-10 flex-none place-items-center rounded-full font-arabic text-lg"
+              style={{ background: `color-mix(in oklab, var(--${p.tint}) 18%, transparent)`, color: `var(--${p.tint})` }}
+            >
+              {p.arabic_letter}
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-bold leading-tight">{p.label}</h3>
+              <p className="font-mono text-[11px] text-muted-foreground">/{p.slug}</p>
+            </div>
+          </div>
+          <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.description}</p>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <ArchiveIcon className="h-3.5 w-3.5" /> Archived
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setPending({ kind: "restore", slug: p.slug }); setGateOpen(true); }}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+              >
+                <RotateCcw className="h-3 w-3" /> Restore
+              </button>
+              <button
+                onClick={() => { if (confirm(`Permanently delete pillar "${p.label}"? This cannot be undone and will also delete its page.`)) { setPending({ kind: "purge", slug: p.slug }); setGateOpen(true); } }}
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3" /> Delete forever
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+      <AdminPasswordGate
+        open={gateOpen}
+        onOpenChange={(o) => { setGateOpen(o); if (!o) setPending(null); }}
+        email={user?.email ?? ""}
+        onVerified={() => {
+          setGateOpen(false);
+          if (!pending) return;
+          if (pending.kind === "restore") restore.mutate(pending.slug);
+          if (pending.kind === "purge") purge.mutate(pending.slug);
+          setPending(null);
+        }}
+      />
     </div>
   );
 }
