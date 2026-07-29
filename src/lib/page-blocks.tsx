@@ -9,6 +9,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
 import { TemplateVarsProvider, substituteVars, useTemplateVars, type TemplateVars } from "@/lib/template-vars";
+import { quoteTintStyle } from "@/lib/quote-tint";
 
 
 export type BlockType =
