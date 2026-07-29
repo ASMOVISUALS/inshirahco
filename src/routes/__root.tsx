@@ -14,6 +14,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useAuthAccess } from "@/lib/auth-access";
+import { useAuth } from "@/hooks/use-auth";
+import { signOutCompletely } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -131,17 +134,12 @@ function RootComponent() {
 
 function AuthAccessEnforcer() {
   const { queryClient } = Route.useRouteContext();
-  // Import inside the component to avoid loading these on the server shell path.
-  const { useAuthAccess } = require("@/lib/auth-access") as typeof import("@/lib/auth-access");
-  const { useAuth } = require("@/hooks/use-auth") as typeof import("@/hooks/use-auth");
-  const { signOutCompletely } = require("@/lib/auth") as typeof import("@/lib/auth");
   const router = useRouter();
   const access = useAuthAccess();
   const { user } = useAuth();
   useEffect(() => {
     if (!user) return;
     if (access.signinEnabled) return;
-    // Sign-in is closed but a session exists — sign the user out.
     void signOutCompletely({
       queryClient,
       navigate: (opts) => router.navigate(opts),
