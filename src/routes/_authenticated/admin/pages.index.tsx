@@ -75,6 +75,8 @@ function PagesAdmin() {
     | null
   >(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+  const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
+
 
   const setStatusMutation = useMutation({
     mutationFn: async (p: { key: string; next: PageStatus }) => {
