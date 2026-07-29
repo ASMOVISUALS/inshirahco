@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { LetterMark } from "@/components/LetterMark";
-import { pageQuery } from "@/lib/queries";
+import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
 
 export const Route = createFileRoute("/about")({
-  loader: ({ context }) => { context.queryClient.ensureQueryData(pageQuery("about")); },
+  loader: async ({ context }) => {
+    const status = await context.queryClient.fetchQuery(pageStatusQuery("about"));
+    if (status.status === "published") {
+      await context.queryClient.ensureQueryData(pageContentQuery("about"));
+    }
+  },
   head: () => ({
     meta: [
       { title: "About — Inshirah" },
@@ -21,10 +26,15 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
-  const { data: bundle } = useQuery(pageQuery("about"));
-  const page = bundle?.content ?? {};
-  if (bundle?.status === "hidden") return <SystemTemplate mode="hidden" pageName="About" />;
-  if (bundle?.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="About" />;
+  const { data: status } = useSuspenseQuery(pageStatusQuery("about"));
+  if (status.status === "hidden") return <SystemTemplate mode="hidden" pageName="About" />;
+  if (status.status === "coming_soon") return <SystemTemplate mode="coming_soon" pageName="About" />;
+  return <AboutContent />;
+}
+
+function AboutContent() {
+  const { data } = useSuspenseQuery(pageContentQuery("about"));
+  const page = data.content ?? {};
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
   const paragraphs = (Array.isArray(page.body_paragraphs) ? page.body_paragraphs : []) as string[];
 
