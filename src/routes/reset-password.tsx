@@ -62,6 +62,16 @@ function ResetPasswordPage() {
     setTimeout(() => navigate({ to: "/" }), 1500);
   };
 
+  if (!access.signinEnabled) {
+    return (
+      <AccessLocked
+        eyebrow="Sign in paused"
+        title="Come back soon"
+        message={access.signinLockedMessage || "Account access is temporarily closed. Please check back soon."}
+      />
+    );
+  }
+
   return (
     <section className="hero-radial min-h-[calc(100vh-80px)]">
       <div className="container-wide py-16 md:py-24">
