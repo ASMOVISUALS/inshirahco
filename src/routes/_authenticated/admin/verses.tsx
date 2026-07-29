@@ -225,19 +225,57 @@ function VersesAdmin() {
             />
           </div>
         </div>
-        {tab === "active" && (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setError(null); if (!draft) setDraft(emptyDraft); }}
-            disabled={!!draft}
-            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+            onClick={() => { setError(null); setGateOpen(true); }}
+            disabled={rollVerse.isPending}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+            style={{ background: "var(--tazkiyah, #2f7d5c)" }}
           >
-            <Plus className="h-4 w-4" /> Add verse
+            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
           </button>
-        )}
+          {tab === "active" && (
+            <button
+              type="button"
+              onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
+              disabled={!!draft}
+              className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" /> Add verse
+            </button>
+          )}
+        </div>
       </div>
 
+      {currentVerse && (
+        <section
+          className="rounded-3xl border p-8 text-center md:p-10"
+          style={{
+            background: "color-mix(in oklab, var(--heart) 8%, var(--paper-warm, transparent))",
+            borderColor: "color-mix(in oklab, var(--heart) 30%, transparent)",
+          }}
+        >
+          <p className="eyebrow" style={{ color: "var(--heart)" }}>This week's verse</p>
+          <p className="font-arabic mx-auto mt-5 max-w-2xl text-3xl leading-loose md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>
+            {currentVerse.arabic}
+          </p>
+          <p className="mx-auto mt-5 max-w-lg font-display text-xl italic" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
+            "{currentVerse.translation}"
+          </p>
+          <p className="mt-3 text-sm font-semibold text-muted-foreground">— {currentVerse.reference}</p>
+        </section>
+      )}
+
+      <AdminPasswordGate
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        email={user?.email ?? ""}
+        onVerified={() => { setGateOpen(false); rollVerse.mutate(); }}
+      />
+
       {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
+
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {tab === "active" && draft && (
