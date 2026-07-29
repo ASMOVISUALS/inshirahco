@@ -544,6 +544,27 @@ function RenderBlock({ block }: { block: Block }) {
       return <div className={h} aria-hidden />;
     }
 
+    case "pillar_hero":
+      return <PillarHeroBlock eyebrow={s("eyebrow")} badge={s("badge")} />;
+
+    case "pillar_articles":
+      return <PillarArticlesBlock eyebrow={s("eyebrow")} title={s("title")} count={n("count", 24)} />;
+
+    case "pillar_series":
+      return <PillarSeriesBlock title={s("title")} count={n("count", 12)} />;
+
+    case "previews_grid":
+      return <PreviewsGridBlock eyebrow={s("eyebrow")} title={s("title")} description={s("description")} items={(Array.isArray(p.items) ? p.items : []) as { icon?: string; tag?: string; title: string; description: string }[]} />;
+
+    case "mentors_row":
+      return <MentorsRowBlock title={s("title")} description={s("description")} items={(Array.isArray(p.items) ? p.items : []) as { name: string; title?: string; role?: string; qualification?: string; image?: string }[]} />;
+
+    case "contact_form":
+      return <ContactFormBlock successArabic={s("success_arabic")} successTitle={s("success_title")} successDescription={s("success_description")} supportTitle={s("support_title")} supportBody={s("support_body")} supportFootnote={s("support_footnote")} />;
+
+    case "resources_library":
+      return <ResourcesLibraryBlock />;
+
     default:
       return <PlaceholderBlock label={`Unknown block: ${block.type}`} />;
   }
