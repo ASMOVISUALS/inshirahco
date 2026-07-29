@@ -33,6 +33,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
+import { Route as AuthenticatedAdminSeriesRouteImport } from './routes/_authenticated/admin/series'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
@@ -169,6 +170,12 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSeriesRoute =
+  AuthenticatedAdminSeriesRouteImport.update({
+    id: '/series',
+    path: '/series',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminReflectionsRoute =
   AuthenticatedAdminReflectionsRouteImport.update({
     id: '/reflections',
@@ -259,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
@@ -293,6 +301,7 @@ export interface FileRoutesByTo {
   '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
@@ -331,6 +340,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/_authenticated/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
+    | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
     | '/profile/edit'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
+    | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
     | '/profile/edit'
@@ -440,6 +452,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/reflections'
+    | '/_authenticated/admin/series'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
     | '/_authenticated/profile/edit'
@@ -642,6 +655,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/series': {
+      id: '/_authenticated/admin/series'
+      path: '/series'
+      fullPath: '/admin/series'
+      preLoaderRoute: typeof AuthenticatedAdminSeriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/reflections': {
       id: '/_authenticated/admin/reflections'
       path: '/reflections'
@@ -728,6 +748,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
+  AuthenticatedAdminSeriesRoute: typeof AuthenticatedAdminSeriesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTestimonialsRoute: typeof AuthenticatedAdminTestimonialsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -746,6 +767,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
+    AuthenticatedAdminSeriesRoute: AuthenticatedAdminSeriesRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminTestimonialsRoute: AuthenticatedAdminTestimonialsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
