@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { consumePillarEditFlag } from "@/components/AdminPasswordGate";
+import { useAuth } from "@/hooks/use-auth";
+import { AdminPasswordGate, consumePillarEditFlag } from "@/components/AdminPasswordGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { ArabicLetterPicker, TintSelect } from "@/components/ArabicLetterPicker";
 
 export const Route = createFileRoute("/_authenticated/admin/pillars/$slug/edit")({
