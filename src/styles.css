@@ -289,20 +289,3 @@
   }
 }
 
-/* Slow orbital drift for verse-of-the-week reflection tiles. */
-@keyframes orbit-drift {
-  0%   { transform: translate3d(0, 0, 0); }
-  25%  { transform: translate3d(6px, -10px, 0); }
-  50%  { transform: translate3d(-4px, -16px, 0); }
-  75%  { transform: translate3d(-8px, -6px, 0); }
-  100% { transform: translate3d(0, 0, 0); }
-}
-.orbit-tile {
-  animation-name: orbit-drift;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  .orbit-tile { animation: none; }
-}
