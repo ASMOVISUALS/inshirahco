@@ -33,6 +33,7 @@ function Resources() {
   const { data: content } = useSuspenseQuery(articlesQuery());
   const pillars = usePillars();
   const formats = useFormats();
+  const onSiteSlugs = useOnSiteFormatSlugs();
   const search = Route.useSearch();
   const [type, setType] = useState<string>(search.type ?? "all");
   const [pillar, setPillar] = useState<string>(search.pillar ?? "all");
@@ -40,6 +41,7 @@ function Resources() {
 
   const filtered = useMemo(() => {
     return content.filter((c) => {
+      if (!onSiteSlugs.has(c.type)) return false;
       if (type !== "all" && c.type !== type) return false;
       if (pillar !== "all" && c.pillar !== pillar) return false;
       if (q) {
@@ -48,7 +50,7 @@ function Resources() {
       }
       return true;
     });
-  }, [content, type, pillar, q]);
+  }, [content, type, pillar, q, onSiteSlugs]);
 
   const anyFilter = type !== "all" || pillar !== "all" || q.length > 0;
 
