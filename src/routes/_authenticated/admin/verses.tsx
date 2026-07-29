@@ -391,7 +391,6 @@ function VersesAdmin() {
           </p>
         )}
       </div>
-      </div>
     </div>
   );
 }
