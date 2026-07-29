@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
+import { VotwSchedule, nextFridayUtc } from "@/components/admin/VotwSchedule";
+
 
 
 const chipCls = (on: boolean) =>
