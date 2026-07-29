@@ -380,6 +380,13 @@ function VersesAdmin() {
 
       {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
+      {statusFilter === "pool" && (
+        <p className="text-xs text-muted-foreground">
+          {reorderable
+            ? "Drag a tile by its handle to set the release order — position 1 goes out next. Focus a handle and use ↑ / ↓ to move it."
+            : "Switch “Sort by” to “Order of release” to drag tiles into the order they'll be released."}
+        </p>
+      )}
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {draft && (
@@ -394,7 +401,7 @@ function VersesAdmin() {
           />
         )}
 
-        {rows.map((r) => {
+        {displayRows.map((r, i) => {
           if (editingId === r.id && editDraft) {
             return (
               <EditorCard
@@ -414,11 +421,43 @@ function VersesAdmin() {
             <div
               key={r.id}
               onClick={(e) => { e.stopPropagation(); setSelectedId(selected ? null : r.id); }}
+              onDragOver={reorderable ? (e) => { e.preventDefault(); } : undefined}
+              onDrop={reorderable ? (e) => { e.preventDefault(); if (dragId) moveTo(dragId, r.id); setDragId(null); } : undefined}
               className={
                 "group relative flex flex-col self-start rounded-2xl border p-4 cursor-pointer transition-all " +
-                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40")
+                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40") +
+                (dragId === r.id ? " opacity-50" : "")
               }
             >
+              {reorderable && (
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                    style={{
+                      borderColor: "color-mix(in oklab, var(--heart) 35%, transparent)",
+                      color: "var(--heart)",
+                      background: "color-mix(in oklab, var(--heart) 8%, transparent)",
+                    }}
+                  >
+                    {i + 1}{i === 0 ? " · Next up" : ""}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Reorder ${r.reference}. Use arrow up and arrow down to move.`}
+                    draggable
+                    onDragStart={(e) => { e.stopPropagation(); setDragId(r.id); }}
+                    onDragEnd={() => setDragId(null)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") { e.preventDefault(); nudge(r.id, -1); }
+                      if (e.key === "ArrowDown") { e.preventDefault(); nudge(r.id, 1); }
+                    }}
+                    className="cursor-grab rounded-md p-1 text-muted-foreground transition-colors hover:text-heart focus:outline-none focus-visible:ring-2 focus-visible:ring-heart active:cursor-grabbing"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
               <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
               <p className="mt-2 text-xs text-muted-foreground">— {r.reference}</p>
@@ -447,12 +486,13 @@ function VersesAdmin() {
           );
         })}
 
-        {rows.length === 0 && !draft && (
+        {displayRows.length === 0 && !draft && (
           <p className="col-span-full text-sm text-muted-foreground">
             {statusFilter === "current" ? "No verse is set for this week yet." : statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
         )}
       </div>
+
     </div>
   );
 }
