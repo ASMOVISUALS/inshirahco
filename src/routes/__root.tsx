@@ -14,6 +14,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useAuthAccess } from "@/lib/auth-access";
+import { useAuth } from "@/hooks/use-auth";
+import { signOutCompletely } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -117,6 +120,7 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthAccessEnforcer />
       <div className="flex min-h-screen flex-col">
         {!isBuilder && <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />}
         <main className="flex-1">
@@ -126,5 +130,21 @@ function RootComponent() {
       </div>
     </QueryClientProvider>
   );
+}
+
+function AuthAccessEnforcer() {
+  const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const access = useAuthAccess();
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!user) return;
+    if (access.signinEnabled) return;
+    void signOutCompletely({
+      queryClient,
+      navigate: (opts) => router.navigate(opts),
+    });
+  }, [access.signinEnabled, user, queryClient, router]);
+  return null;
 }
 

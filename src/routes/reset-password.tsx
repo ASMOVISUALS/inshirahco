@@ -3,6 +3,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthAccess } from "@/lib/auth-access";
+import { AccessLocked } from "@/components/AccessLocked";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
@@ -25,6 +27,7 @@ const schema = z.object({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const access = useAuthAccess();
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -58,6 +61,16 @@ function ResetPasswordPage() {
     setDone(true);
     setTimeout(() => navigate({ to: "/" }), 1500);
   };
+
+  if (!access.signinEnabled) {
+    return (
+      <AccessLocked
+        eyebrow="Sign in paused"
+        title="Come back soon"
+        message={access.signinLockedMessage || "Account access is temporarily closed. Please check back soon."}
+      />
+    );
+  }
 
   return (
     <section className="hero-radial min-h-[calc(100vh-80px)]">
