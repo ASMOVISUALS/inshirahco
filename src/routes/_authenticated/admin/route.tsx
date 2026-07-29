@@ -158,14 +158,6 @@ function AdminSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/admin/users")} tooltip="Users">
-              <Link to="/admin/users">
-                <UserCog className="h-4 w-4" />
-                <span>Users</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/admin/settings")} tooltip="Settings">
               <Link to="/admin/settings">
                 <Settings className="h-4 w-4" />
