@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, RotateCcw, Archive, Shuffle, LayoutGrid } from "lucide-react";
+import { Trash2, Plus, Pencil, Shuffle, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
-import { type ArchiveTab } from "@/components/admin/ArchiveTabs";
+
 
 const chipCls = (on: boolean) =>
   `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
