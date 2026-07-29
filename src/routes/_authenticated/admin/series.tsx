@@ -65,11 +65,21 @@ function SeriesAdmin() {
 
   const save = useMutation({
     mutationFn: async (row: SeriesRow) => {
+      // Resolve pillar_id from slug (nullable — series may have no pillar).
+      let pillarId: string | null = null;
+      if (row.pillar) {
+        const { data: p, error: pErr } = await supabase
+          .from("pillars").select("id").eq("slug", row.pillar).maybeSingle();
+        if (pErr) throw pErr;
+        if (!p) throw new Error(`Pillar "${row.pillar}" not found.`);
+        pillarId = p.id;
+      }
       const { error } = await supabase.from("series" as never).update({
         slug: row.slug,
         title: row.title,
         description: row.description,
         pillar: row.pillar,
+        pillar_id: pillarId,
         cover_image: row.cover_image,
         arabic_letter: row.arabic_letter,
         tint: row.tint,

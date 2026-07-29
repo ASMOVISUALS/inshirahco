@@ -21,7 +21,7 @@ function FaqsAdmin() {
     },
   });
 
-  const [newFaq, setNewFaq] = useState({ page_key: "life-architecture", question: "", answer: "", sort_order: 100 });
+  const [newFaq, setNewFaq] = useState({ page_key: "pillar:suhbah", question: "", answer: "", sort_order: 100 });
 
   const create = useMutation({
     mutationFn: async () => {

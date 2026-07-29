@@ -6,9 +6,9 @@ import { SystemTemplate } from "@/components/SystemTemplate";
 
 // Reserved slugs that have their own route files
 const RESERVED = new Set([
-  "", "about", "auth", "auth.callback", "contact", "join", "life-architecture",
-  "quranic-reflections", "read", "reset-password", "resources", "saved",
-  "sitemap.xml", "tazkiyah-toolkit", "young-hearts", "admin",
+  "", "about", "auth", "auth.callback", "contact", "join", "suhbah",
+  "tadabbur", "read", "reset-password", "resources", "saved",
+  "sitemap.xml", "tazkiyah", "youth", "admin",
 ]);
 
 export const Route = createFileRoute("/$pageSlug")({

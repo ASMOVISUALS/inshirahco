@@ -2,10 +2,10 @@
 // Actual editorial content (articles, reflections, testimonials) lives in Supabase.
 
 export type Pillar =
-  | "quranic-reflections"
-  | "tazkiyah-toolkit"
-  | "young-hearts"
-  | "life-architecture";
+  | "tadabbur"
+  | "tazkiyah"
+  | "youth"
+  | "suhbah";
 
 export type ResourceType =
   | "article"
@@ -51,37 +51,37 @@ export interface ContentItem {
 }
 
 export const PILLARS: Record<Pillar, { label: string; short: string; letter: string; tint: string; description: string; href: string; }> = {
-  "quranic-reflections": {
-    label: "Qur'anic Reflections",
-    short: "Reflections",
+  "tadabbur": {
+    label: "Tadabbur",
+    short: "Tadabbur",
     letter: "ق",
     tint: "heart",
     description: "Slow, tadabbur-first readings of the Book — verse by verse, ayah by ayah.",
-    href: "/quranic-reflections",
+    href: "/tadabbur",
   },
-  "tazkiyah-toolkit": {
-    label: "Tazkiyah Toolkit",
-    short: "Toolkit",
+  "tazkiyah": {
+    label: "Tazkiyah",
+    short: "Tazkiyah",
     letter: "ت",
     tint: "tazkiyah",
     description: "Practices, printables, and gentle exercises to soften and steady the heart.",
-    href: "/tazkiyah-toolkit",
+    href: "/tazkiyah",
   },
-  "young-hearts": {
-    label: "Young Hearts",
+  "youth": {
+    label: "Youth",
     short: "Youth",
     letter: "ي",
     tint: "heart-soft",
     description: "Honest, warm writing for teens and young adults finding their footing.",
-    href: "/young-hearts",
+    href: "/youth",
   },
-  "life-architecture": {
-    label: "Life Architecture",
-    short: "Architecture",
+  "suhbah": {
+    label: "Suhbah",
+    short: "Suhbah",
     letter: "ح",
     tint: "gold",
     description: "A mentor-led course, coming soon — building a life with intention.",
-    href: "/life-architecture",
+    href: "/suhbah",
   },
 };
 

@@ -46,11 +46,16 @@ function ArticlesList() {
   const createNew = useMutation({
     mutationFn: async () => {
       const slug = `new-article-${Date.now().toString(36)}`;
+      // Resolve default pillar (tadabbur) id for the required FK.
+      const { data: pillar, error: pErr } = await supabase
+        .from("pillars").select("id,slug").eq("slug", "tadabbur").maybeSingle();
+      if (pErr) throw pErr;
+      if (!pillar) throw new Error("Default pillar 'tadabbur' not found.");
       const { data, error } = await supabase
         .from("articles")
         .insert({
           slug, title: "Untitled article", description: "",
-          pillar: "quranic-reflections", type: "article",
+          pillar: pillar.slug, pillar_id: pillar.id, type: "article",
           read_time: "1 min", author_name: "Inshirah", tags: [],
           body: [], published: false,
         })
