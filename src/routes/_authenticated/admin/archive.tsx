@@ -12,12 +12,13 @@ export const Route = createFileRoute("/_authenticated/admin/archive")({
   component: ArchivePage,
 });
 
-type Category = "articles" | "reflections" | "testimonials" | "pages";
+type Category = "articles" | "reflections" | "testimonials" | "pages" | "pillars";
 const CATEGORIES: { id: Category; label: string }[] = [
   { id: "articles", label: "Articles" },
   { id: "reflections", label: "Reflections" },
   { id: "testimonials", label: "Testimonials" },
   { id: "pages", label: "Pages" },
+  { id: "pillars", label: "Pillars" },
 ];
 
 function ArchivePage() {
