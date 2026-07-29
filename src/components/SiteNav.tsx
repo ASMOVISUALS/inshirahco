@@ -8,7 +8,7 @@ import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
-import { usePillars, useFormats } from "@/hooks/use-cms";
+import { usePillars, useMenuFormats } from "@/hooks/use-cms";
 
 import { SearchOverlay } from "./SearchOverlay";
 
