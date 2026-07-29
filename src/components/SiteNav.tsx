@@ -9,7 +9,6 @@ import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
 import { usePillars, useMenuFormats } from "@/hooks/use-cms";
-import { useAuthAccess } from "@/lib/auth-access";
 
 import { SearchOverlay } from "./SearchOverlay";
 
@@ -22,7 +21,6 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { slugs } = useBookmarks();
   const { user } = useAuth();
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
-  const access = useAuthAccess();
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
   const pillars = usePillars();
   const formats = useMenuFormats();
