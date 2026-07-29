@@ -48,7 +48,7 @@ export function MediaCarousel({ items }: Props) {
         onTouchStart={() => (paused.current = true)}
         onTouchEnd={() => (paused.current = false)}
       >
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const type = formatLabel(formats, item.type);
           const isVideo = item.type === "video";
           return (
