@@ -138,11 +138,17 @@ function EditArticle() {
     mutationFn: async (patch: Partial<Form>) => {
       if (!form) return;
       const next = { ...form, ...patch };
+      // Resolve pillar_id from slug so the FK stays in sync when pillar is changed.
+      const { data: p, error: pErr } = await supabase
+        .from("pillars").select("id").eq("slug", next.pillar).maybeSingle();
+      if (pErr) throw pErr;
+      if (!p) throw new Error(`Pillar "${next.pillar}" not found.`);
       const { error } = await supabase.from("articles").update({
         slug: next.slug,
         title: next.title,
         description: next.description,
         pillar: next.pillar,
+        pillar_id: p.id,
         type: next.type,
         read_time: readTimeFrom(next.blocks),
         author_name: next.author_name,

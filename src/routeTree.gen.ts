@@ -9,14 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
-import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as YouthRouteImport } from './routes/youth'
+import { Route as TazkiyahRouteImport } from './routes/tazkiyah'
+import { Route as TadabburRouteImport } from './routes/tadabbur'
+import { Route as SuhbahRouteImport } from './routes/suhbah'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
-import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -46,14 +46,24 @@ import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminPillarsSlugEditRouteImport } from './routes/_authenticated/admin/pillars.$slug.edit'
 import { Route as AuthenticatedAdminPagesKeyBuilderRouteImport } from './routes/_authenticated/admin/pages.$key.builder'
 
-const YoungHeartsRoute = YoungHeartsRouteImport.update({
-  id: '/young-hearts',
-  path: '/young-hearts',
+const YouthRoute = YouthRouteImport.update({
+  id: '/youth',
+  path: '/youth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
-  id: '/tazkiyah-toolkit',
-  path: '/tazkiyah-toolkit',
+const TazkiyahRoute = TazkiyahRouteImport.update({
+  id: '/tazkiyah',
+  path: '/tazkiyah',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TadabburRoute = TadabburRouteImport.update({
+  id: '/tadabbur',
+  path: '/tadabbur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuhbahRoute = SuhbahRouteImport.update({
+  id: '/suhbah',
+  path: '/suhbah',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -74,16 +84,6 @@ const ResourcesRoute = ResourcesRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuranicReflectionsRoute = QuranicReflectionsRouteImport.update({
-  id: '/quranic-reflections',
-  path: '/quranic-reflections',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
-  id: '/life-architecture',
-  path: '/life-architecture',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinRoute = JoinRouteImport.update({
@@ -249,14 +249,14 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/youth': typeof YouthRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
@@ -286,14 +286,14 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/youth': typeof YouthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
@@ -323,14 +323,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/youth': typeof YouthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
@@ -362,14 +362,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
     | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/youth'
     | '/admin'
     | '/profile'
     | '/auth/callback'
@@ -399,14 +399,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
     | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/youth'
     | '/auth/callback'
     | '/read/$slug'
     | '/admin/archive'
@@ -435,14 +435,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
     | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/youth'
     | '/_authenticated/admin'
     | '/_authenticated/profile'
     | '/auth/callback'
@@ -474,31 +474,45 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
   JoinRoute: typeof JoinRoute
-  LifeArchitectureRoute: typeof LifeArchitectureRoute
-  QuranicReflectionsRoute: typeof QuranicReflectionsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResourcesRoute: typeof ResourcesRoute
   SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
-  YoungHeartsRoute: typeof YoungHeartsRoute
+  SuhbahRoute: typeof SuhbahRoute
+  TadabburRoute: typeof TadabburRoute
+  TazkiyahRoute: typeof TazkiyahRoute
+  YouthRoute: typeof YouthRoute
   ReadSlugRoute: typeof ReadSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/young-hearts': {
-      id: '/young-hearts'
-      path: '/young-hearts'
-      fullPath: '/young-hearts'
-      preLoaderRoute: typeof YoungHeartsRouteImport
+    '/youth': {
+      id: '/youth'
+      path: '/youth'
+      fullPath: '/youth'
+      preLoaderRoute: typeof YouthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tazkiyah-toolkit': {
-      id: '/tazkiyah-toolkit'
-      path: '/tazkiyah-toolkit'
-      fullPath: '/tazkiyah-toolkit'
-      preLoaderRoute: typeof TazkiyahToolkitRouteImport
+    '/tazkiyah': {
+      id: '/tazkiyah'
+      path: '/tazkiyah'
+      fullPath: '/tazkiyah'
+      preLoaderRoute: typeof TazkiyahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tadabbur': {
+      id: '/tadabbur'
+      path: '/tadabbur'
+      fullPath: '/tadabbur'
+      preLoaderRoute: typeof TadabburRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suhbah': {
+      id: '/suhbah'
+      path: '/suhbah'
+      fullPath: '/suhbah'
+      preLoaderRoute: typeof SuhbahRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -527,20 +541,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quranic-reflections': {
-      id: '/quranic-reflections'
-      path: '/quranic-reflections'
-      fullPath: '/quranic-reflections'
-      preLoaderRoute: typeof QuranicReflectionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/life-architecture': {
-      id: '/life-architecture'
-      path: '/life-architecture'
-      fullPath: '/life-architecture'
-      preLoaderRoute: typeof LifeArchitectureRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join': {
@@ -833,14 +833,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
   JoinRoute: JoinRoute,
-  LifeArchitectureRoute: LifeArchitectureRoute,
-  QuranicReflectionsRoute: QuranicReflectionsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResourcesRoute: ResourcesRoute,
   SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TazkiyahToolkitRoute: TazkiyahToolkitRoute,
-  YoungHeartsRoute: YoungHeartsRoute,
+  SuhbahRoute: SuhbahRoute,
+  TadabburRoute: TadabburRoute,
+  TazkiyahRoute: TazkiyahRoute,
+  YouthRoute: YouthRoute,
   ReadSlugRoute: ReadSlugRoute,
 }
 export const routeTree = rootRouteImport

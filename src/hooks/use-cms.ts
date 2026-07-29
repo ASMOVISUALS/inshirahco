@@ -12,7 +12,7 @@ const fallbackPillarRows: PillarRow[] = Object.entries(FALLBACK_PILLARS).map(([s
   description: p.description,
   href: p.href,
   sort_order: i + 1,
-  coming_soon: slug === "life-architecture",
+  coming_soon: slug === "suhbah",
 }));
 
 const fallbackFormatRows: FormatRow[] = Object.entries(FALLBACK_FORMATS).map(([slug, f], i) => ({

@@ -30,7 +30,7 @@ const DEFAULT_MENTORS: Mentor[] = [
   { name: "Mentor 3", title: "Founder & Strategist", role: "Advisor", qualification: "MBA, Strategy" },
 ];
 
-export const Route = createFileRoute("/life-architecture")({
+export const Route = createFileRoute("/suhbah")({
   loader: async ({ context }) => {
     const status = await context.queryClient.fetchQuery(pageStatusQuery("life-architecture"));
     if (status.status === "published") {

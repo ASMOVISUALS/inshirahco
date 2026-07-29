@@ -66,9 +66,11 @@ function PillarEdit() {
 
   const save = useMutation({
     mutationFn: async (row: Row) => {
+      // Match by original slug (from URL) so slug renames still target the right row.
       const { error } = await supabase
         .from("pillars")
         .update({
+          slug: row.slug,
           label: row.label,
           short_label: row.short_label,
           arabic_letter: row.arabic_letter,
@@ -78,8 +80,12 @@ function PillarEdit() {
           sort_order: row.sort_order,
           coming_soon: row.coming_soon,
         })
-        .eq("slug", row.slug);
+        .eq("slug", slug);
       if (error) throw error;
+      // If slug changed, navigate to the new URL so subsequent edits target it.
+      if (row.slug !== slug) {
+        navigate({ to: "/admin/pillars/$slug/edit", params: { slug: row.slug }, replace: true });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
@@ -149,8 +155,12 @@ function PillarEdit() {
           <Field label="Short label">
             <Input value={form.short_label} onChange={(e) => set("short_label", e.target.value)} />
           </Field>
-          <Field label="Slug (read-only)">
-            <Input value={form.slug} readOnly disabled />
+          <Field label="Slug (URL handle — renames cascade to articles, series, and page keys)">
+            <Input
+              value={form.slug}
+              onChange={(e) => set("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+              className="font-mono"
+            />
           </Field>
           <Field label="Arabic letter">
             <ArabicLetterPicker value={form.arabic_letter} onChange={(v) => set("arabic_letter", v)} />
