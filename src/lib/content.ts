@@ -103,7 +103,7 @@ export function mapArticleRow(row: {
   title: string;
   description: string;
   pillar: string;
-  type: string;
+  
   read_time: string | null;
   author_name: string;
   author_role: string | null;
