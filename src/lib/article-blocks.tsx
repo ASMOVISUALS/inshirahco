@@ -79,7 +79,7 @@ function RecommendedCard({ slug }: { slug: string }) {
       if (!slug) return null;
       const { data } = await supabase
         .from("articles")
-        .select("slug,title,description,pillar,type")
+        .select("slug,title,description,pillar")
         .eq("slug", slug)
         .eq("published", true)
         .is("archived_at", null)

@@ -8,7 +8,7 @@ export const articlesQuery = () =>
     queryFn: async (): Promise<ContentItem[]> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
+        .select("slug,title,description,pillar,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("published", true)
         .is("archived_at", null)
         .order("published_at", { ascending: false })
@@ -25,7 +25,7 @@ export const articleBySlugQuery = (slug: string) =>
     queryFn: async (): Promise<ContentItem | null> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("slug,title,description,pillar,type,read_time,author_name,author_role,tags,downloadable,body,published_at")
+        .select("slug,title,description,pillar,read_time,author_name,author_role,tags,downloadable,body,published_at")
         .eq("slug", slug)
         .eq("published", true)
         .is("archived_at", null)
