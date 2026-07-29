@@ -7,7 +7,7 @@ import { SystemTemplate } from "@/components/SystemTemplate";
 // Reserved slugs that have their own route files
 const RESERVED = new Set([
   "", "about", "auth", "auth.callback", "contact", "join", "suhbah",
-  "tadabbur", "read", "reset-password", "resources", "saved",
+  "tadabbur", "read", "reset-password", "saved",
   "sitemap.xml", "tazkiyah", "youth", "admin",
 ]);
 

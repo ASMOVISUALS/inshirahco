@@ -1,4 +1,4 @@
-// Static UI config (pillars/formats) + type definitions.
+// Static UI config (pillars) + type definitions.
 // Actual editorial content (articles, reflections, testimonials) lives in Supabase.
 
 export type Pillar =
@@ -7,16 +7,6 @@ export type Pillar =
   | "youth"
   | "suhbah";
 
-export type ResourceType =
-  | "article"
-  | "reflection"
-  | "blog"
-  | "video"
-  | "podcast"
-  | "book"
-  | "course"
-  | "tadabbur"
-  | "worksheet";
 
 export type ContentBlock =
   | { kind: "p"; text: string }

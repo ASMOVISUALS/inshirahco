@@ -228,7 +228,6 @@ function ArticlesArchive() {
           <tr>
             <th className="px-4 py-3 font-semibold">Title</th>
             <th className="px-4 py-3 font-semibold">Pillar</th>
-            <th className="px-4 py-3 font-semibold">Type</th>
             <th className="px-4 py-3"></th>
           </tr>
         </thead>

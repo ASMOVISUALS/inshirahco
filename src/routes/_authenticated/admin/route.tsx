@@ -61,7 +61,6 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     label: "Structure",
     items: [
       { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
-      { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
     ],
   },
   {
