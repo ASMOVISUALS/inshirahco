@@ -338,6 +338,7 @@ function PagesArchive() {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["archive-pages"] });
     qc.invalidateQueries({ queryKey: ["archive-pages-active-slugs"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages-active-pillars"] });
     qc.invalidateQueries({ queryKey: ["admin", "pages"] });
     qc.invalidateQueries({ queryKey: ["cms"] });
   };
