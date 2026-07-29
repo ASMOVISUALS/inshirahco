@@ -14,6 +14,7 @@ import {
   FileStack,
   HelpCircle,
   Archive,
+  Flag,
   Settings,
   Layers,
   
@@ -150,6 +151,14 @@ function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/reports")} tooltip="Reports">
+              <Link to="/admin/reports">
+                <Flag className="h-4 w-4" />
+                <span>Reports</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/admin/archive")} tooltip="Archive">
               <Link to="/admin/archive">

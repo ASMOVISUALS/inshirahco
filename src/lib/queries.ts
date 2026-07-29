@@ -45,7 +45,7 @@ export type AyahRow = {
   ayah_number: number | null;
 };
 
-/** Verses available for the "Verse of the week" rotation. */
+/** Verses in the pool available for the "Verse of the week" rotation. */
 export const ayahsQuery = () =>
   queryOptions({
     queryKey: ["ayahs"],
@@ -53,7 +53,7 @@ export const ayahsQuery = () =>
       const { data, error } = await supabase
         .from("ayahs")
         .select("id,arabic,translation,reference,sort_order,surah_id,ayah_number")
-        .eq("active", true)
+        .in("status", ["pool", "current", "used"])
         .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -61,6 +61,63 @@ export const ayahsQuery = () =>
     },
     staleTime: 5 * 60_000,
   });
+
+/**
+ * The verse chosen for the current week. The database picks a random pool verse
+ * every Friday, marks it `current`, and retires the previous one to `used`.
+ */
+export const currentVerseQuery = () =>
+  queryOptions({
+    queryKey: ["votw"],
+    queryFn: async (): Promise<AyahRow | null> => {
+      const { data, error } = await supabase.rpc("current_verse_of_the_week");
+      if (error) throw error;
+      const row = (data ?? [])[0];
+      return row ? (row as unknown as AyahRow) : null;
+    },
+    staleTime: 5 * 60_000,
+  });
+
+export type PublicReflection = {
+  id: string;
+  body: string;
+  created_at: string;
+  likes_count: number;
+  user_id: string;
+};
+
+/** Every reflection written on a given verse — publicly readable. */
+export const verseReflectionsQuery = (ayahId: string | null) =>
+  queryOptions({
+    queryKey: ["verse-reflections", ayahId],
+    enabled: !!ayahId,
+    queryFn: async (): Promise<PublicReflection[]> => {
+      const { data, error } = await supabase
+        .from("reflections")
+        .select("id,body,created_at,likes_count,user_id")
+        .eq("ayah_id", ayahId!)
+        .order("likes_count", { ascending: false })
+        .limit(60);
+      if (error) throw error;
+      return (data ?? []) as PublicReflection[];
+    },
+  });
+
+/** Reflection ids the signed-in member has already liked. */
+export const myLikesQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["my-likes", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from("reflection_likes")
+        .select("reflection_id")
+        .eq("user_id", userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.reflection_id);
+    },
+  });
+
 
 export const surahsQuery = () =>
   queryOptions({

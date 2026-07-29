@@ -5,6 +5,7 @@ import { Trash2, Plus, Pencil, RotateCcw, Archive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
+import { SortBar } from "@/components/admin/SortBar";
 import { surahsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/admin/verses")({
@@ -17,7 +18,19 @@ type Row = {
   id: string; arabic: string; translation: string; reference: string;
   sort_order: number; active: boolean; archived_at: string | null;
   surah_id: string | null; ayah_number: number | null;
+  status: VerseStatus; created_at: string;
 };
+
+export type VerseStatus = "pool" | "current" | "used" | "paused";
+
+const STATUSES: { value: VerseStatus; label: string; hint: string }[] = [
+  { value: "pool", label: "In pool", hint: "Can be picked for a coming week" },
+  { value: "current", label: "This week", hint: "Currently the verse of the week" },
+  { value: "used", label: "Used", hint: "Already had its week" },
+  { value: "paused", label: "Paused", hint: "Never picked" },
+];
+
+type SortKey = "chronology" | "added";
 
 const emptyDraft: Draft = { arabic: "", translation: "", reference: "", surah_number: null, ayah_number: null };
 
@@ -30,7 +43,7 @@ function VersesAdmin() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("ayahs")
-        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number")
+        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number,status,created_at")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -38,6 +51,7 @@ function VersesAdmin() {
   });
 
   const [tab, setTab] = useState<ArchiveTab>("active");
+  const [sort, setSort] = useState<SortKey>("chronology");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,11 +71,25 @@ function VersesAdmin() {
     active: data.filter((r) => !r.archived_at),
     archived: data.filter((r) => r.archived_at),
   }), [data]);
-  const rows = tab === "active" ? active : archived;
+  const base = tab === "active" ? active : archived;
+  const rows = useMemo(() => {
+    const list = [...base];
+    if (sort === "added") {
+      list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    } else {
+      list.sort((a, b) => {
+        const sa = a.surah_id ? surahNumberById.get(a.surah_id) ?? 999 : 999;
+        const sb = b.surah_id ? surahNumberById.get(b.surah_id) ?? 999 : 999;
+        return sa - sb || (a.ayah_number ?? 0) - (b.ayah_number ?? 0);
+      });
+    }
+    return list;
+  }, [base, sort, surahNumberById]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
     qc.invalidateQueries({ queryKey: ["ayahs"] });
+    qc.invalidateQueries({ queryKey: ["votw"] });
   };
 
   /** Duplicate guard — the same surah/ayah may only ever exist once. */
@@ -96,6 +124,7 @@ function VersesAdmin() {
         surah_id,
         ayah_number: d.ayah_number,
         active: true,
+        status: "pool",
         sort_order: active.length,
       });
       if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
@@ -124,9 +153,18 @@ function VersesAdmin() {
     onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
   });
 
-  const toggle = useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const { error } = await supabase.from("ayahs").update({ active }).eq("id", id);
+  const setStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: VerseStatus }) => {
+      // Only one verse can hold "this week" at a time.
+      if (status === "current") {
+        const { error: clearErr } = await supabase
+          .from("ayahs").update({ status: "used" }).eq("status", "current").neq("id", id);
+        if (clearErr) throw clearErr;
+      }
+      const { error } = await supabase
+        .from("ayahs")
+        .update({ status, active: status !== "paused" })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -176,6 +214,16 @@ function VersesAdmin() {
           <div onClick={(e) => e.stopPropagation()}>
             <ArchiveTabs tab={tab} onChange={setTab} activeCount={active.length} archiveCount={archived.length} />
           </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <SortBar
+              value={sort}
+              onChange={setSort}
+              options={[
+                { value: "chronology", label: "Order in the Qur'an" },
+                { value: "added", label: "Date added (newest)" },
+              ]}
+            />
+          </div>
         </div>
         {tab === "active" && (
           <button
@@ -220,7 +268,7 @@ function VersesAdmin() {
             );
           }
           const selected = selectedId === r.id;
-          const dimmed = tab === "active" && !r.active && !selected;
+          const dimmed = tab === "active" && r.status === "paused" && !selected;
           const isArchived = tab === "archive";
           return (
             <div
@@ -236,6 +284,9 @@ function VersesAdmin() {
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
               <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
               <p className="mt-2 text-xs text-muted-foreground">— {r.reference}</p>
+              <span className="mt-2 inline-flex w-fit rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                {STATUSES.find((s) => s.value === r.status)?.label ?? r.status}
+              </span>
               {!r.surah_id && <p className="mt-1 text-xs text-destructive">Not linked to a surah — edit to fix.</p>}
 
               {selected && (
@@ -245,16 +296,10 @@ function VersesAdmin() {
                       <Archive className="h-3.5 w-3.5" /> Archived
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); toggle.mutate({ id: r.id, active: !r.active }); }}
-                      className="flex items-center gap-2 text-xs font-semibold"
-                    >
-                      <span className={"relative inline-flex h-5 w-9 items-center rounded-full transition-colors " + (r.active ? "bg-heart" : "bg-muted")}>
-                        <span className={"h-4 w-4 rounded-full bg-background transition-transform " + (r.active ? "translate-x-[18px]" : "translate-x-0.5")} />
-                      </span>
-                      <span>{r.active ? "Active" : "Inactive"}</span>
-                    </button>
+                    <StatusSlider
+                      value={r.status}
+                      onChange={(status) => setStatus.mutate({ id: r.id, status })}
+                    />
                   )}
                   <div className="flex items-center gap-2">
                     {!isArchived && (
@@ -290,6 +335,25 @@ function VersesAdmin() {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+function StatusSlider({ value, onChange }: { value: VerseStatus; onChange: (v: VerseStatus) => void }) {
+  const index = Math.max(0, STATUSES.findIndex((s) => s.value === value));
+  return (
+    <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+      <input
+        type="range"
+        min={0}
+        max={STATUSES.length - 1}
+        step={1}
+        value={index}
+        aria-label="Verse status"
+        onChange={(e) => onChange(STATUSES[Number(e.target.value)].value)}
+        className="h-1.5 w-28 cursor-pointer appearance-none rounded-full bg-muted accent-heart"
+      />
+      <span className="text-[11px] font-semibold" title={STATUSES[index].hint}>{STATUSES[index].label}</span>
     </div>
   );
 }
