@@ -1,63 +1,79 @@
 ## Goal
 
-Make "Sign out" a real teardown: no cached protected data, no in-flight query flashes, no back-button restore, and clear any user-scoped local storage.
+Rename all four pillar slugs (and route files) to short, single-word identifiers, and update every reference across the DB, code, and content so nothing breaks.
 
-## Current state (verified)
+## Slug mapping
 
-`src/components/SiteNav.tsx` does only:
-```ts
-await supabase.auth.signOut();
-navigate({ to: "/" });
-```
-- React Query cache (profile, bookmarks, admin data fetched during the session) stays in memory.
-- In-flight queries can resolve after `signOut()` and log 401s / flash errors.
-- `navigate` pushes history, so Back can re-render the previous protected shell against a cleared session.
-- Bookmarks and any other per-user data stored in `localStorage` are not cleared.
+| Old slug | New slug | Label |
+| --- | --- | --- |
+| `quranic-reflections` | `tadabbur` | Tadabbur |
+| `tazkiyah-toolkit` | `tazkiyah` | Tazkiyah |
+| `young-hearts` | `youth` | Youth |
+| `life-architecture` | `suhbah` | Suhbah |
 
-The root `onAuthStateChange` in `__root.tsx` handles `SIGNED_OUT` with `router.invalidate()` — good, but doesn't touch the query cache or history.
+Labels are also shortened for consistency. If you'd rather keep the old display labels (e.g. "Qur'anic Reflections", "Life Architecture") and only rename the slug/URL, tell me and I'll skip the label update.
 
 ## Changes
 
-### 1. Centralize sign-out — `src/lib/auth.ts` (new)
+### 1. Data update (insert tool, not migration — data only)
 
-Single helper used by every sign-out entry point:
+Update in dependency-safe order inside a single transaction:
 
-```ts
-export async function signOutCompletely({ queryClient, navigate }) {
-  await queryClient.cancelQueries();      // stop in-flight before 401s land
-  queryClient.clear();                    // drop all cached protected data
-  // clear user-scoped local storage (bookmarks, any "inshirah:*" per-user keys)
-  try {
-    for (const k of Object.keys(localStorage)) {
-      if (k.startsWith("inshirah:bookmarks") || k.startsWith("inshirah:user:")) {
-        localStorage.removeItem(k);
-      }
-    }
-  } catch {}
-  await supabase.auth.signOut();          // clears sb-* auth token
-  navigate({ to: "/", replace: true });   // history REPLACE, not push
-}
+```sql
+BEGIN;
+-- articles + series reference pillar slug as text (no FK cascade)
+UPDATE articles SET pillar = 'tadabbur' WHERE pillar = 'quranic-reflections';
+UPDATE articles SET pillar = 'tazkiyah' WHERE pillar = 'tazkiyah-toolkit';
+UPDATE articles SET pillar = 'youth'    WHERE pillar = 'young-hearts';
+UPDATE articles SET pillar = 'suhbah'   WHERE pillar = 'life-architecture';
+
+UPDATE series   SET pillar = 'tadabbur' WHERE pillar = 'quranic-reflections';
+UPDATE series   SET pillar = 'tazkiyah' WHERE pillar = 'tazkiyah-toolkit';
+UPDATE series   SET pillar = 'youth'    WHERE pillar = 'young-hearts';
+UPDATE series   SET pillar = 'suhbah'   WHERE pillar = 'life-architecture';
+
+-- pillars table itself + href + label
+UPDATE pillars SET slug='tadabbur', href='/tadabbur', label='Tadabbur' WHERE slug='quranic-reflections';
+UPDATE pillars SET slug='tazkiyah', href='/tazkiyah', label='Tazkiyah' WHERE slug='tazkiyah-toolkit';
+UPDATE pillars SET slug='youth',    href='/youth',    label='Youth'    WHERE slug='young-hearts';
+UPDATE pillars SET slug='suhbah',   href='/suhbah',   label='Suhbah'   WHERE slug='life-architecture';
+
+-- pages keyed by "pillar:<slug>" for locked/coming-soon status
+UPDATE pages SET key = replace(key, 'pillar:quranic-reflections', 'pillar:tadabbur') WHERE key LIKE 'pillar:quranic-reflections%';
+UPDATE pages SET key = replace(key, 'pillar:tazkiyah-toolkit',    'pillar:tazkiyah') WHERE key LIKE 'pillar:tazkiyah-toolkit%';
+UPDATE pages SET key = replace(key, 'pillar:young-hearts',        'pillar:youth')    WHERE key LIKE 'pillar:young-hearts%';
+UPDATE pages SET key = replace(key, 'pillar:life-architecture',   'pillar:suhbah')   WHERE key LIKE 'pillar:life-architecture%';
+COMMIT;
 ```
 
-Exact `localStorage` key prefixes will be confirmed by grepping `localStorage.setItem` before writing the helper (bookmarks + any user-scoped keys).
+Pre-check with a read query for any other tables that store the old slug (link tables, settings JSON) so nothing is missed before the transaction runs.
 
-### 2. Wire it into `SiteNav.tsx`
+### 2. Route files (rename)
 
-Replace the inline `signOut` with `signOutCompletely`, passing `useQueryClient()` and `useNavigate()`. Applies to both desktop and mobile buttons.
+```
+src/routes/quranic-reflections.tsx  → src/routes/tadabbur.tsx
+src/routes/tazkiyah-toolkit.tsx     → src/routes/tazkiyah.tsx
+src/routes/young-hearts.tsx         → src/routes/youth.tsx
+src/routes/life-architecture.tsx    → src/routes/suhbah.tsx
+```
 
-### 3. Leave `__root.tsx` `onAuthStateChange` as-is
+Inside each, update `createFileRoute("/<new-slug>")`, the `pageStatusQuery`/`pageContentQuery` keys (`pillar:<new-slug>`), the `PillarArchive pillar=` prop, the canonical `og:url` + `<link rel=canonical>`, and the head title/description if labels change.
 
-It already calls `router.invalidate()` on `SIGNED_OUT` and (correctly) does NOT `invalidateQueries` on sign-out. The new helper owns cache teardown; the listener owns route re-evaluation → protected routes bounce to `/auth`.
+### 3. Hardcoded fallbacks and references
 
-## What this does and does NOT do
+- `src/lib/content.ts` — `PILLARS` map keys and `href` values.
+- `src/hooks/use-cms.ts` — fallback special-case `slug === "life-architecture"` for `coming_soon` becomes `"suhbah"`.
+- `src/routes/sitemap[.]xml.ts` — `staticPaths` array.
+- `src/routes/_authenticated/admin/pages.index.tsx` — the special-case grouping that puts `life-architecture` under Pillars becomes `suhbah`.
+- Grep sweep for any remaining string literal of the four old slugs (SiteNav, SiteFooter, PillarArchive, admin editors, page-seed, template-vars, LinkCard defaults, etc.) and update.
 
-Does:
-- Clears Supabase session token from `localStorage`.
-- Clears the entire React Query cache (profile, admin lists, bookmarks queries, etc.).
-- Cancels in-flight queries so no 401 flashes.
-- Removes user-scoped `localStorage` entries (bookmarks).
-- Uses history REPLACE so Back can't restore a protected page shell.
+### 4. Verify
 
-Does NOT (and can't, by design):
-- Purge JS module state from other tabs — those get signed out via Supabase's cross-tab `onAuthStateChange`, but their in-memory React state only fully resets on next navigation/refresh. If you want a hard guarantee, we can add `location.reload()` after `navigate` — trade-off is a visible full reload. Tell me if you want that.
-- Revoke the refresh token server-side beyond what `supabase.auth.signOut()` already does (it revokes the current session by default).
+- `tsgo` for type errors.
+- Load `/tadabbur`, `/tazkiyah`, `/youth`, `/suhbah` and confirm each renders with the right archive + status.
+- Confirm existing articles still list under the correct pillar in the admin and public archives.
+- Old URLs (`/quranic-reflections` etc.) will 404 — acceptable per the rename request. If you want redirects from the old paths, say so and I'll add splat routes that `redirect` to the new ones.
+
+## Rollback note
+
+Because the pillar slug is stored as plain text across `articles`, `series`, and `pages.key` (no FK cascade), the data update is the risky step. It runs in a single transaction so a partial failure rolls back cleanly.
