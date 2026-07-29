@@ -237,24 +237,6 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
                   {p.label}
                 </Link>
               ))}
-              <button
-                type="button"
-                onClick={() => setOpenMobileResources((v) => !v)}
-                className="flex items-center justify-between rounded-2xl px-4 py-3 text-left text-lg font-semibold hover:bg-secondary"
-                aria-expanded={openMobileResources}
-              >
-                {resourcesLabel} <ChevronDown className={`h-4 w-4 transition-transform ${openMobileResources ? "rotate-180" : ""}`} />
-              </button>
-              {openMobileResources && (
-                <div className="mb-2 grid grid-cols-2 gap-1 px-2">
-                  {formats.map((r) => (
-                    <Link key={r.slug} to="/resources" search={{ type: r.slug }} onClick={() => setOpenMobile(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-secondary">
-                      <LetterMark letter={r.arabic_letter} tint={r.tint as "heart" | "tazkiyah" | "heart-soft" | "gold" | "ink"} size={28} />
-                      {r.plural}
-                    </Link>
-                  ))}
-                </div>
-              )}
               <Link to="/about" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{aboutLabel}</Link>
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{contactLabel}</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
