@@ -78,7 +78,7 @@ export function SiteFooter() {
           <FooterCol title="Inshirah">
             <FooterLink to="/about">About</FooterLink>
             <FooterLink to="/contact">Contact & support</FooterLink>
-            <FooterLink to="/life-architecture">Life Architecture</FooterLink>
+            <FooterLink to="/suhbah">Suhbah</FooterLink>
           </FooterCol>
           <FooterCol title="Small print">
             <p className="text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>

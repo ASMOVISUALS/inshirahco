@@ -5,10 +5,10 @@ import { useBookmarks } from "@/hooks/use-theme";
 import { usePillarMap, useFormatMap, pillarLabel, formatLabel } from "@/hooks/use-cms";
 
 const TINT_STYLES: Record<string, { grad: string }> = {
-  "quranic-reflections": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
-  "tazkiyah-toolkit": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--tazkiyah) 22%, var(--paper-warm)), color-mix(in oklab, var(--tazkiyah-soft) 60%, var(--paper-warm)))" },
-  "young-hearts": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)), color-mix(in oklab, var(--gold-decorative) 24%, var(--paper-warm)))" },
-  "life-architecture": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--gold-decorative) 30%, var(--paper-warm)), color-mix(in oklab, var(--ink) 12%, var(--paper-warm)))" },
+  "tadabbur": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
+  "tazkiyah": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--tazkiyah) 22%, var(--paper-warm)), color-mix(in oklab, var(--tazkiyah-soft) 60%, var(--paper-warm)))" },
+  "youth": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)), color-mix(in oklab, var(--gold-decorative) 24%, var(--paper-warm)))" },
+  "suhbah": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--gold-decorative) 30%, var(--paper-warm)), color-mix(in oklab, var(--ink) 12%, var(--paper-warm)))" },
 };
 
 interface Props {

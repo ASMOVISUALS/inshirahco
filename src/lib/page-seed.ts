@@ -25,7 +25,7 @@ export function seedBlocksFor(key: string, content: Record<string, unknown>): Bl
           title_line2: s("hero_title_line2", "of the chest."),
           description: s("hero_description", ""),
           cta_primary_label: s("hero_cta_primary_label", "Start reading"),
-          cta_primary_href: s("hero_cta_primary_href", "/quranic-reflections"),
+          cta_primary_href: s("hero_cta_primary_href", "/tadabbur"),
           cta_secondary_label: s("hero_cta_secondary_label", "Our story"),
           cta_secondary_href: s("hero_cta_secondary_href", "/about"),
           background: "radial",
@@ -74,7 +74,7 @@ export function seedBlocksFor(key: string, content: Record<string, unknown>): Bl
       ];
     }
 
-    case "life-architecture": {
+    case "suhbah": {
       const previews = arr<{ icon?: string; tag?: string; title: string; description: string }>("previews");
       return [
         mk("hero", {

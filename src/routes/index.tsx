@@ -93,7 +93,7 @@ function HomeContent() {
             {s("hero_description", "Slow writing on Qur'anic reflection, tazkiyah, and the quiet architecture of a life lived in remembrance.")}
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <a href={s("hero_cta_primary_href", "/quranic-reflections")} className="btn-primary">
+            <a href={s("hero_cta_primary_href", "/tadabbur")} className="btn-primary">
               {s("hero_cta_primary_label", "Start reading")} <ArrowRight className="h-4 w-4" />
             </a>
             <a href={s("hero_cta_secondary_href", "/about")} className="btn-ghost">{s("hero_cta_secondary_label", "Our story")}</a>
