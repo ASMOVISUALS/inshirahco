@@ -193,7 +193,7 @@ export function newBlock(type: BlockType): Block {
     },
     faq_accordion: { page_key: "", items: [] },
     founder_letter: { eyebrow: "Behind the words", title: "The founder", letter: "ف", name: "Founder", role: "", bio: "", tint: "heart" },
-    arabic_verse: { arabic: "", translation: "", reference: "" },
+    arabic_verse: { arabic: "", translation: "", reference: "", tint: "tazkiyah" },
     divider: {},
     spacer: { size: "md" },
     pillar_hero: { eyebrow: "", badge: "" },
