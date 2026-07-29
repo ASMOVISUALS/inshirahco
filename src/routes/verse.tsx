@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Flag } from "lucide-react";
-import { currentVerseQuery, myLikesQuery, verseReflectionsQuery, type PublicReflection } from "@/lib/queries";
+import { currentVerseQuery, myLikesQuery, myReflectionsQuery, verseReflectionsQuery, type PublicReflection } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
@@ -29,6 +29,8 @@ function VersePage() {
   const { data: verse, isLoading } = useQuery(currentVerseQuery());
   const { data: reflections = [] } = useQuery(verseReflectionsQuery(verse?.id ?? null));
   const { data: liked = [] } = useQuery(myLikesQuery(user?.id ?? null));
+  const { data: mine = [] } = useQuery(myReflectionsQuery(user?.id ?? null, verse?.id ?? null));
+  const hasReflected = mine.length > 0;
 
   const [body, setBody] = useState("");
   const [reportId, setReportId] = useState<string | null>(null);
@@ -38,6 +40,7 @@ function VersePage() {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["verse-reflections"] });
     qc.invalidateQueries({ queryKey: ["my-likes"] });
+    qc.invalidateQueries({ queryKey: ["my-reflections"] });
   };
 
   const share = useMutation({
@@ -122,6 +125,12 @@ function VersePage() {
           <div className="text-center">
             <p className="text-sm">Sign in to share your reflection on this verse.</p>
             <Link to="/auth" className="btn-primary mt-4 inline-flex">Sign in</Link>
+          </div>
+        ) : hasReflected ? (
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your reflection</p>
+            <p className="mx-auto mt-3 max-w-xl whitespace-pre-wrap text-sm leading-relaxed">{mine[0].body}</p>
+            <p className="mt-4 text-xs text-muted-foreground">You've shared your reflection for this week's verse.</p>
           </div>
         ) : (
           <>
