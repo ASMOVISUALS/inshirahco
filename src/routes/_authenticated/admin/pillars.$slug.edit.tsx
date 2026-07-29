@@ -110,6 +110,25 @@ function PillarEdit() {
     },
   });
 
+  const archive = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("pillars")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
+      qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
+      navigate({ to: "/admin/pillars", replace: true });
+    },
+    onError: (e: unknown) => {
+      setStatus({ kind: "error", text: e instanceof Error ? e.message : "Delete failed." });
+    },
+  });
+
   function handleBack() {
     if (dirty && !confirm("Discard unsaved changes?")) return;
     navigate({ to: "/admin/pillars" });
