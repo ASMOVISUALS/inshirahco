@@ -60,6 +60,7 @@ export type Database = {
           description: string
           downloadable: boolean
           id: string
+          last_published_at: string | null
           pillar: string
           pillar_id: string
           published: boolean
@@ -80,6 +81,7 @@ export type Database = {
           description: string
           downloadable?: boolean
           id?: string
+          last_published_at?: string | null
           pillar: string
           pillar_id: string
           published?: boolean
@@ -100,6 +102,7 @@ export type Database = {
           description?: string
           downloadable?: boolean
           id?: string
+          last_published_at?: string | null
           pillar?: string
           pillar_id?: string
           published?: boolean
@@ -138,6 +141,7 @@ export type Database = {
           id: string
           reference: string
           sort_order: number
+          status: string
           surah_id: string | null
           translation: string
           updated_at: string
@@ -151,6 +155,7 @@ export type Database = {
           id?: string
           reference: string
           sort_order?: number
+          status?: string
           surah_id?: string | null
           translation: string
           updated_at?: string
@@ -164,6 +169,7 @@ export type Database = {
           id?: string
           reference?: string
           sort_order?: number
+          status?: string
           surah_id?: string | null
           translation?: string
           updated_at?: string
@@ -423,12 +429,42 @@ export type Database = {
         }
         Relationships: []
       }
+      reflection_likes: {
+        Row: {
+          created_at: string
+          id: string
+          reflection_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reflection_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reflection_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflection_likes_reflection_id_fkey"
+            columns: ["reflection_id"]
+            isOneToOne: false
+            referencedRelation: "reflections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reflections: {
         Row: {
           ayah_id: string
           body: string
           created_at: string
           id: string
+          likes_count: number
           updated_at: string
           user_id: string
         }
@@ -437,6 +473,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          likes_count?: number
           updated_at?: string
           user_id: string
         }
@@ -445,6 +482,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          likes_count?: number
           updated_at?: string
           user_id?: string
         }
@@ -457,6 +495,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          is_article: boolean
+          is_reflection: boolean
+          is_votw: boolean
+          message: string
+          reporter_email: string | null
+          reporter_id: string | null
+          target_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_article?: boolean
+          is_reflection?: boolean
+          is_votw?: boolean
+          message: string
+          reporter_email?: string | null
+          reporter_id?: string | null
+          target_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_article?: boolean
+          is_reflection?: boolean
+          is_votw?: boolean
+          message?: string
+          reporter_email?: string | null
+          reporter_id?: string | null
+          target_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       resource_formats: {
         Row: {
@@ -759,11 +836,60 @@ export type Database = {
         }
         Relationships: []
       }
+      verse_of_the_week: {
+        Row: {
+          ayah_id: string
+          created_at: string
+          week_start: string
+        }
+        Insert: {
+          ayah_id: string
+          created_at?: string
+          week_start: string
+        }
+        Update: {
+          ayah_id?: string
+          created_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verse_of_the_week_ayah_id_fkey"
+            columns: ["ayah_id"]
+            isOneToOne: false
+            referencedRelation: "ayahs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      current_verse_of_the_week: {
+        Args: never
+        Returns: {
+          active: boolean
+          arabic: string
+          archived_at: string | null
+          ayah_number: number | null
+          created_at: string
+          id: string
+          reference: string
+          sort_order: number
+          status: string
+          surah_id: string | null
+          translation: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ayahs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
