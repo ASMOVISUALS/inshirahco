@@ -176,14 +176,8 @@ function VersesAdmin() {
   };
 
   /** Duplicate guard — the same surah/ayah may only ever exist once. */
-  const findDuplicate = (d: Draft, ignoreId?: string) =>
-    data.find(
-      (r) =>
-        r.id !== ignoreId &&
-        r.ayah_number === d.ayah_number &&
-        r.surah_id != null &&
-        surahNumberById.get(r.surah_id) === d.surah_number,
-    );
+
+
 
   const resolve = (d: Draft) => {
     if (!d.surah_number || !d.ayah_number) throw new Error("Pick a surah and ayah number first.");
