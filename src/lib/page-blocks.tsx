@@ -196,8 +196,35 @@ export function newBlock(type: BlockType): Block {
     arabic_verse: { arabic: "", translation: "", reference: "" },
     divider: {},
     spacer: { size: "md" },
-
-
+    pillar_hero: { eyebrow: "", badge: "" },
+    pillar_articles: { eyebrow: "Latest writing", title: "From this pillar", count: 24 },
+    pillar_series: { title: "Series in this pillar", count: 12 },
+    previews_grid: {
+      eyebrow: "What to look forward to",
+      title: "The shape of what's coming",
+      description: "",
+      items: [
+        { icon: "users", tag: "Cohorts", title: "Mentor-led courses", description: "Small cohorts walking through purpose and direction." },
+        { icon: "mountain", tag: "Retreats", title: "In-person retreats", description: "Days away from the noise — reflection and quiet planning." },
+        { icon: "calendar", tag: "Gatherings", title: "Exclusive events", description: "Intimate salons and dinners with scholars and practitioners." },
+      ],
+    },
+    mentors_row: {
+      title: "The Mentors",
+      description: "Meet your mentors and advisors.",
+      items: [
+        { name: "Mentor 1", title: "Scholar & Educator", role: "Lead Mentor", qualification: "PhD, Islamic Studies", image: "" },
+      ],
+    },
+    contact_form: {
+      success_arabic: "شكرًا",
+      success_title: "Your note reached us.",
+      success_description: "We read every message. Please be patient — we reply as we can.",
+      support_title: "Support this project",
+      support_body: "Inshirah is freely offered. If it has served you, consider supporting the work.",
+      support_footnote: "",
+    },
+    resources_library: {},
   };
   return { id, type, props: defaults[type] };
 }
