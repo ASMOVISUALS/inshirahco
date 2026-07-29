@@ -1,35 +1,36 @@
-## Goal
+## My recommendation
 
-Today the Verse of the Week only changes when you press **Set next verse** — there is no scheduler at all (pg_cron/pg_net are not enabled, and no job calls `rotate_verse_of_the_week()`).
+Yes — remove it entirely for now. Don't build empty Videos/Courses pages.
 
-This adds a real schedule, controlled from the **Active** tab.
+Reasons, based on what's actually in the code:
+- `resource_formats` currently drives the nav mega-menu, the Resources library block filters, the format labels on every content card, the search overlay, and a settings option source. That's a lot of moving parts maintaining a concept you have exactly one value for.
+- `articles.type` is a foreign key to `resource_formats.slug`. Keeping a one-value FK is pure overhead.
+- When videos/podcasts/courses genuinely arrive, they won't share the articles schema anyway (duration, embed URL, transcript, modules/lessons). A separate `videos` / `courses` table created then will be cleaner than a format flag bolted on now. Adding an empty table today locks in guesses.
 
-## Behaviour
+So: one `articles` table, no formats, no Resources hub. Add new tables when the content actually exists.
 
-On the Active tab, under the "This week" panel, a **Next change** control with three modes:
+## What changes
 
-1. **Weekly (default)** — rotates every Friday at 00:00. Shows e.g. "Next change: Friday 31 Jul, 00:00".
-2. **Set your own date** — date/time picker. Rotates once at that moment, then falls back to Manual (with a note saying so).
-3. **Manual** — never rotates on its own; only the Set next verse button. Shows "Manual — changes only when you click Set next verse".
+**Database (one migration)**
+- Drop the `articles_type_fkey` constraint and the `articles.type` column.
+- Drop the `resource_formats` table.
 
-Changing the mode is password-gated like the other verse actions. Pressing **Set next verse** manually while in Weekly mode simply advances the next scheduled change to the following Friday.
+**Public site**
+- Delete the `/resources` route and its `resources` page record; remove the Resources item from the nav mega-menu (`SiteNav.tsx`, desktop + mobile), the "All resources" footer link, and `/resources` from the sitemap.
+- Remove the `ResourcesLibraryBlock` page block (and its entry in the block-kind registry) from `page-blocks.tsx`.
+- Content cards, the article page, and the search overlay stop showing a format label — the eyebrow becomes pillar-only.
+- Homepage "media" strip currently filters by `type === video | podcast | tadabbur`; that filter goes, and the carousel is either dropped or fed by the same article list. I'll confirm with you visually once it's built if it looks thin.
 
-If the pool is empty when the schedule fires, nothing rotates (current verse stays), and the panel shows a warning that the pool is empty.
+**Admin**
+- Delete `/admin/formats` and its sidebar entry.
+- Remove the Format column from the articles list and the format picker from the article editor; new articles no longer set `type`.
+- Remove the `formats` dynamic option source from the settings schema (and any setting field pointing at it).
 
-## Technical
+**Shared code**
+- Remove `ResourceType`, `RESOURCE_TYPES`, `FormatRow`, `formatsQuery`, `useFormats`, `useFormatMap`, `useOnSiteFormatSlugs`, `formatLabel`, and `type` from `ContentItem`.
 
-**Database**
-- New singleton table `votw_schedule`: `mode` ('weekly' | 'date' | 'manual'), `next_change_at timestamptz`, timestamps. Grants: select/update to `authenticated`, all to `service_role`; RLS so only admins (`has_role`) can read/write.
-- `public.votw_next_friday(from ts)` helper returning the next Friday 00:00 UTC.
-- `public.rotate_verse_of_the_week_if_due()` (SECURITY DEFINER): returns early if mode = manual or `next_change_at` is in the future; otherwise calls the existing `rotate_verse_of_the_week()`, then sets `next_change_at` to the next Friday (weekly) or switches to manual (date mode).
-- Keep the manual rotate path as-is, but have it also bump `next_change_at` when mode = weekly.
-- Enable `pg_cron` and schedule `votw-rotate-check` every 10 minutes running `SELECT public.rotate_verse_of_the_week_if_due();` — SQL-only, no HTTP endpoint or extra secret needed.
+## Ordering
+Migration first (it needs your approval and regenerates types), then the code cleanup in one pass.
 
-**Frontend**
-- `src/routes/_authenticated/admin/verses.tsx`: query + mutation for `votw_schedule`, new "Next change" card in the Active tab (mode selector, date picker for date mode, live countdown/next-run text), wrapped in the existing `AdminPasswordGate`.
-- Regenerate Supabase types after the migration.
-
-## Notes
-
-- Times are UTC; the panel will label them as such to avoid confusion.
-- The 10-minute cron cadence means rotation lands within 10 minutes of the target time.
+## Note on existing data
+Any articles currently stored with a non-article type (video, podcast, etc.) stay as normal articles — only the label disappears. If you'd rather archive those rows instead, say so and I'll add it.
