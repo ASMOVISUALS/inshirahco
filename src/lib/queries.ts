@@ -220,16 +220,6 @@ export interface PillarRow {
   coming_soon: boolean;
 }
 
-export interface FormatRow {
-  slug: string;
-  label: string;
-  plural: string;
-  arabic_letter: string;
-  tint: string;
-  sort_order: number;
-  show_in_menu: boolean;
-  show_on_site: boolean;
-}
 
 export const pillarsQuery = () =>
   queryOptions({
