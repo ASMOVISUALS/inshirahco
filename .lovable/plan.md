@@ -1,79 +1,55 @@
-## Goal
+# Id-based Pillar Refactor + Slug Rename
 
-Rename all four pillar slugs (and route files) to short, single-word identifiers, and update every reference across the DB, code, and content so nothing breaks.
+Move `articles` and `series` off text-based FKs pointing at `pillars.slug` and onto proper uuid FKs pointing at `pillars.id`. Once done, renaming a slug is a one-line update with no ripple effects. Then rename the four slugs.
 
-## Slug mapping
+## Why
 
-| Old slug | New slug | Label |
-| --- | --- | --- |
-| `quranic-reflections` | `tadabbur` | Tadabbur |
-| `tazkiyah-toolkit` | `tazkiyah` | Tazkiyah |
-| `young-hearts` | `youth` | Youth |
-| `life-architecture` | `suhbah` | Suhbah |
+Today `articles.pillar` and `series.pillar` are `text` columns FK-linked to `pillars.slug`. Renaming a slug requires updating every child row and touching every hardcoded reference in code. After this refactor, `slug` becomes a pure URL handle — safe to rename anytime.
 
-Labels are also shortened for consistency. If you'd rather keep the old display labels (e.g. "Qur'anic Reflections", "Life Architecture") and only rename the slug/URL, tell me and I'll skip the label update.
+## Stage 1 — Schema migration (one call)
 
-## Changes
+1. `pillars`
+   - Add `id uuid not null default gen_random_uuid()`, backfill, add `UNIQUE(id)` (keep `slug` as PK for now to avoid breaking existing FKs mid-migration).
+2. `articles`
+   - Add `pillar_id uuid`.
+   - Backfill: `UPDATE articles SET pillar_id = p.id FROM pillars p WHERE articles.pillar = p.slug`.
+   - Add FK `articles.pillar_id → pillars.id ON UPDATE CASCADE ON DELETE RESTRICT`.
+   - Make `pillar_id` `NOT NULL`.
+3. `series` — same treatment as articles.
+4. Swap PK: drop old text FKs (`articles.pillar`, `series.pillar` FK constraints), drop PK on `pillars.slug`, add PK on `pillars.id`, add `UNIQUE(slug)`.
+5. Keep the legacy `articles.pillar` / `series.pillar` text columns for now (backfilled, no FK) so nothing in the app breaks the moment the migration lands. They become derived/redundant and get dropped in Stage 3.
 
-### 1. Data update (insert tool, not migration — data only)
+## Stage 2 — Code migration
 
-Update in dependency-safe order inside a single transaction:
+Update everything that reads/writes the pillar link to use `pillar_id`:
 
-```sql
-BEGIN;
--- articles + series reference pillar slug as text (no FK cascade)
-UPDATE articles SET pillar = 'tadabbur' WHERE pillar = 'quranic-reflections';
-UPDATE articles SET pillar = 'tazkiyah' WHERE pillar = 'tazkiyah-toolkit';
-UPDATE articles SET pillar = 'youth'    WHERE pillar = 'young-hearts';
-UPDATE articles SET pillar = 'suhbah'   WHERE pillar = 'life-architecture';
+- `src/lib/queries.ts` — article & series fetchers select `pillar_id`, join on pillars for slug/label when needed.
+- `src/hooks/use-cms.ts` — expose pillar lookup by id.
+- Admin editors: article editor (`_authenticated/admin/articles/$id.tsx`), series editor — pillar picker writes `pillar_id`.
+- Public routes filtering by pillar (`/tadabbur`, etc.): resolve slug → id once, then query by id.
+- Types: regenerate Supabase types after migration; update `Article`/`Series` interfaces.
 
-UPDATE series   SET pillar = 'tadabbur' WHERE pillar = 'quranic-reflections';
-UPDATE series   SET pillar = 'tazkiyah' WHERE pillar = 'tazkiyah-toolkit';
-UPDATE series   SET pillar = 'youth'    WHERE pillar = 'young-hearts';
-UPDATE series   SET pillar = 'suhbah'   WHERE pillar = 'life-architecture';
+Keep writing `pillar` (slug) too during a short transition if useful, or stop writing it immediately since it's about to be dropped.
 
--- pillars table itself + href + label
-UPDATE pillars SET slug='tadabbur', href='/tadabbur', label='Tadabbur' WHERE slug='quranic-reflections';
-UPDATE pillars SET slug='tazkiyah', href='/tazkiyah', label='Tazkiyah' WHERE slug='tazkiyah-toolkit';
-UPDATE pillars SET slug='youth',    href='/youth',    label='Youth'    WHERE slug='young-hearts';
-UPDATE pillars SET slug='suhbah',   href='/suhbah',   label='Suhbah'   WHERE slug='life-architecture';
+## Stage 3 — Slug rename (trivial after Stage 2)
 
--- pages keyed by "pillar:<slug>" for locked/coming-soon status
-UPDATE pages SET key = replace(key, 'pillar:quranic-reflections', 'pillar:tadabbur') WHERE key LIKE 'pillar:quranic-reflections%';
-UPDATE pages SET key = replace(key, 'pillar:tazkiyah-toolkit',    'pillar:tazkiyah') WHERE key LIKE 'pillar:tazkiyah-toolkit%';
-UPDATE pages SET key = replace(key, 'pillar:young-hearts',        'pillar:youth')    WHERE key LIKE 'pillar:young-hearts%';
-UPDATE pages SET key = replace(key, 'pillar:life-architecture',   'pillar:suhbah')   WHERE key LIKE 'pillar:life-architecture%';
-COMMIT;
-```
+Single `UPDATE pillars SET slug = ... WHERE slug = ...` per row:
+- `quranic-reflections` → `tadabbur`
+- `tazkiyah-toolkit` → `tazkiyah`
+- `young-hearts` → `youth`
+- `life-architecture` → `suhbah`
 
-Pre-check with a read query for any other tables that store the old slug (link tables, settings JSON) so nothing is missed before the transaction runs.
+Then:
+- Rename route files: `quranic-reflections.tsx` → `tadabbur.tsx`, `tazkiyah-toolkit.tsx` → `tazkiyah.tsx`, `young-hearts.tsx` → `youth.tsx`, `life-architecture.tsx` → `suhbah.tsx`.
+- Update `pillars.href` values to match.
+- Update hardcoded slug fallbacks in `src/lib/content.ts` and `src/hooks/use-cms.ts`.
+- Update sitemap, nav links, any `Link to="/quranic-reflections"` etc.
+- Drop the redundant `articles.pillar` and `series.pillar` text columns.
 
-### 2. Route files (rename)
+## Out of scope (for now)
 
-```
-src/routes/quranic-reflections.tsx  → src/routes/tadabbur.tsx
-src/routes/tazkiyah-toolkit.tsx     → src/routes/tazkiyah.tsx
-src/routes/young-hearts.tsx         → src/routes/youth.tsx
-src/routes/life-architecture.tsx    → src/routes/suhbah.tsx
-```
+- `resource_formats.slug`, `pages.key`, `faqs.page_key` — same pattern applies but no rename is pending. Can be done later if you want.
 
-Inside each, update `createFileRoute("/<new-slug>")`, the `pageStatusQuery`/`pageContentQuery` keys (`pillar:<new-slug>`), the `PillarArchive pillar=` prop, the canonical `og:url` + `<link rel=canonical>`, and the head title/description if labels change.
+## Confirm before I start
 
-### 3. Hardcoded fallbacks and references
-
-- `src/lib/content.ts` — `PILLARS` map keys and `href` values.
-- `src/hooks/use-cms.ts` — fallback special-case `slug === "life-architecture"` for `coming_soon` becomes `"suhbah"`.
-- `src/routes/sitemap[.]xml.ts` — `staticPaths` array.
-- `src/routes/_authenticated/admin/pages.index.tsx` — the special-case grouping that puts `life-architecture` under Pillars becomes `suhbah`.
-- Grep sweep for any remaining string literal of the four old slugs (SiteNav, SiteFooter, PillarArchive, admin editors, page-seed, template-vars, LinkCard defaults, etc.) and update.
-
-### 4. Verify
-
-- `tsgo` for type errors.
-- Load `/tadabbur`, `/tazkiyah`, `/youth`, `/suhbah` and confirm each renders with the right archive + status.
-- Confirm existing articles still list under the correct pillar in the admin and public archives.
-- Old URLs (`/quranic-reflections` etc.) will 404 — acceptable per the rename request. If you want redirects from the old paths, say so and I'll add splat routes that `redirect` to the new ones.
-
-## Rollback note
-
-Because the pillar slug is stored as plain text across `articles`, `series`, and `pages.key` (no FK cascade), the data update is the risky step. It runs in a single transaction so a partial failure rolls back cleanly.
+I'll do Stage 1 as one migration (you'll approve the SQL), then Stage 2 code changes, then Stage 3 (rename migration + file renames + code updates + column drop) as a second migration. Sound good?
