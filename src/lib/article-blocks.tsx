@@ -158,7 +158,7 @@ export function RenderBlock({ block }: { block: ContentBlock }) {
 
     case "quote":
       return (
-        <blockquote className="my-10 rounded-3xl border-l-4 p-8" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}>
+        <blockquote className="my-10 rounded-3xl border-l-4 p-8" style={quoteTintStyle(block.tint)}>
           {block.arabic && (
             <p className="font-arabic text-3xl leading-loose md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>
               {block.arabic}
