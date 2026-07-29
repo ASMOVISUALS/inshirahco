@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_series: {
+        Row: {
+          article_id: string
+          created_at: string
+          position: number
+          series_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          position?: number
+          series_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          position?: number
+          series_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_series_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_series_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           archived_at: string | null
@@ -370,6 +406,8 @@ export type Database = {
           created_at: string
           label: string
           plural: string
+          show_in_menu: boolean
+          show_on_site: boolean
           slug: string
           sort_order: number
           tint: string
@@ -380,6 +418,8 @@ export type Database = {
           created_at?: string
           label: string
           plural: string
+          show_in_menu?: boolean
+          show_on_site?: boolean
           slug: string
           sort_order?: number
           tint?: string
@@ -390,9 +430,59 @@ export type Database = {
           created_at?: string
           label?: string
           plural?: string
+          show_in_menu?: boolean
+          show_on_site?: boolean
           slug?: string
           sort_order?: number
           tint?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      series: {
+        Row: {
+          arabic_letter: string
+          archived_at: string | null
+          cover_image: string | null
+          created_at: string
+          description: string
+          id: string
+          pillar: string | null
+          slug: string
+          sort_order: number
+          status: string
+          tint: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          arabic_letter?: string
+          archived_at?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          pillar?: string | null
+          slug: string
+          sort_order?: number
+          status?: string
+          tint?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          arabic_letter?: string
+          archived_at?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          pillar?: string | null
+          slug?: string
+          sort_order?: number
+          status?: string
+          tint?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
