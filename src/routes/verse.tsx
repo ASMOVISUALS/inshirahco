@@ -40,6 +40,7 @@ function VersePage() {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["verse-reflections"] });
     qc.invalidateQueries({ queryKey: ["my-likes"] });
+    qc.invalidateQueries({ queryKey: ["my-reflections"] });
   };
 
   const share = useMutation({
