@@ -97,7 +97,11 @@ function VersesAdmin() {
     active: data.filter((r) => !r.archived_at),
     archived: data.filter((r) => r.archived_at),
   }), [data]);
-  const base = tab === "active" ? active : archived;
+  const poolCount = active.filter((r) => r.status === "pool").length;
+  const usedCount = active.filter((r) => r.status === "used").length;
+  const base = tab === "active"
+    ? statusFilter === "all" ? active : active.filter((r) => r.status === statusFilter)
+    : archived;
   const rows = useMemo(() => {
     const list = [...base];
     if (sort === "added") {
@@ -111,6 +115,7 @@ function VersesAdmin() {
     }
     return list;
   }, [base, sort, surahNumberById]);
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
