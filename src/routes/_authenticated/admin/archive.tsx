@@ -12,10 +12,10 @@ export const Route = createFileRoute("/_authenticated/admin/archive")({
   component: ArchivePage,
 });
 
-type Category = "articles" | "reflections" | "testimonials" | "pages" | "pillars";
+type Category = "articles" | "ayahs" | "testimonials" | "pages" | "pillars";
 const CATEGORIES: { id: Category; label: string }[] = [
   { id: "articles", label: "Articles" },
-  { id: "reflections", label: "Reflections" },
+  { id: "ayahs", label: "Verses" },
   { id: "testimonials", label: "Testimonials" },
   { id: "pages", label: "Pages" },
   { id: "pillars", label: "Pillars" },
@@ -61,7 +61,7 @@ function ArchivePage() {
         </div>
       )}
       {active === "articles" && <ArticlesArchive />}
-      {active === "reflections" && <ReflectionsArchive />}
+      {active === "ayahs" && <AyahsArchive />}
       {active === "testimonials" && <TestimonialsArchive />}
       {active === "pages" && <PagesArchive />}
       {active === "pillars" && <PillarsArchive />}
@@ -264,47 +264,47 @@ function ArticlesArchive() {
   );
 }
 
-/* -------------------------- Reflections -------------------------- */
+/* -------------------------- Verses -------------------------- */
 
-type ReflectionRow = { id: string; arabic: string; translation: string; reference: string };
+type AyahRow = { id: string; arabic: string; translation: string; reference: string };
 
-function ReflectionsArchive() {
+function AyahsArchive() {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
-    queryKey: ["archive-reflections"],
-    queryFn: async (): Promise<ReflectionRow[]> => {
+    queryKey: ["archive-ayahs"],
+    queryFn: async (): Promise<AyahRow[]> => {
       const { data, error } = await supabase
-        .from("reflections")
+        .from("ayahs")
         .select("id,arabic,translation,reference,archived_at")
         .not("archived_at", "is", null)
         .order("archived_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as ReflectionRow[];
+      return (data ?? []) as AyahRow[];
     },
   });
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["archive-reflections"] });
-    qc.invalidateQueries({ queryKey: ["admin-reflections"] });
-    qc.invalidateQueries({ queryKey: ["reflections"] });
+    qc.invalidateQueries({ queryKey: ["archive-ayahs"] });
+    qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
+    qc.invalidateQueries({ queryKey: ["ayahs"] });
   };
   const restore = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reflections").update({ archived_at: null }).eq("id", id);
+      const { error } = await supabase.from("ayahs").update({ archived_at: null }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
   const purge = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("reflections").delete().eq("id", id);
+      const { error } = await supabase.from("ayahs").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (data.length === 0) return <EmptyArchive label="reflections" />;
+  if (data.length === 0) return <EmptyArchive label="verses" />;
 
   return (
     <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -318,10 +318,10 @@ function ReflectionsArchive() {
               <ArchiveIcon className="h-3.5 w-3.5" /> Archived
             </span>
             <div className="flex items-center gap-2">
-              <IconBtn label="Restore reflection" onClick={() => restore.mutate(r.id)}>
+              <IconBtn label="Restore verse" onClick={() => restore.mutate(r.id)}>
                 <RotateCcw className="h-4 w-4" />
               </IconBtn>
-              <IconBtn label="Delete permanently" danger onClick={() => { if (confirm("Permanently delete this reflection?")) purge.mutate(r.id); }}>
+              <IconBtn label="Delete permanently" danger onClick={() => { if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
                 <Trash2 className="h-4 w-4" />
               </IconBtn>
             </div>

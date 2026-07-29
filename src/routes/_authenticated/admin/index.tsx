@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { articlesQuery, reflectionsQuery, testimonialsQuery } from "@/lib/queries";
+import { articlesQuery, ayahsQuery, testimonialsQuery } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 
 function AdminDashboard() {
   const { data: articles = [] } = useQuery(articlesQuery());
-  const { data: reflections = [] } = useQuery(reflectionsQuery());
+  const { data: ayahs = [] } = useQuery(ayahsQuery());
   const { data: testimonials = [] } = useQuery(testimonialsQuery());
   const { data: newsletter = 0 } = useQuery({
     queryKey: ["newsletter-count"],
@@ -22,7 +22,7 @@ function AdminDashboard() {
 
   const stats = [
     { label: "Published articles", value: articles.length },
-    { label: "Reflections", value: reflections.length },
+    { label: "Verses", value: ayahs.length },
     { label: "Testimonials", value: testimonials.length },
     { label: "Newsletter signups", value: newsletter },
   ];

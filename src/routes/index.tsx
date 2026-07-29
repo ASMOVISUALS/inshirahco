@@ -6,7 +6,7 @@ import { ContentCard } from "@/components/ContentCard";
 import { LetterMark } from "@/components/LetterMark";
 import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { VerseOfTheWeek } from "@/components/VerseOfTheWeek";
 import { usePillars } from "@/hooks/use-cms";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
@@ -156,7 +156,7 @@ function HomeContent() {
       </section>
 
       <section className="container-wide py-16 md:py-24">
-        <ReflectionOfTheDay />
+        <VerseOfTheWeek />
       </section>
 
       {media.length > 0 && (

@@ -35,21 +35,64 @@ export const articleBySlugQuery = (slug: string) =>
     },
   });
 
-export const reflectionsQuery = () =>
+export type AyahRow = {
+  id: string;
+  arabic: string;
+  translation: string;
+  reference: string;
+  sort_order: number;
+  surah_id: string | null;
+  ayah_number: number | null;
+};
+
+/** Verses available for the "Verse of the week" rotation. */
+export const ayahsQuery = () =>
   queryOptions({
-    queryKey: ["reflections"],
-    queryFn: async () => {
+    queryKey: ["ayahs"],
+    queryFn: async (): Promise<AyahRow[]> => {
       const { data, error } = await supabase
-        .from("reflections")
-        .select("id,arabic,translation,reference,sort_order")
+        .from("ayahs")
+        .select("id,arabic,translation,reference,sort_order,surah_id,ayah_number")
         .eq("active", true)
         .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as AyahRow[];
     },
     staleTime: 5 * 60_000,
   });
+
+export const surahsQuery = () =>
+  queryOptions({
+    queryKey: ["surahs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("surahs")
+        .select("id,number,name_en,name_ar,verse_count")
+        .order("number", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: Infinity,
+  });
+
+/** A signed-in member's own reflections on a given ayah. */
+export const myReflectionsQuery = (userId: string | null, ayahId: string | null) =>
+  queryOptions({
+    queryKey: ["my-reflections", userId, ayahId],
+    enabled: !!userId && !!ayahId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reflections")
+        .select("id,body,created_at")
+        .eq("user_id", userId!)
+        .eq("ayah_id", ayahId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
 
 export const testimonialsQuery = () =>
   queryOptions({

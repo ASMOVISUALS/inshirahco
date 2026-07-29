@@ -128,6 +128,56 @@ export type Database = {
           },
         ]
       }
+      ayahs: {
+        Row: {
+          active: boolean
+          arabic: string
+          archived_at: string | null
+          ayah_number: number | null
+          created_at: string
+          id: string
+          reference: string
+          sort_order: number
+          surah_id: string | null
+          translation: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          arabic: string
+          archived_at?: string | null
+          ayah_number?: number | null
+          created_at?: string
+          id?: string
+          reference: string
+          sort_order?: number
+          surah_id?: string | null
+          translation: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          arabic?: string
+          archived_at?: string | null
+          ayah_number?: number | null
+          created_at?: string
+          id?: string
+          reference?: string
+          sort_order?: number
+          surah_id?: string | null
+          translation?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ayahs_surah_id_fkey"
+            columns: ["surah_id"]
+            isOneToOne: false
+            referencedRelation: "surahs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookmarks: {
         Row: {
           article_slug: string
@@ -375,39 +425,38 @@ export type Database = {
       }
       reflections: {
         Row: {
-          active: boolean
-          arabic: string
-          archived_at: string | null
+          ayah_id: string
+          body: string
           created_at: string
           id: string
-          reference: string
-          sort_order: number
-          translation: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          active?: boolean
-          arabic: string
-          archived_at?: string | null
+          ayah_id: string
+          body: string
           created_at?: string
           id?: string
-          reference: string
-          sort_order?: number
-          translation: string
           updated_at?: string
+          user_id: string
         }
         Update: {
-          active?: boolean
-          arabic?: string
-          archived_at?: string | null
+          ayah_id?: string
+          body?: string
           created_at?: string
           id?: string
-          reference?: string
-          sort_order?: number
-          translation?: string
           updated_at?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reflections_ayah_id_fkey"
+            columns: ["ayah_id"]
+            isOneToOne: false
+            referencedRelation: "ayahs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resource_formats: {
         Row: {
@@ -620,6 +669,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      surahs: {
+        Row: {
+          created_at: string
+          id: string
+          name_ar: string
+          name_en: string
+          number: number
+          updated_at: string
+          verse_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name_ar: string
+          name_en: string
+          number: number
+          updated_at?: string
+          verse_count: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+          number?: number
+          updated_at?: string
+          verse_count?: number
         }
         Relationships: []
       }
