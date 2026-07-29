@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Flag } from "lucide-react";
-import { currentVerseQuery, myLikesQuery, myReflectionsQuery, verseReflectionsQuery, type PublicReflection } from "@/lib/queries";
+import { currentVerseQuery, myLikesQuery, myReflectionsQuery, verseReflectionsQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
+import { FloatingReflections } from "@/components/FloatingReflections";
 
 export const Route = createFileRoute("/verse")({
   ssr: false,
@@ -159,27 +159,21 @@ function VersePage() {
         )}
       </section>
 
-      {/* Orbiting reflections */}
+      {/* Floating reflections */}
       <section className="mt-14">
-        <h2 className="text-center font-display text-2xl">Reflections orbiting this verse</h2>
         {reflections.length === 0 ? (
           <p className="mt-6 text-center text-sm text-muted-foreground">No reflections yet — be the first.</p>
         ) : (
-          <div className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {reflections.map((r, i) => (
-              <ReflectionTile
-                key={r.id}
-                reflection={r}
-                index={i}
-                liked={likedSet.has(r.id)}
-                canAct={!!user}
-                onLike={() => like.mutate(r.id)}
-                onReport={() => setReportId(r.id)}
-              />
-            ))}
-          </div>
+          <FloatingReflections
+            reflections={reflections}
+            likedIds={likedSet}
+            canAct={!!user}
+            onLike={(id) => like.mutate(id)}
+            onReport={(id) => setReportId(id)}
+          />
         )}
       </section>
+
 
       {reportId && user && (
         <ReportDialog
@@ -191,57 +185,5 @@ function VersePage() {
         />
       )}
     </div>
-  );
-}
-
-function ReflectionTile({
-  reflection, index, liked, canAct, onLike, onReport,
-}: {
-  reflection: PublicReflection;
-  index: number;
-  liked: boolean;
-  canAct: boolean;
-  onLike: () => void;
-  onReport: () => void;
-}) {
-  return (
-    <article
-      className="orbit-tile flex flex-col self-start rounded-2xl border border-border bg-card p-5 shadow-sm"
-      style={{
-        animationDelay: `${(index % 6) * -2.6}s`,
-        animationDuration: `${16 + (index % 5) * 3}s`,
-      }}
-    >
-      <p className="whitespace-pre-wrap text-sm leading-relaxed">{reflection.body}</p>
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
-        <span className="text-xs text-muted-foreground">
-          {new Date(reflection.created_at).toLocaleDateString()}
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onLike}
-            disabled={!canAct}
-            aria-label={liked ? "Unlike this reflection" : "Like this reflection"}
-            title={canAct ? "Like" : "Sign in to like"}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-semibold transition-colors hover:border-heart disabled:opacity-50"
-            style={liked ? { color: "var(--heart)", borderColor: "var(--heart)" } : undefined}
-          >
-            <Heart className="h-3.5 w-3.5" fill={liked ? "currentColor" : "none"} />
-            {reflection.likes_count}
-          </button>
-          <button
-            type="button"
-            onClick={onReport}
-            disabled={!canAct}
-            aria-label="Report this reflection"
-            title={canAct ? "Report" : "Sign in to report"}
-            className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground/40 transition-colors hover:text-muted-foreground disabled:opacity-40"
-          >
-            <Flag className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-    </article>
   );
 }
