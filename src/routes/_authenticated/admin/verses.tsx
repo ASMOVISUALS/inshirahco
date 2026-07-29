@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, Shuffle, LayoutGrid } from "lucide-react";
+import { Trash2, Plus, Pencil, Shuffle, LayoutGrid, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
@@ -25,7 +25,7 @@ type Row = {
   id: string; arabic: string; translation: string; reference: string;
   sort_order: number; active: boolean; archived_at: string | null;
   surah_id: string | null; ayah_number: number | null;
-  status: VerseStatus; created_at: string;
+  status: VerseStatus; created_at: string; queue_order: number | null;
 };
 
 export type VerseStatus = "pool" | "current" | "used";
@@ -36,9 +36,10 @@ const STATUSES: { value: VerseStatus; label: string; hint: string }[] = [
   { value: "used", label: "Used", hint: "Already had its week" },
 ];
 
-type SortKey = "chronology" | "added";
+type SortKey = "release" | "chronology" | "added";
 
 const emptyDraft: Draft = { arabic: "", translation: "", reference: "", surah_number: null, ayah_number: null };
+
 
 function VersesAdmin() {
   const qc = useQueryClient();
@@ -49,7 +50,7 @@ function VersesAdmin() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("ayahs")
-        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number,status,created_at")
+        .select("id,arabic,translation,reference,sort_order,active,archived_at,surah_id,ayah_number,status,created_at,queue_order")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -57,36 +58,21 @@ function VersesAdmin() {
   });
 
   const [statusFilter, setStatusFilter] = useState<VerseStatus>("current");
-  const [sort, setSort] = useState<SortKey>("chronology");
+  const [sort, setSort] = useState<SortKey>("release");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [gateOpen, setGateOpen] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [localIds, setLocalIds] = useState<string[] | null>(null);
   const { user } = useAuth();
 
   const currentVerse = useMemo(
     () => data.find((r) => r.status === "current") ?? null,
     [data],
   );
-
-  const rollVerse = useMutation({
-    mutationFn: async () => {
-      const pool = data.filter((r) => r.status === "pool");
-      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      const { error: retire } = await supabase
-        .from("ayahs").update({ status: "used" }).eq("status", "current");
-      if (retire) throw retire;
-      const { error } = await supabase
-        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
-      if (error) throw error;
-    },
-    onError: (e: Error) => setError(e.message),
-    onSuccess: () => { setError(null); invalidate(); },
-  });
-
 
   const surahIdByNumber = useMemo(
     () => new Map(surahs.map((s) => [s.number, s.id] as const)),
@@ -102,20 +88,85 @@ function VersesAdmin() {
     pool: data.filter((r) => r.status === "pool").length,
     used: data.filter((r) => r.status === "used").length,
   }), [data]);
-  const base = data.filter((r) => r.status === statusFilter);
+
+  const byRelease = (a: Row, b: Row) =>
+    (a.queue_order ?? 1e9) - (b.queue_order ?? 1e9) || a.created_at.localeCompare(b.created_at);
+
   const rows = useMemo(() => {
-    const list = [...base];
+    if (statusFilter === "current") return [];
+    const list = data.filter((r) => r.status === statusFilter);
     if (sort === "added") {
       list.sort((a, b) => b.created_at.localeCompare(a.created_at));
-    } else {
+    } else if (sort === "chronology") {
       list.sort((a, b) => {
         const sa = a.surah_id ? surahNumberById.get(a.surah_id) ?? 999 : 999;
         const sb = b.surah_id ? surahNumberById.get(b.surah_id) ?? 999 : 999;
         return sa - sb || (a.ayah_number ?? 0) - (b.ayah_number ?? 0);
       });
+    } else {
+      list.sort(byRelease);
     }
-    return statusFilter === "current" ? [] : list;
-  }, [base, sort, surahNumberById, statusFilter]);
+    return list;
+  }, [data, sort, surahNumberById, statusFilter]);
+
+  const reorderable = statusFilter === "pool" && sort === "release";
+
+  /** Rows actually rendered — during a drag we show the optimistic local order. */
+  const displayRows = useMemo(() => {
+    if (!reorderable || !localIds) return rows;
+    const map = new Map(rows.map((r) => [r.id, r] as const));
+    const ordered = localIds.map((id) => map.get(id)).filter(Boolean) as Row[];
+    const extras = rows.filter((r) => !localIds.includes(r.id));
+    return [...ordered, ...extras];
+  }, [rows, localIds, reorderable]);
+
+  const saveOrder = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(
+        ids.map((id, i) => supabase.from("ayahs").update({ queue_order: i + 1 }).eq("id", id)),
+      );
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); invalidate(); },
+  });
+
+  const moveTo = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const ids = displayRows.map((r) => r.id);
+    const from = ids.indexOf(fromId);
+    const to = ids.indexOf(toId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setLocalIds(ids);
+    saveOrder.mutate(ids);
+  };
+
+  const nudge = (id: string, delta: number) => {
+    const ids = displayRows.map((r) => r.id);
+    const from = ids.indexOf(id);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= ids.length) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setLocalIds(ids);
+    saveOrder.mutate(ids);
+  };
+
+  const rollVerse = useMutation({
+    mutationFn: async () => {
+      const pool = data.filter((r) => r.status === "pool").sort(byRelease);
+      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
+      const pick = pool[0];
+      const { error: retire } = await supabase
+        .from("ayahs").update({ status: "used" }).eq("status", "current");
+      if (retire) throw retire;
+      const { error } = await supabase
+        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
+      if (error) throw error;
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); setLocalIds(null); invalidate(); },
+  });
+
 
 
   const invalidate = () => {
@@ -158,6 +209,7 @@ function VersesAdmin() {
         active: true,
         status: "pool",
         sort_order: data.length,
+        queue_order: Math.max(0, ...data.map((r) => r.queue_order ?? 0)) + 1,
       });
       if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
@@ -239,7 +291,7 @@ function VersesAdmin() {
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter("pool")}
+              onClick={() => { setStatusFilter("pool"); setSort("release"); setLocalIds(null); }}
               className={chipCls(statusFilter === "pool")}
             >
               In pool
@@ -247,23 +299,34 @@ function VersesAdmin() {
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter("used")}
+              onClick={() => { setStatusFilter("used"); setSort("added"); setLocalIds(null); }}
               className={chipCls(statusFilter === "used")}
             >
               Used
               <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.used}</span>
             </button>
           </div>
-          <div onClick={(e) => e.stopPropagation()}>
-            <SortBar
-              value={sort}
-              onChange={setSort}
-              options={[
-                { value: "chronology", label: "Order in the Qur'an" },
-                { value: "added", label: "Date added (newest)" },
-              ]}
-            />
-          </div>
+          {statusFilter !== "current" && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <SortBar
+                value={sort}
+                onChange={(v) => { setSort(v); setLocalIds(null); }}
+                options={
+                  statusFilter === "pool"
+                    ? [
+                        { value: "release" as SortKey, label: "Order of release" },
+                        { value: "chronology" as SortKey, label: "Order in the Qur'an" },
+                        { value: "added" as SortKey, label: "Date added (newest)" },
+                      ]
+                    : [
+                        { value: "added" as SortKey, label: "Date added (newest)" },
+                        { value: "chronology" as SortKey, label: "Order in the Qur'an" },
+                      ]
+                }
+              />
+            </div>
+          )}
+
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
@@ -284,7 +347,7 @@ function VersesAdmin() {
               boxShadow: "0 6px 20px -8px color-mix(in oklab, var(--tazkiyah) 60%, transparent)",
             }}
           >
-            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
+            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set next verse"}
           </button>
         </div>
 
@@ -318,6 +381,13 @@ function VersesAdmin() {
 
       {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
+      {statusFilter === "pool" && (
+        <p className="text-xs text-muted-foreground">
+          {reorderable
+            ? "Drag a tile by its handle to set the release order — position 1 goes out next. Focus a handle and use ↑ / ↓ to move it."
+            : "Switch “Sort by” to “Order of release” to drag tiles into the order they'll be released."}
+        </p>
+      )}
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {draft && (
@@ -332,7 +402,7 @@ function VersesAdmin() {
           />
         )}
 
-        {rows.map((r) => {
+        {displayRows.map((r, i) => {
           if (editingId === r.id && editDraft) {
             return (
               <EditorCard
@@ -352,11 +422,43 @@ function VersesAdmin() {
             <div
               key={r.id}
               onClick={(e) => { e.stopPropagation(); setSelectedId(selected ? null : r.id); }}
+              onDragOver={reorderable ? (e) => { e.preventDefault(); } : undefined}
+              onDrop={reorderable ? (e) => { e.preventDefault(); if (dragId) moveTo(dragId, r.id); setDragId(null); } : undefined}
               className={
                 "group relative flex flex-col self-start rounded-2xl border p-4 cursor-pointer transition-all " +
-                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40")
+                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40") +
+                (dragId === r.id ? " opacity-50" : "")
               }
             >
+              {reorderable && (
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                    style={{
+                      borderColor: "color-mix(in oklab, var(--heart) 35%, transparent)",
+                      color: "var(--heart)",
+                      background: "color-mix(in oklab, var(--heart) 8%, transparent)",
+                    }}
+                  >
+                    {i + 1}{i === 0 ? " · Next up" : ""}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Reorder ${r.reference}. Use arrow up and arrow down to move.`}
+                    draggable
+                    onDragStart={(e) => { e.stopPropagation(); setDragId(r.id); }}
+                    onDragEnd={() => setDragId(null)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") { e.preventDefault(); nudge(r.id, -1); }
+                      if (e.key === "ArrowDown") { e.preventDefault(); nudge(r.id, 1); }
+                    }}
+                    className="cursor-grab rounded-md p-1 text-muted-foreground transition-colors hover:text-heart focus:outline-none focus-visible:ring-2 focus-visible:ring-heart active:cursor-grabbing"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
               <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
               <p className="mt-2 text-xs text-muted-foreground">— {r.reference}</p>
@@ -385,12 +487,13 @@ function VersesAdmin() {
           );
         })}
 
-        {rows.length === 0 && !draft && (
+        {displayRows.length === 0 && !draft && (
           <p className="col-span-full text-sm text-muted-foreground">
             {statusFilter === "current" ? "No verse is set for this week yet." : statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
         )}
       </div>
+
     </div>
   );
 }
