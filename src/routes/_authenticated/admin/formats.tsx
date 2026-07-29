@@ -274,3 +274,33 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
     </label>
   );
 }
+
+function ToggleChip({
+  active, color, onIcon: OnIcon, offIcon: OffIcon, label, onClick, disabled,
+}: {
+  active: boolean;
+  color: string;
+  onIcon: React.ComponentType<{ className?: string }>;
+  offIcon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const Icon = active ? OnIcon : OffIcon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-opacity disabled:opacity-40"
+      style={
+        active
+          ? { background: `color-mix(in oklab, ${color} 22%, transparent)`, borderColor: `color-mix(in oklab, ${color} 55%, transparent)`, color: `color-mix(in oklab, ${color} 70%, var(--ink))` }
+          : { background: "transparent", borderColor: "var(--border)", color: "var(--muted-foreground)" }
+      }
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </button>
+  );
+}
