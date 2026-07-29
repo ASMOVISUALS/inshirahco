@@ -105,6 +105,25 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     ],
   },
   { key: "media", label: "Media", items: [{ type: "image", label: "Image" }] },
+  {
+    key: "pillar",
+    label: "Pillar",
+    items: [
+      { type: "pillar_hero", label: "Pillar hero (auto)", description: "Reads the current pillar" },
+      { type: "pillar_articles", label: "Pillar articles (auto)" },
+      { type: "pillar_series", label: "Pillar series (auto)" },
+      { type: "previews_grid", label: "Previews / what's coming" },
+      { type: "mentors_row", label: "Mentors row" },
+    ],
+  },
+  {
+    key: "utility",
+    label: "Utility",
+    items: [
+      { type: "contact_form", label: "Contact form" },
+      { type: "resources_library", label: "Resources library" },
+    ],
+  },
 ];
 
 export const BLOCK_LABEL: Record<BlockType, string> = Object.fromEntries(
