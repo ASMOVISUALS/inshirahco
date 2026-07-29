@@ -206,11 +206,10 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
                     Sign in
                   </Link>
                 )}
-                {access.signupEnabled && (
-                  <Link to="/join" className="ml-1 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm">
-                    Join
-                  </Link>
-                )}
+                <Link to="/join" className="ml-1 hidden md:inline-flex btn-primary !py-2.5 !px-5 !text-sm">
+                  Join
+                </Link>
+
               </>
             )}
 
@@ -276,9 +275,8 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
                 {access.signinEnabled && (
                   <Link to="/auth" onClick={() => setOpenMobile(false)} className="btn-ghost justify-center">Sign in</Link>
                 )}
-                {access.signupEnabled && (
-                  <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
-                )}
+                <Link to="/join" onClick={() => setOpenMobile(false)} className="btn-primary justify-center">Join</Link>
+
               </div>
             )}
           </div>
