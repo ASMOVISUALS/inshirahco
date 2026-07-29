@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
 
-export const Route = createFileRoute("/_authenticated/admin/reflections")({
+export const Route = createFileRoute("/_authenticated/admin/verses")({
   head: () => ({ meta: [{ title: "Reflections — Admin" }, { name: "robots", content: "noindex" }] }),
   component: ReflectionsAdmin,
 });
