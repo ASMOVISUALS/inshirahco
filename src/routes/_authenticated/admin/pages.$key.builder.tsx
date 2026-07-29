@@ -435,6 +435,11 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "arabic", label: "Arabic", kind: "arabic" },
     { key: "translation", label: "Translation", kind: "textarea", rows: 3 },
     { key: "reference", label: "Reference", kind: "text" },
+    { key: "tint", label: "Tint", kind: "select", options: [
+      { value: "tazkiyah", label: "Green" }, { value: "heart", label: "Red" },
+      { value: "heart-soft", label: "Soft red" }, { value: "gold", label: "Gold" },
+    ]},
+    { key: "__quran_fetch", label: "Fetch from Quran.com", kind: "quran_fetch" },
   ],
   divider: [],
   spacer: [{ key: "size", label: "Size", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] }],
