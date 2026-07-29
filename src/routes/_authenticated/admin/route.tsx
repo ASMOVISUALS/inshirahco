@@ -10,7 +10,6 @@ import {
   MessageSquareQuote,
   Mail,
   Columns3,
-  LayoutTemplate,
   FileStack,
   HelpCircle,
   Archive,
