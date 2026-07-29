@@ -416,7 +416,7 @@ function PagesArchive() {
   );
 }
 
-function PageArchiveTile({ row, onRestore, onPurge }: { row: PageRow; onRestore: () => void; onPurge: () => void }) {
+function PageArchiveTile({ row, onRestore, onPurge, restoreLocked }: { row: PageRow; onRestore: () => void; onPurge: () => void; restoreLocked?: boolean }) {
   const statusMeta =
     row.status === "published" ? { label: "Was published", icon: Eye, color: "var(--ink)" } :
     row.status === "hidden" ? { label: "Was hidden", icon: EyeOff, color: "var(--heart)" } :
@@ -437,7 +437,10 @@ function PageArchiveTile({ row, onRestore, onPurge }: { row: PageRow; onRestore:
       <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-3">
         <button
           onClick={onRestore}
-          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+          title={restoreLocked ? "Linked pillar is archived — restore the pillar first" : "Restore"}
+          className={`inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold ${
+            restoreLocked ? "cursor-not-allowed opacity-50" : "hover:bg-secondary"
+          }`}
         >
           <RotateCcw className="h-3 w-3" /> Restore
         </button>
