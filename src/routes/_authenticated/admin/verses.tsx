@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
+import { VotwSchedule, nextFridayUtc } from "@/components/admin/VotwSchedule";
+
 
 
 const chipCls = (on: boolean) =>
@@ -162,10 +164,24 @@ function VersesAdmin() {
       const { error } = await supabase
         .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
       if (error) throw error;
+      // A manual roll resets the weekly clock to the following Friday.
+      const { data: sched } = await supabase.from("votw_schedule").select("id,mode").maybeSingle();
+      if (sched?.mode === "weekly") {
+        await supabase
+          .from("votw_schedule")
+          .update({ next_change_at: nextFridayUtc().toISOString() })
+          .eq("id", sched.id);
+      }
     },
     onError: (e: Error) => setError(e.message),
-    onSuccess: () => { setError(null); setLocalIds(null); invalidate(); },
+    onSuccess: () => {
+      setError(null);
+      setLocalIds(null);
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["votw-schedule"] });
+    },
   });
+
 
 
 
@@ -329,7 +345,10 @@ function VersesAdmin() {
 
       </div>
 
+      {statusFilter === "current" && <VotwSchedule poolEmpty={counts.pool === 0} />}
+
       {statusFilter === "current" && currentVerse && (
+
         <section
           className="rounded-3xl border p-8 text-center md:p-10"
           style={{
