@@ -286,9 +286,17 @@ function PillarsAdmin() {
             <p className="text-sm font-semibold text-destructive">{createError}</p>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCreateOpen(false);
+                setCreateError(null);
+                setForm(emptyForm);
+              }}
+            >
               Cancel
             </Button>
+
             <Button
               disabled={!form.slug || !form.label || create.isPending}
               onClick={() => {
