@@ -214,8 +214,8 @@ function VersesAdmin() {
 
   const update = useMutation({
     mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
-      const dup = findDuplicate(d, id);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
+      const dup = null;
+
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").update({
         arabic: d.arabic,
