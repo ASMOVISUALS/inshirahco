@@ -34,7 +34,14 @@ export type BlockType =
   | "founder_letter"
   | "arabic_verse"
   | "divider"
-  | "spacer";
+  | "spacer"
+  | "pillar_hero"
+  | "pillar_articles"
+  | "pillar_series"
+  | "previews_grid"
+  | "mentors_row"
+  | "contact_form"
+  | "resources_library";
 
 
 export interface Block<TProps = Record<string, unknown>> {
