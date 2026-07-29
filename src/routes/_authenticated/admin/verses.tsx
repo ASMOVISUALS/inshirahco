@@ -114,8 +114,8 @@ function VersesAdmin() {
         return sa - sb || (a.ayah_number ?? 0) - (b.ayah_number ?? 0);
       });
     }
-    return list;
-  }, [base, sort, surahNumberById]);
+    return statusFilter === "current" ? [] : list;
+  }, [base, sort, surahNumberById, statusFilter]);
 
 
   const invalidate = () => {
@@ -290,7 +290,7 @@ function VersesAdmin() {
 
       </div>
 
-      {currentVerse && (
+      {statusFilter === "current" && currentVerse && (
         <section
           className="rounded-3xl border p-8 text-center md:p-10"
           style={{
