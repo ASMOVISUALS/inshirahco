@@ -2,20 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { signOutCompletely } from "@/lib/auth";
-import { Menu, Moon, Search, Sun, X, ChevronDown, Bookmark, LogOut, Shield, ArrowLeft, User } from "lucide-react";
+import { Menu, Moon, Search, Sun, X, Bookmark, LogOut, Shield, ArrowLeft, User } from "lucide-react";
 import { Logo } from "./Logo";
-import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
-import { usePillars, useMenuFormats } from "@/hooks/use-cms";
+import { usePillars } from "@/hooks/use-cms";
 
 import { SearchOverlay } from "./SearchOverlay";
 
 export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Admin" }: { minimal?: boolean; title?: string; eyebrow?: string } = {}) {
-  const [openMega, setOpenMega] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
-  const [openMobileResources, setOpenMobileResources] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
   const { slugs } = useBookmarks();
@@ -23,26 +20,13 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
   const pillars = usePillars();
-  const formats = useMenuFormats();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const megaRef = useRef<HTMLDivElement>(null);
 
   const aboutLabel = (nav.about_label as string) ?? "About";
   const contactLabel = (nav.contact_label as string) ?? "Contact";
-  const resourcesLabel = (nav.resources_label as string) ?? "Resources";
-  const resourcesEyebrow = (nav.resources_eyebrow as string) ?? "Every resource, one library";
-  const browseAllLabel = (nav.browse_all_label as string) ?? "Browse all resources →";
 
   const signOut = () => signOutCompletely({ queryClient, navigate });
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (megaRef.current && !megaRef.current.contains(e.target as Node)) setOpenMega(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -95,49 +79,6 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
                 {p.short_label}
               </Link>
             ))}
-
-            <div ref={megaRef} className="relative">
-              <button
-                type="button"
-                aria-expanded={openMega}
-                aria-haspopup="true"
-                onClick={() => setOpenMega((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                {resourcesLabel} <ChevronDown className={`h-4 w-4 transition-transform ${openMega ? "rotate-180" : ""}`} strokeWidth={2} />
-              </button>
-              {openMega && (
-                <div
-                  role="menu"
-                  className="fade-up absolute right-0 top-[calc(100%+10px)] w-[640px] rounded-3xl border border-border bg-popover p-6 shadow-2xl"
-                >
-                  <p className="eyebrow mb-4">{resourcesEyebrow}</p>
-                  <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                    {formats.map((r) => (
-                      <Link
-                        key={r.slug}
-                        to="/resources"
-                        search={{ type: r.slug }}
-                        onClick={() => setOpenMega(false)}
-                        className="group flex flex-col items-start gap-2 rounded-2xl p-3 hover:bg-secondary"
-                        role="menuitem"
-                      >
-                        <LetterMark letter={r.arabic_letter} tint={r.tint as "heart" | "tazkiyah" | "heart-soft" | "gold" | "ink"} size={38} />
-                        <span className="text-sm font-bold text-foreground">{r.plural}</span>
-                      </Link>
-                    ))}
-                  </div>
-                  <Link
-                    to="/resources"
-                    onClick={() => setOpenMega(false)}
-                    className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-heart hover:underline"
-                    style={{ color: "var(--heart)" }}
-                  >
-                    {browseAllLabel}
-                  </Link>
-                </div>
-              )}
-            </div>
 
             <Link
               to="/about"
