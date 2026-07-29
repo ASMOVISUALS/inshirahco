@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, RotateCcw, Archive, Shuffle, LayoutGrid } from "lucide-react";
+import { Trash2, Plus, Pencil, Shuffle, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
-import { type ArchiveTab } from "@/components/admin/ArchiveTabs";
+
 
 const chipCls = (on: boolean) =>
   `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
@@ -28,13 +28,12 @@ type Row = {
   status: VerseStatus; created_at: string;
 };
 
-export type VerseStatus = "pool" | "current" | "used" | "paused";
+export type VerseStatus = "pool" | "current" | "used";
 
 const STATUSES: { value: VerseStatus; label: string; hint: string }[] = [
   { value: "pool", label: "In pool", hint: "Can be picked for a coming week" },
   { value: "current", label: "This week", hint: "Currently the verse of the week" },
   { value: "used", label: "Used", hint: "Already had its week" },
-  { value: "paused", label: "Paused", hint: "Never picked" },
 ];
 
 type SortKey = "chronology" | "added";
@@ -57,8 +56,7 @@ function VersesAdmin() {
     },
   });
 
-  const [tab, setTab] = useState<ArchiveTab>("active");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pool" | "used">("all");
+  const [statusFilter, setStatusFilter] = useState<VerseStatus>("current");
   const [sort, setSort] = useState<SortKey>("chronology");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -69,13 +67,13 @@ function VersesAdmin() {
   const { user } = useAuth();
 
   const currentVerse = useMemo(
-    () => data.find((r) => r.status === "current" && !r.archived_at) ?? null,
+    () => data.find((r) => r.status === "current") ?? null,
     [data],
   );
 
   const rollVerse = useMutation({
     mutationFn: async () => {
-      const pool = data.filter((r) => r.status === "pool" && !r.archived_at);
+      const pool = data.filter((r) => r.status === "pool");
       if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
       const pick = pool[Math.floor(Math.random() * pool.length)];
       const { error: retire } = await supabase
@@ -99,15 +97,12 @@ function VersesAdmin() {
     [surahs],
   );
 
-  const { active, archived } = useMemo(() => ({
-    active: data.filter((r) => !r.archived_at),
-    archived: data.filter((r) => r.archived_at),
+  const counts = useMemo(() => ({
+    current: data.filter((r) => r.status === "current").length,
+    pool: data.filter((r) => r.status === "pool").length,
+    used: data.filter((r) => r.status === "used").length,
   }), [data]);
-  const poolCount = active.filter((r) => r.status === "pool").length;
-  const usedCount = active.filter((r) => r.status === "used").length;
-  const base = tab === "active"
-    ? statusFilter === "all" ? active : active.filter((r) => r.status === statusFilter)
-    : archived;
+  const base = data.filter((r) => r.status === statusFilter);
   const rows = useMemo(() => {
     const list = [...base];
     if (sort === "added") {
@@ -152,7 +147,7 @@ function VersesAdmin() {
   const save = useMutation({
     mutationFn: async (d: Draft) => {
       const dup = findDuplicate(d);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference})${dup.archived_at ? " in the archive" : ""}.`);
+      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").insert({
         arabic: d.arabic,
@@ -162,7 +157,7 @@ function VersesAdmin() {
         ayah_number: d.ayah_number,
         active: true,
         status: "pool",
-        sort_order: active.length,
+        sort_order: data.length,
       });
       if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
@@ -200,28 +195,13 @@ function VersesAdmin() {
       }
       const { error } = await supabase
         .from("ayahs")
-        .update({ status, active: status !== "paused" })
+        .update({ status, active: true })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
-  const archive = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").update({ archived_at: new Date().toISOString() }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { setSelectedId(null); invalidate(); },
-  });
-
-  const restore = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").update({ archived_at: null }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { setSelectedId(null); invalidate(); },
-  });
 
   const purge = useMutation({
     mutationFn: async (id: string) => {
@@ -251,35 +231,27 @@ function VersesAdmin() {
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("all"); }}
-              className={chipCls(tab === "active" && statusFilter === "all")}
+              onClick={() => setStatusFilter("current")}
+              className={chipCls(statusFilter === "current")}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Active
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{active.length}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.current}</span>
             </button>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("pool"); }}
-              className={chipCls(tab === "active" && statusFilter === "pool")}
+              onClick={() => setStatusFilter("pool")}
+              className={chipCls(statusFilter === "pool")}
             >
               In pool
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{poolCount}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.pool}</span>
             </button>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("used"); }}
-              className={chipCls(tab === "active" && statusFilter === "used")}
+              onClick={() => setStatusFilter("used")}
+              className={chipCls(statusFilter === "used")}
             >
               Used
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{usedCount}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("archive")}
-              className={chipCls(tab === "archive")}
-            >
-              <Archive className="h-3.5 w-3.5" /> Archive
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{archived.length}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.used}</span>
             </button>
           </div>
           <div onClick={(e) => e.stopPropagation()}>
@@ -294,16 +266,14 @@ function VersesAdmin() {
           </div>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          {tab === "active" && (
-            <button
-              type="button"
-              onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
-              disabled={!!draft}
-              className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" /> Add verse
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
+            disabled={!!draft}
+            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" /> Add verse
+          </button>
           <button
             type="button"
             onClick={() => { setError(null); setGateOpen(true); }}
@@ -350,7 +320,7 @@ function VersesAdmin() {
 
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {tab === "active" && draft && (
+        {draft && (
           <EditorCard
             value={draft}
             surahs={surahs}
@@ -378,17 +348,13 @@ function VersesAdmin() {
             );
           }
           const selected = selectedId === r.id;
-          const dimmed = tab === "active" && r.status === "paused" && !selected;
-          const isArchived = tab === "archive";
           return (
             <div
               key={r.id}
               onClick={(e) => { e.stopPropagation(); setSelectedId(selected ? null : r.id); }}
               className={
                 "group relative flex flex-col self-start rounded-2xl border p-4 cursor-pointer transition-all " +
-                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40 ") +
-                (dimmed ? " opacity-40 grayscale" : "") +
-                (isArchived ? " opacity-80" : "")
+                (selected ? "border-heart bg-heart/10 shadow-md" : "border-border bg-card hover:border-heart/40")
               }
             >
               <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
@@ -401,37 +367,17 @@ function VersesAdmin() {
 
               {selected && (
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
-                  {isArchived ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                      <Archive className="h-3.5 w-3.5" /> Archived
-                    </span>
-                  ) : (
-                    <StatusSlider
-                      value={r.status}
-                      onChange={(status) => setStatus.mutate({ id: r.id, status })}
-                    />
-                  )}
+                  <StatusSlider
+                    value={r.status}
+                    onChange={(status) => setStatus.mutate({ id: r.id, status })}
+                  />
                   <div className="flex items-center gap-2">
-                    {!isArchived && (
-                      <>
-                        <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
-                          <Pencil className="h-4 w-4" />
-                        </IconBtn>
-                        <IconBtn label="Move to archive" onClick={(e) => { e.stopPropagation(); archive.mutate(r.id); }}>
-                          <Trash2 className="h-4 w-4" />
-                        </IconBtn>
-                      </>
-                    )}
-                    {isArchived && (
-                      <>
-                        <IconBtn label="Restore verse" onClick={(e) => { e.stopPropagation(); restore.mutate(r.id); }}>
-                          <RotateCcw className="h-4 w-4" />
-                        </IconBtn>
-                        <IconBtn label="Delete permanently" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
-                          <Trash2 className="h-4 w-4" />
-                        </IconBtn>
-                      </>
-                    )}
+                    <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
+                      <Pencil className="h-4 w-4" />
+                    </IconBtn>
+                    <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
+                      <Trash2 className="h-4 w-4" />
+                    </IconBtn>
                   </div>
                 </div>
               )}
@@ -439,9 +385,9 @@ function VersesAdmin() {
           );
         })}
 
-        {rows.length === 0 && !(tab === "active" && draft) && (
+        {rows.length === 0 && !draft && (
           <p className="col-span-full text-sm text-muted-foreground">
-            {tab === "active" ? "No verses yet." : "Archive is empty."}
+            {statusFilter === "current" ? "No verse is set for this week yet." : statusFilter === "pool" ? "No verses in the pool." : "No used verses yet."}
           </p>
         )}
       </div>

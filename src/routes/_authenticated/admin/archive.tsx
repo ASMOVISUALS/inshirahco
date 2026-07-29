@@ -12,10 +12,9 @@ export const Route = createFileRoute("/_authenticated/admin/archive")({
   component: ArchivePage,
 });
 
-type Category = "articles" | "ayahs" | "testimonials" | "pages" | "pillars";
+type Category = "articles" | "testimonials" | "pages" | "pillars";
 const CATEGORIES: { id: Category; label: string }[] = [
   { id: "articles", label: "Articles" },
-  { id: "ayahs", label: "Verses" },
   { id: "testimonials", label: "Testimonials" },
   { id: "pages", label: "Pages" },
   { id: "pillars", label: "Pillars" },
@@ -61,7 +60,6 @@ function ArchivePage() {
         </div>
       )}
       {active === "articles" && <ArticlesArchive />}
-      {active === "ayahs" && <AyahsArchive />}
       {active === "testimonials" && <TestimonialsArchive />}
       {active === "pages" && <PagesArchive />}
       {active === "pillars" && <PillarsArchive />}
@@ -260,74 +258,6 @@ function ArticlesArchive() {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-/* -------------------------- Verses -------------------------- */
-
-type AyahRow = { id: string; arabic: string; translation: string; reference: string };
-
-function AyahsArchive() {
-  const qc = useQueryClient();
-  const { data = [], isLoading } = useQuery({
-    queryKey: ["archive-ayahs"],
-    queryFn: async (): Promise<AyahRow[]> => {
-      const { data, error } = await supabase
-        .from("ayahs")
-        .select("id,arabic,translation,reference,archived_at")
-        .not("archived_at", "is", null)
-        .order("archived_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as AyahRow[];
-    },
-  });
-
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["archive-ayahs"] });
-    qc.invalidateQueries({ queryKey: ["admin-ayahs"] });
-    qc.invalidateQueries({ queryKey: ["ayahs"] });
-  };
-  const restore = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").update({ archived_at: null }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-  const purge = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (data.length === 0) return <EmptyArchive label="verses" />;
-
-  return (
-    <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {data.map((r) => (
-        <div key={r.id} className="flex flex-col self-start rounded-2xl border border-border bg-card p-4 opacity-90">
-          <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
-          <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
-          <p className="mt-2 text-xs text-muted-foreground">— {r.reference}</p>
-          <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              <ArchiveIcon className="h-3.5 w-3.5" /> Archived
-            </span>
-            <div className="flex items-center gap-2">
-              <IconBtn label="Restore verse" onClick={() => restore.mutate(r.id)}>
-                <RotateCcw className="h-4 w-4" />
-              </IconBtn>
-              <IconBtn label="Delete permanently" danger onClick={() => { if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
-                <Trash2 className="h-4 w-4" />
-              </IconBtn>
-            </div>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
