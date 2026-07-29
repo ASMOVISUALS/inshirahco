@@ -293,7 +293,7 @@ function BlockList({
   };
 
   return (
-    <ol className="flex flex-col gap-1.5">
+    <ol className="flex flex-col gap-1">
       {blocks.map((b, i) => {
         const open = selectedId === b.id;
         const confirming = confirmId === b.id;
@@ -303,15 +303,21 @@ function BlockList({
             onDragOver={(e) => { e.preventDefault(); if (dragId.current && dragId.current !== b.id) setOverId(b.id); }}
             onDragLeave={() => { if (overId === b.id) setOverId(null); }}
             onDrop={(e) => { e.preventDefault(); handleDrop(b.id); }}
-            className={`rounded-md border ${open ? "border-heart" : "border-border"} bg-background ${overId === b.id ? "ring-2 ring-heart" : ""}`}
+            className={overId === b.id ? "ring-2 ring-heart rounded-sm" : ""}
           >
-            <div className="flex items-center gap-1">
+            <div
+              className={`flex items-center gap-1 border-l-2 bg-card ${
+                open
+                  ? "border-l-heart border-y border-r border-border"
+                  : "border-l-transparent border-y border-r border-transparent hover:border-border hover:border-l-border"
+              }`}
+            >
               <button
                 type="button"
                 draggable
                 onDragStart={() => { dragId.current = b.id; }}
                 onDragEnd={() => { dragId.current = null; setOverId(null); }}
-                className="grid h-8 w-6 cursor-grab place-items-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
+                className="grid h-9 w-6 cursor-grab place-items-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
                 title="Drag to reorder"
                 aria-label="Drag handle"
               >
@@ -328,7 +334,7 @@ function BlockList({
               <button
                 type="button"
                 onClick={() => setConfirmId(b.id)}
-                className="mr-1.5 grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="mr-1.5 grid h-7 w-7 place-items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 title="Delete block"
                 aria-label="Delete block"
               >
@@ -336,7 +342,7 @@ function BlockList({
               </button>
             </div>
             {confirming && (
-              <div className="border-t border-border bg-destructive/5 px-3 py-2 text-[11px]">
+              <div className="border-x border-b border-border bg-destructive/5 px-3 py-2 text-[11px]">
                 <p className="mb-2 font-semibold text-destructive">Delete this {BLOCK_LABEL[b.type] ?? b.type} block?</p>
                 <div className="flex justify-end gap-2">
                   <button className="btn-ghost !py-1 text-[11px]" onClick={() => setConfirmId(null)}>Cancel</button>
@@ -350,7 +356,7 @@ function BlockList({
               </div>
             )}
             {open && (
-              <div className="border-t border-border p-3">
+              <div className="border-x border-b border-border bg-background p-3">
                 <BlockInspector block={b} onChange={(props) => onChange(b.id, props)} />
               </div>
             )}
