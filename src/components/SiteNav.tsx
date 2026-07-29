@@ -23,7 +23,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
   const pillars = usePillars();
-  const formats = useFormats();
+  const formats = useMenuFormats();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const megaRef = useRef<HTMLDivElement>(null);
