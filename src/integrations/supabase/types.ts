@@ -289,6 +289,7 @@ export type Database = {
       pillars: {
         Row: {
           arabic_letter: string
+          archived_at: string | null
           coming_soon: boolean
           created_at: string
           description: string
@@ -303,6 +304,7 @@ export type Database = {
         }
         Insert: {
           arabic_letter: string
+          archived_at?: string | null
           coming_soon?: boolean
           created_at?: string
           description?: string
@@ -317,6 +319,7 @@ export type Database = {
         }
         Update: {
           arabic_letter?: string
+          archived_at?: string | null
           coming_soon?: boolean
           created_at?: string
           description?: string
