@@ -70,11 +70,17 @@ export const currentVerseQuery = () =>
   queryOptions({
     queryKey: ["votw"],
     queryFn: async (): Promise<AyahRow | null> => {
-      const { data, error } = await supabase.rpc("current_verse_of_the_week");
+      const { data, error } = await supabase
+        .from("ayahs")
+        .select("*")
+        .eq("status", "current")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
-      const row = (data ?? [])[0];
-      return row ? (row as unknown as AyahRow) : null;
+      return (data as AyahRow | null) ?? null;
     },
+
     staleTime: 5 * 60_000,
   });
 
