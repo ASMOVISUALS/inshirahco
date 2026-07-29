@@ -137,14 +137,18 @@ function AuthAccessEnforcer() {
   const router = useRouter();
   const access = useAuthAccess();
   const { user } = useAuth();
+  const { data: isAdmin, isPending: adminPending } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   useEffect(() => {
     if (!user) return;
     if (access.signinEnabled) return;
+    // Admins keep access while public sign-in is locked.
+    if (adminPending || isAdmin) return;
     void signOutCompletely({
       queryClient,
       navigate: (opts) => router.navigate(opts),
     });
-  }, [access.signinEnabled, user, queryClient, router]);
+  }, [access.signinEnabled, user, isAdmin, adminPending, queryClient, router]);
   return null;
 }
+
 
