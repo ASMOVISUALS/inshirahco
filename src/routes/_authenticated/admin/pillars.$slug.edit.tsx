@@ -45,6 +45,18 @@ function PillarEdit() {
     verifiedRef.current = consumePillarEditFlag(slug);
   }
 
+function PillarEdit() {
+  const { slug } = Route.useParams();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteGateOpen, setDeleteGateOpen] = useState(false);
+  const verifiedRef = useRef<boolean | null>(null);
+  if (verifiedRef.current === null) {
+    verifiedRef.current = consumePillarEditFlag(slug);
+  }
+
   useEffect(() => {
     if (verifiedRef.current === false) {
       navigate({ to: "/admin/pillars", replace: true });
