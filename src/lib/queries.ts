@@ -236,28 +236,6 @@ export const pillarsQuery = () =>
     staleTime: 5 * 60_000,
   });
 
-export const formatsQuery = () =>
-  queryOptions({
-    queryKey: ["cms", "formats"],
-    queryFn: async (): Promise<FormatRow[]> => {
-      const { data, error } = await supabase
-        .from("resource_formats")
-        .select("slug,label,plural,arabic_letter,tint,sort_order,show_in_menu,show_on_site")
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return ((data ?? []) as unknown as Array<Partial<FormatRow>>).map((r) => ({
-        slug: r.slug ?? "",
-        label: r.label ?? "",
-        plural: r.plural ?? "",
-        arabic_letter: r.arabic_letter ?? "",
-        tint: r.tint ?? "heart",
-        sort_order: r.sort_order ?? 0,
-        show_in_menu: r.show_in_menu ?? true,
-        show_on_site: r.show_on_site ?? true,
-      }));
-    },
-    staleTime: 5 * 60_000,
-  });
 
 // ============ Series ============
 
