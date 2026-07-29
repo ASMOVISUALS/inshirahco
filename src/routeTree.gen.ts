@@ -16,7 +16,6 @@ import { Route as TadabburRouteImport } from './routes/tadabbur'
 import { Route as SuhbahRouteImport } from './routes/suhbah'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
-import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -39,7 +38,6 @@ import { Route as AuthenticatedAdminSeriesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
-import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
 import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
 import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
@@ -82,11 +80,6 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResourcesRoute = ResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -208,12 +201,6 @@ const AuthenticatedAdminNewsletterRoute =
     path: '/newsletter',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminFormatsRoute =
-  AuthenticatedAdminFormatsRouteImport.update({
-    id: '/formats',
-    path: '/formats',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
 const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   id: '/faqs',
   path: '/faqs',
@@ -270,7 +257,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suhbah': typeof SuhbahRoute
@@ -284,7 +270,6 @@ export interface FileRoutesByFullPath {
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -310,7 +295,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suhbah': typeof SuhbahRoute
@@ -322,7 +306,6 @@ export interface FileRoutesByTo {
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -350,7 +333,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suhbah': typeof SuhbahRoute
@@ -364,7 +346,6 @@ export interface FileRoutesById {
   '/read/$slug': typeof ReadSlugRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
@@ -392,7 +373,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/join'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
     | '/suhbah'
@@ -406,7 +386,6 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/admin/archive'
     | '/admin/faqs'
-    | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
     | '/admin/reports'
@@ -432,7 +411,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/join'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
     | '/suhbah'
@@ -444,7 +422,6 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/admin/archive'
     | '/admin/faqs'
-    | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
     | '/admin/reports'
@@ -471,7 +448,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/join'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
     | '/suhbah'
@@ -485,7 +461,6 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/_authenticated/admin/archive'
     | '/_authenticated/admin/faqs'
-    | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/reflections'
     | '/_authenticated/admin/reports'
@@ -513,7 +488,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   JoinRoute: typeof JoinRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ResourcesRoute: typeof ResourcesRoute
   SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuhbahRoute: typeof SuhbahRoute
@@ -573,13 +547,6 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resources': {
-      id: '/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -736,13 +703,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNewsletterRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/formats': {
-      id: '/_authenticated/admin/formats'
-      path: '/formats'
-      fullPath: '/admin/formats'
-      preLoaderRoute: typeof AuthenticatedAdminFormatsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/admin/faqs': {
       id: '/_authenticated/admin/faqs'
       path: '/faqs'
@@ -805,7 +765,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
-  AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
@@ -826,7 +785,6 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
-    AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
     AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
@@ -898,7 +856,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   JoinRoute: JoinRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ResourcesRoute: ResourcesRoute,
   SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuhbahRoute: SuhbahRoute,
