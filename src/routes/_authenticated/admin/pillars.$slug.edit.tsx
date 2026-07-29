@@ -237,6 +237,40 @@ function PillarEdit() {
           </Field>
         </div>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this pillar?</DialogTitle>
+            <DialogDescription>
+              Archiving <span className="font-semibold">{form.label}</span> ({form.slug}) has cascading effects across the site: its pillar page will be archived, and any menus, carousels, or lists that reference it will stop showing it. Articles and series linked to this pillar remain, but lose their pillar grouping until it's restored.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              className="border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => {
+                setConfirmOpen(false);
+                setDeleteGateOpen(true);
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AdminPasswordGate
+        open={deleteGateOpen}
+        onOpenChange={setDeleteGateOpen}
+        email={user?.email ?? ""}
+        onVerified={() => {
+          setDeleteGateOpen(false);
+          archive.mutate();
+        }}
+      />
     </div>
   );
 }
