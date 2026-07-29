@@ -285,6 +285,10 @@ function PillarsAdmin() {
           if (intent.kind === "edit") {
             setPillarEditFlag(intent.slug);
             navigate({ to: "/admin/pillars/$slug/edit", params: { slug: intent.slug } });
+          } else if (intent.kind === "restore") {
+            restore.mutate(intent.slug);
+          } else if (intent.kind === "purge") {
+            purge.mutate(intent.slug);
           } else {
             setCreateError(null);
             setCreateOpen(true);
