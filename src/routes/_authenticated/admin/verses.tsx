@@ -548,32 +548,20 @@ function EditorCard({
       className={bare ? "flex flex-col" : "flex flex-col self-start rounded-2xl border border-heart bg-heart/5 p-4 shadow-md"}
     >
       <div className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col text-xs text-muted-foreground">
+        <div className="flex flex-col text-xs text-muted-foreground">
           Surah
-          <select
-            value={value.surah_number ?? ""}
-            onChange={(e) => onChange({ ...value, surah_number: e.target.value ? Number(e.target.value) : null })}
-            className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-heart"
-          >
-            <option value="">Select…</option>
-            {surahs.map((s) => (
-              <option key={s.id} value={s.number}>{s.number}. {s.name_en} — {s.name_ar}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col text-xs text-muted-foreground">
+          <div className="mt-1 truncate rounded-md border border-border bg-secondary/50 px-2 py-1.5 text-sm text-foreground">
+            {surah ? `${surah.number}. ${surah.name_en}` : "—"}
+          </div>
+        </div>
+        <div className="flex flex-col text-xs text-muted-foreground">
           Ayah {surah ? `(1–${surah.verse_count})` : ""}
-          <input
-            inputMode="numeric"
-            value={value.ayah_number ?? ""}
-            onChange={(e) => {
-              const digits = e.target.value.replace(/\D+/g, "");
-              onChange({ ...value, ayah_number: digits ? Number(digits) : null });
-            }}
-            className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-heart"
-          />
-        </label>
+          <div className="mt-1 rounded-md border border-border bg-secondary/50 px-2 py-1.5 text-sm text-foreground">
+            {value.ayah_number ?? "—"}
+          </div>
+        </div>
       </div>
+
 
       <textarea
         dir="rtl"
