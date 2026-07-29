@@ -116,7 +116,7 @@ function PageBuilderRoute() {
     return <div className="p-12 text-center text-muted-foreground">Loading builder…</div>;
   }
 
-  const selected = blocks.find((b) => b.id === selectedId) ?? null;
+  void selectedId;
   const vpWidth = viewport === "desktop" ? "100%" : viewport === "tablet" ? "820px" : "390px";
 
   return (
