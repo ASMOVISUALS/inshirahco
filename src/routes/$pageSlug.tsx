@@ -4,11 +4,10 @@ import { pageBySlugContentQuery, pageBySlugStatusQuery } from "@/lib/queries";
 import { PageRenderer, readBlocks } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
 
-// Reserved slugs that have their own route files
+// Reserved slugs that have their own route files or are app logic
 const RESERVED = new Set([
-  "", "about", "auth", "auth.callback", "contact", "join", "suhbah",
-  "tadabbur", "read", "reset-password", "resources", "saved",
-  "sitemap.xml", "tazkiyah", "youth", "admin",
+  "", "about", "auth", "auth.callback", "join", "read",
+  "reset-password", "saved", "sitemap.xml", "admin",
 ]);
 
 export const Route = createFileRoute("/$pageSlug")({
