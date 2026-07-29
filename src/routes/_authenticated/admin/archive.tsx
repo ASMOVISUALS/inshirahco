@@ -12,12 +12,13 @@ export const Route = createFileRoute("/_authenticated/admin/archive")({
   component: ArchivePage,
 });
 
-type Category = "articles" | "testimonials" | "pages" | "pillars";
+type Category = "articles" | "testimonials" | "pages" | "pillars" | "votw";
 const CATEGORIES: { id: Category; label: string }[] = [
   { id: "articles", label: "Articles" },
   { id: "testimonials", label: "Testimonials" },
   { id: "pages", label: "Pages" },
   { id: "pillars", label: "Pillars" },
+  { id: "votw", label: "Verse of the Week" },
 ];
 
 function ArchivePage() {
@@ -63,6 +64,7 @@ function ArchivePage() {
       {active === "testimonials" && <TestimonialsArchive />}
       {active === "pages" && <PagesArchive />}
       {active === "pillars" && <PillarsArchive />}
+      {active === "votw" && <VotwArchive />}
     </div>
   );
 }
@@ -258,6 +260,55 @@ function ArticlesArchive() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/* -------------------------- Verse of the Week (read-only log) -------------------------- */
+
+type PastVerse = {
+  id: string; arabic: string; translation: string; reference: string;
+  day_start: string | null; day_end: string | null;
+};
+
+const fmtDay = (v: string | null) =>
+  v ? new Date(v).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+function VotwArchive() {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["archive-votw"],
+    queryFn: async (): Promise<PastVerse[]> => {
+      const { data, error } = await supabase
+        .from("ayahs")
+        .select("id,arabic,translation,reference,day_start,day_end")
+        .eq("status", "used")
+        .order("day_end", { ascending: false, nullsFirst: false });
+      if (error) throw error;
+      return (data ?? []) as PastVerse[];
+    },
+  });
+
+  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
+  if (data.length === 0)
+    return (
+      <div className="grid place-items-center rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+        No verses have finished their week yet.
+      </div>
+    );
+
+  return (
+    <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {data.map((r) => (
+        <div key={r.id} className="flex flex-col self-start rounded-2xl border border-border bg-card p-4">
+          <p className="font-arabic text-lg leading-relaxed" dir="rtl">{r.arabic}</p>
+          <p className="mt-2 text-sm italic line-clamp-4">"{r.translation}"</p>
+          <p className="mt-2 text-xs font-semibold text-muted-foreground">— {r.reference}</p>
+          <p className="mt-3 inline-flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            {fmtDay(r.day_start)} → {fmtDay(r.day_end)}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
