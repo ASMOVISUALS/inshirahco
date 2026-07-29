@@ -33,7 +33,10 @@ export const authAccessQuery = () =>
           "",
       };
     },
-    staleTime: 30_000,
+    staleTime: 15_000,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+
   });
 
 export function useAuthAccess(): AuthAccess {

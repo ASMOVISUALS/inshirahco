@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
@@ -17,6 +17,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { useAuthAccess } from "@/lib/auth-access";
 import { useAuth } from "@/hooks/use-auth";
 import { signOutCompletely } from "@/lib/auth";
+import { hasAdminRoleQuery } from "@/lib/queries";
 
 function NotFoundComponent() {
   return (
@@ -137,14 +138,18 @@ function AuthAccessEnforcer() {
   const router = useRouter();
   const access = useAuthAccess();
   const { user } = useAuth();
+  const { data: isAdmin, isPending: adminPending } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   useEffect(() => {
     if (!user) return;
     if (access.signinEnabled) return;
+    // Admins keep access while public sign-in is locked.
+    if (adminPending || isAdmin) return;
     void signOutCompletely({
       queryClient,
       navigate: (opts) => router.navigate(opts),
     });
-  }, [access.signinEnabled, user, queryClient, router]);
+  }, [access.signinEnabled, user, isAdmin, adminPending, queryClient, router]);
   return null;
 }
+
 
