@@ -29,6 +29,8 @@ function VersePage() {
   const { data: verse, isLoading } = useQuery(currentVerseQuery());
   const { data: reflections = [] } = useQuery(verseReflectionsQuery(verse?.id ?? null));
   const { data: liked = [] } = useQuery(myLikesQuery(user?.id ?? null));
+  const { data: mine = [] } = useQuery(myReflectionsQuery(user?.id ?? null, verse?.id ?? null));
+  const hasReflected = mine.length > 0;
 
   const [body, setBody] = useState("");
   const [reportId, setReportId] = useState<string | null>(null);
