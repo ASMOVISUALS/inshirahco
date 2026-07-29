@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
@@ -17,6 +17,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { useAuthAccess } from "@/lib/auth-access";
 import { useAuth } from "@/hooks/use-auth";
 import { signOutCompletely } from "@/lib/auth";
+import { hasAdminRoleQuery } from "@/lib/queries";
 
 function NotFoundComponent() {
   return (
