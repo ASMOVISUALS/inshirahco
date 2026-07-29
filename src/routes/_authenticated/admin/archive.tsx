@@ -384,14 +384,26 @@ function PagesArchive() {
         <EmptyArchive label="pages" />
       ) : (
         <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {data.map((r) => (
-            <PageArchiveTile
-              key={r.key}
-              row={r}
-              onRestore={() => { setPending({ kind: "restore", key: r.key, title: r.title || r.slug }); setGateOpen(true); }}
-              onPurge={() => { if (confirm(`Permanently delete "${r.title || r.slug}"? This cannot be undone.`)) { setPending({ kind: "purge", key: r.key, title: r.title || r.slug }); setGateOpen(true); } }}
-            />
-          ))}
+          {data.map((r) => {
+            const pillarSlug = r.key.startsWith("pillar:") ? r.key.slice("pillar:".length) : null;
+            const locked = pillarSlug !== null && !activePillarSlugs.has(pillarSlug);
+            return (
+              <PageArchiveTile
+                key={r.key}
+                row={r}
+                restoreLocked={locked}
+                onRestore={() => {
+                  if (locked) {
+                    setPillarLocked({ title: r.title || r.slug, slug: pillarSlug! });
+                    return;
+                  }
+                  setPending({ kind: "restore", key: r.key, title: r.title || r.slug });
+                  setGateOpen(true);
+                }}
+                onPurge={() => { if (confirm(`Permanently delete "${r.title || r.slug}"? This cannot be undone.`)) { setPending({ kind: "purge", key: r.key, title: r.title || r.slug }); setGateOpen(true); } }}
+              />
+            );
+          })}
         </div>
       )}
       <AdminPasswordGate
