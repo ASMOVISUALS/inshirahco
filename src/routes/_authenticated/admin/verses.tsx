@@ -345,7 +345,10 @@ function VersesAdmin() {
 
       </div>
 
+      {statusFilter === "current" && <VotwSchedule poolEmpty={counts.pool === 0} />}
+
       {statusFilter === "current" && currentVerse && (
+
         <section
           className="rounded-3xl border p-8 text-center md:p-10"
           style={{
