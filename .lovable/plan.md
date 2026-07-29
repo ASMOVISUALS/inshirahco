@@ -1,33 +1,26 @@
 ## Goal
+Let you decide exactly which pooled verse goes next, by dragging pool tiles into a release order — instead of the current random pick.
 
-When sign-in is locked, keep the locked screen for everyone but give admins a discreet way in: a small "Admin" link bottom-right that opens a sign-in dialog. Credentials are verified by Supabase; if the account is real but not an admin, the session is immediately discarded and the login is refused.
+## 1. Database
+- Add a `queue_order` (integer) column to `ayahs`, backfilled so existing pool verses get a stable starting sequence.
+- Update the weekly rotation routine (currently `ORDER BY random()`) to pick the pooled verse with the **lowest `queue_order`** instead. When a verse leaves the pool, the rest keep their relative order.
+- Keep the existing `day_start` / `day_end` tracking trigger untouched.
 
-## What gets built
+## 2. Verses admin — sort control
+- Show the "Sort by" dropdown only on the **In pool** and **Used** tabs (hidden on Active).
+- Pool tab options: `Order of release` (default), `Qur'anic order`, `Date added`.
+- Used tab options stay as they are today.
 
-**1. Admin login dialog (`src/components/AdminSignInDialog.tsx`)**
+## 3. Drag to reorder
+- Dragging is enabled **only** on the In pool tab while sort is set to `Order of release`. On the other sort modes tiles are static, with a small hint line explaining how to enable reordering.
+- Each pool tile gets a drag handle plus a position badge (1, 2, 3…) showing its place in the release queue. Position 1 is labelled "Next up".
+- Dropping persists the new `queue_order` values for the whole pool list, with an optimistic UI update so tiles don't jump.
+- Keyboard-accessible: handle is focusable, arrow up/down moves a tile in the order.
 
-- Email + password fields, brand-styled, same visual language as the existing password gate dialog.
-- On submit: `supabase.auth.signInWithPassword`.
-  - Invalid credentials → "Those details don't match an account."
-  - Valid → query `user_roles` for `role = 'admin'` for that user id.
-    - Admin → close dialog, navigate to `/admin`.
-    - Not admin → immediately sign the session out again and show "This account doesn't have admin access." (no session is left behind).
-
-**2. Locked screen affordance (`src/components/AccessLocked.tsx`)**
-
-- Add an optional `adminEntry` flag. When set, render a small, low-contrast "Admin" text button pinned bottom-right of the section that opens the dialog. Used on `/auth` (and `/reset-password`, which shares the locked template) — not on the `/join` locked screen.
-
-**3. Don't sign the admin back out (`src/routes/__root.tsx`)**
-
-- Today `AuthAccess`loading`Enforcer` signs out *any* signed-in user while sign-in is disabled, which would instantly kick the admin out after a successful admin login. Change it to check the admin role first (via the existing `hasAdminRoleQuery`) and only sign out non-admins. While the role check is still , do nothing.
+## 4. Set new verse
+- The green "Set new verse" button now promotes the **next-up** verse (position 1) rather than a random one, retiring the current verse to Used. It keeps the existing admin-password gate.
 
 ## Technical notes
-
-- Role check reuses `hasAdminRoleQuery` in `src/lib/queries.ts`; no schema changes and no new RLS policies are needed.
-- The refusal path calls `signOutCompletely` so no partial session or cached data survives a rejected non-admin login.
-- Existing admin route protection (`_authenticated/admin`) is unchanged — this only adds an entry point.
-
-USER NOTES ADDED TO LOVABLES PLAN
-
-- By the way right now when I set sign in to locked, the admin thatis currently logged in is not immediately kicked out, nor when he navigates to different pages. Why is this? Is there a global sign out event that is being missed. is this something for supabase functionality. what do you think
-- &nbsp;
+- Reordering uses the already-installed `motion` package for the drag/reorder animation (Reorder group), so no new dependency.
+- Persistence is a single batched upsert of `{id, queue_order}` pairs on drop.
+- `queries.ts`/`admin-ayahs` query gains `queue_order` in its select and orders pool rows by it.
