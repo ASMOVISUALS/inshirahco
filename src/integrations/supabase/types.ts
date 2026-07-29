@@ -138,6 +138,8 @@ export type Database = {
           archived_at: string | null
           ayah_number: number | null
           created_at: string
+          day_end: string | null
+          day_start: string | null
           id: string
           reference: string
           sort_order: number
@@ -152,6 +154,8 @@ export type Database = {
           archived_at?: string | null
           ayah_number?: number | null
           created_at?: string
+          day_end?: string | null
+          day_start?: string | null
           id?: string
           reference: string
           sort_order?: number
@@ -166,6 +170,8 @@ export type Database = {
           archived_at?: string | null
           ayah_number?: number | null
           created_at?: string
+          day_end?: string | null
+          day_start?: string | null
           id?: string
           reference?: string
           sort_order?: number
@@ -875,6 +881,8 @@ export type Database = {
           archived_at: string | null
           ayah_number: number | null
           created_at: string
+          day_end: string | null
+          day_start: string | null
           id: string
           reference: string
           sort_order: number
