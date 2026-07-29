@@ -45,6 +45,22 @@ function PagesAdmin() {
     },
   });
 
+  const { data: activePillarSlugs = new Set<string>() } = useQuery({
+    queryKey: ["admin", "pillars", "active-slugs"],
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase
+        .from("pillars")
+        .select("slug,archived_at");
+      if (error) throw error;
+      return new Set(
+        (data ?? [])
+          .filter((r: { archived_at: string | null }) => !r.archived_at)
+          .map((r: { slug: string }) => r.slug),
+      );
+    },
+  });
+
+
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [tab, setTab] = useState<"active" | "archive">("active");
