@@ -214,8 +214,6 @@ function VersesAdmin() {
 
   const update = useMutation({
     mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
-      const dup = null;
-
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").update({
         arabic: d.arabic,
@@ -224,29 +222,13 @@ function VersesAdmin() {
         surah_id,
         ayah_number: d.ayah_number,
       }).eq("id", id);
-      if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
+      if (error) throw new Error(error.message);
     },
     onMutate: () => setError(null),
     onError: (e: Error) => setError(e.message),
     onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
   });
 
-  const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: VerseStatus }) => {
-      // Only one verse can hold "this week" at a time.
-      if (status === "current") {
-        const { error: clearErr } = await supabase
-          .from("ayahs").update({ status: "used" }).eq("status", "current").neq("id", id);
-        if (clearErr) throw clearErr;
-      }
-      const { error } = await supabase
-        .from("ayahs")
-        .update({ status, active: true })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
 
 
   const purge = useMutation({
