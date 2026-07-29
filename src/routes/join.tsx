@@ -48,7 +48,26 @@ type Step = 1 | 2 | 3;
 
 function JoinPage() {
   const navigate = useNavigate();
+  const access = useAuthAccess();
   const [step, setStep] = useState<Step>(1);
+
+  if (!access.signupEnabled) {
+    return (
+      <AccessLocked
+        eyebrow="Join Inshirah"
+        title="Exclusive access"
+        message="New accounts are closed for now. Sign up for the letter to be the first to know when we open the doors again."
+      >
+        <NewsletterSignup
+          heading="Be the first to know"
+          description="A short note when new sign-ups reopen — nothing else."
+          cta="Notify me"
+          source="join-locked"
+        />
+      </AccessLocked>
+    );
+  }
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
