@@ -61,6 +61,7 @@ export type Database = {
           downloadable: boolean
           id: string
           pillar: string
+          pillar_id: string
           published: boolean
           published_at: string
           read_time: string | null
@@ -80,6 +81,7 @@ export type Database = {
           downloadable?: boolean
           id?: string
           pillar: string
+          pillar_id: string
           published?: boolean
           published_at?: string
           read_time?: string | null
@@ -99,6 +101,7 @@ export type Database = {
           downloadable?: boolean
           id?: string
           pillar?: string
+          pillar_id?: string
           published?: boolean
           published_at?: string
           read_time?: string | null
@@ -110,11 +113,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "articles_pillar_fkey"
-            columns: ["pillar"]
+            foreignKeyName: "articles_pillar_id_fkey"
+            columns: ["pillar_id"]
             isOneToOne: false
             referencedRelation: "pillars"
-            referencedColumns: ["slug"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "articles_type_fkey"
@@ -290,6 +293,7 @@ export type Database = {
           created_at: string
           description: string
           href: string
+          id: string
           label: string
           short_label: string
           slug: string
@@ -303,6 +307,7 @@ export type Database = {
           created_at?: string
           description?: string
           href: string
+          id?: string
           label: string
           short_label: string
           slug: string
@@ -316,6 +321,7 @@ export type Database = {
           created_at?: string
           description?: string
           href?: string
+          id?: string
           label?: string
           short_label?: string
           slug?: string
@@ -448,6 +454,7 @@ export type Database = {
           description: string
           id: string
           pillar: string | null
+          pillar_id: string | null
           slug: string
           sort_order: number
           status: string
@@ -463,6 +470,7 @@ export type Database = {
           description?: string
           id?: string
           pillar?: string | null
+          pillar_id?: string | null
           slug: string
           sort_order?: number
           status?: string
@@ -478,6 +486,7 @@ export type Database = {
           description?: string
           id?: string
           pillar?: string | null
+          pillar_id?: string | null
           slug?: string
           sort_order?: number
           status?: string
@@ -485,7 +494,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "series_pillar_id_fkey"
+            columns: ["pillar_id"]
+            isOneToOne: false
+            referencedRelation: "pillars"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
