@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RotateCcw, Trash2, Archive as ArchiveIcon, Eye, EyeOff, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
+import { PILLARS, type Pillar } from "@/lib/content";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -179,7 +179,7 @@ function PillarsArchive() {
 /* --------------------------- Articles --------------------------- */
 
 type ArticleRow = {
-  id: string; slug: string; title: string; pillar: string; type: string;
+  id: string; slug: string; title: string; pillar: string;
   published: boolean; archived_at: string;
 };
 
@@ -190,7 +190,7 @@ function ArticlesArchive() {
     queryFn: async (): Promise<ArticleRow[]> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id,slug,title,pillar,type,published,archived_at")
+        .select("id,slug,title,pillar,published,archived_at")
         .not("archived_at", "is", null)
         .order("archived_at", { ascending: false });
       if (error) throw error;
@@ -240,7 +240,6 @@ function ArticlesArchive() {
                 <p className="text-xs text-muted-foreground">/{a.slug}</p>
               </td>
               <td className="px-4 py-3">{PILLARS[a.pillar as Pillar]?.short ?? a.pillar}</td>
-              <td className="px-4 py-3">{RESOURCE_TYPES[a.type as ResourceType]?.label ?? a.type}</td>
               <td className="px-4 py-3 text-right">
                 <button
                   onClick={() => restore.mutate(a.id)}
