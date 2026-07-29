@@ -209,6 +209,7 @@ function VersesAdmin() {
         active: true,
         status: "pool",
         sort_order: data.length,
+        queue_order: Math.max(0, ...data.map((r) => r.queue_order ?? 0)) + 1,
       });
       if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
