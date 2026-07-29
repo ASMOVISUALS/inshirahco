@@ -91,11 +91,7 @@ function PageBuilderRoute() {
 
   const addBlock = (type: BlockType) => { const b = newBlock(type); commit([...blocks, b]); setSelectedId(b.id); };
   const removeBlock = (id: string) => { commit(blocks.filter((b) => b.id !== id)); if (selectedId === id) setSelectedId(null); };
-  const moveBlock = (id: string, dir: -1 | 1) => {
-    const idx = blocks.findIndex((b) => b.id === id); if (idx < 0) return;
-    const j = idx + dir; if (j < 0 || j >= blocks.length) return;
-    const next = [...blocks]; [next[idx], next[j]] = [next[j], next[idx]]; commit(next);
-  };
+  void moveBlockNoop;
   const updateBlock = (id: string, props: Record<string, unknown>) => {
     commit(blocks.map((b) => (b.id === id ? { ...b, props } : b)));
   };
