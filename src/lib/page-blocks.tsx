@@ -3,7 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather, Search } from "lucide-react";
 import { articlesQuery, testimonialsQuery, faqsQuery, publicSeriesQuery } from "@/lib/queries";
-import { usePillars, useFormats, useOnSiteFormatSlugs } from "@/hooks/use-cms";
+import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
@@ -42,7 +42,7 @@ export type BlockType =
   | "previews_grid"
   | "mentors_row"
   | "contact_form"
-  | "resources_library";
+;
 
 
 export interface Block<TProps = Record<string, unknown>> {
@@ -122,7 +122,6 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
     label: "Utility",
     items: [
       { type: "contact_form", label: "Contact form" },
-      { type: "resources_library", label: "Resources library" },
     ],
   },
 ];
@@ -144,7 +143,7 @@ export function newBlock(type: BlockType): Block {
       title_line1: "A new page",
       title_line2: "written slowly.",
       description: "A short line that sets the mood, no more.",
-      cta_primary_label: "Start reading", cta_primary_href: "/resources",
+      cta_primary_label: "Start reading", cta_primary_href: "/",
       cta_secondary_label: "Our story", cta_secondary_href: "/about",
       background: "radial",
     },
@@ -188,7 +187,6 @@ export function newBlock(type: BlockType): Block {
       items: [
         { label: "Home", href: "/" },
         { label: "About", href: "/about" },
-        { label: "Resources", href: "/resources" },
         { label: "Contact", href: "/contact" },
       ],
     },
@@ -225,7 +223,6 @@ export function newBlock(type: BlockType): Block {
       support_body: "Inshirah is freely offered. If it has served you, consider supporting the work.",
       support_footnote: "",
     },
-    resources_library: {},
   };
   return { id, type, props: defaults[type] };
 }
@@ -563,8 +560,6 @@ function RenderBlock({ block }: { block: Block }) {
     case "contact_form":
       return <ContactFormBlock successArabic={s("success_arabic")} successTitle={s("success_title")} successDescription={s("success_description")} supportTitle={s("support_title")} supportBody={s("support_body")} supportFootnote={s("support_footnote")} />;
 
-    case "resources_library":
-      return <ResourcesLibraryBlock />;
 
     default:
       return <PlaceholderBlock label={`Unknown block: ${block.type}`} />;
@@ -926,72 +921,6 @@ function ContactField({ label, error, children }: { label: string; error?: strin
       {children}
       {error && <span className="text-sm" style={{ color: "var(--heart)" }}>{error}</span>}
     </label>
-  );
-}
-
-function ResourcesLibraryBlock() {
-  const { data: content = [] } = useSuspenseQuery(articlesQuery());
-  const pillars = usePillars();
-  const formats = useFormats();
-  const onSiteSlugs = useOnSiteFormatSlugs();
-  const [type, setType] = useState("all");
-  const [pillar, setPillar] = useState("all");
-  const [q, setQ] = useState("");
-  const filtered = useMemo(() => content.filter((c) => {
-    if (!onSiteSlugs.has(c.type)) return false;
-    if (type !== "all" && c.type !== type) return false;
-    if (pillar !== "all" && c.pillar !== pillar) return false;
-    if (q) {
-      const query = q.toLowerCase();
-      if (!c.title.toLowerCase().includes(query) && !c.description.toLowerCase().includes(query) && !c.tags.some((t) => t.includes(query))) return false;
-    }
-    return true;
-  }), [content, type, pillar, q, onSiteSlugs]);
-  const anyFilter = type !== "all" || pillar !== "all" || q.length > 0;
-  return (
-    <>
-      <section className="container-wide py-10">
-        <div className="rounded-3xl border border-border bg-card p-5 md:p-6">
-          <label className="flex items-center gap-3 rounded-pill border border-border bg-background px-4 py-2.5">
-            <Search className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search resources…" className="w-full bg-transparent outline-none" aria-label="Search resources" />
-          </label>
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Pillar</p>
-            <div className="flex flex-wrap gap-2">
-              <ResChip active={pillar === "all"} onClick={() => setPillar("all")}>All</ResChip>
-              {pillars.map((p) => <ResChip key={p.slug} active={pillar === p.slug} onClick={() => setPillar(p.slug)}>{p.short_label}</ResChip>)}
-            </div>
-          </div>
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Format</p>
-            <div className="flex flex-wrap gap-2">
-              <ResChip active={type === "all"} onClick={() => setType("all")}>All</ResChip>
-              {formats.map((t) => <ResChip key={t.slug} active={type === t.slug} onClick={() => setType(t.slug)}>{t.plural}</ResChip>)}
-            </div>
-          </div>
-          {anyFilter && (
-            <button onClick={() => { setType("all"); setPillar("all"); setQ(""); }} className="mt-5 text-sm font-bold underline underline-offset-4" style={{ color: "var(--heart)" }}>Reset filters</button>
-          )}
-        </div>
-      </section>
-      <section className="container-wide pb-24">
-        <p className="mb-6 text-sm font-semibold text-muted-foreground">{filtered.length} {filtered.length === 1 ? "resource" : "resources"}</p>
-        {filtered.length === 0 ? (
-          <p className="rounded-3xl border border-border bg-card p-10 text-center text-muted-foreground">Nothing matches that combination just yet.</p>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((item) => <ContentCard key={item.slug} item={item} />)}
-          </div>
-        )}
-      </section>
-    </>
-  );
-}
-
-function ResChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button onClick={onClick} className="rounded-pill border px-4 py-1.5 text-sm font-semibold transition-colors" style={active ? { background: "var(--heart)", color: "var(--primary-foreground)", borderColor: "var(--heart)" } : { borderColor: "var(--border)" }}>{children}</button>
   );
 }
 
