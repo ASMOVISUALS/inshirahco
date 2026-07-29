@@ -22,7 +22,7 @@ export type ContentBlock =
   | { kind: "p"; text: string }
   | { kind: "h2"; text: string }
   | { kind: "h3"; text: string }
-  | { kind: "quote"; text: string; arabic?: string; source?: string }
+  | { kind: "quote"; text: string; arabic?: string; source?: string; tint?: string }
   | { kind: "plain_quote"; text: string; source?: string }
   | { kind: "callout"; text: string }
   | { kind: "list"; items: string[]; ordered?: boolean }
