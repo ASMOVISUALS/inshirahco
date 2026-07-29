@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, Shuffle, LayoutGrid } from "lucide-react";
+import { Trash2, Plus, Pencil, Shuffle, LayoutGrid, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
