@@ -589,7 +589,6 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "support_body", label: "Support panel body", kind: "textarea", rows: 4 },
     { key: "support_footnote", label: "Support panel footnote", kind: "text" },
   ],
-  resources_library: [],
 };
 
 function Field({ field, value, onChange }: { field: FieldDef; value: unknown; onChange: (v: unknown) => void }) {

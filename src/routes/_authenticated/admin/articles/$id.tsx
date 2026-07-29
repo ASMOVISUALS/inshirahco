@@ -28,7 +28,7 @@ import {
   Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBlock } from "@/lib/content";
+import { PILLARS, type Pillar, type ContentBlock } from "@/lib/content";
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
 import { QuranFetcher } from "@/components/QuranFetcher";
@@ -94,7 +94,7 @@ function makeByLabel(label: string): ContentBlock | null {
 /* ---------------- root ---------------- */
 
 type Form = {
-  slug: string; title: string; description: string; pillar: Pillar; type: ResourceType;
+  slug: string; title: string; description: string; pillar: Pillar;
   author_name: string; author_role: string; tags: string;
   blocks: ContentBlock[]; published: boolean; downloadable: boolean;
 };
@@ -150,7 +150,6 @@ function EditArticle() {
         description: next.description,
         pillar: next.pillar,
         pillar_id: p.id,
-        type: next.type,
         read_time: readTimeFrom(next.blocks),
         author_name: next.author_name,
         author_role: next.author_role || null,
@@ -171,7 +170,6 @@ function EditArticle() {
   if (isLoading || !form) return <p className="text-muted-foreground">Loading…</p>;
 
   const pillar = PILLARS[form.pillar];
-  const type = RESOURCE_TYPES[form.type];
 
   if (mode === "body") {
     return (
@@ -226,7 +224,6 @@ function EditArticle() {
             setForm={setForm}
             editing={mode === "meta"}
             pillar={pillar}
-            type={type}
             authorAvatar={authorProfile?.avatar_url ?? null}
           />
         </div>
@@ -256,7 +253,7 @@ function EditArticle() {
 }
 
 function formFromRow(data: {
-  slug: string; title: string; description: string; pillar: string; type: string;
+  slug: string; title: string; description: string; pillar: string;
   author_name: string; author_role: string | null; tags: string[]; body: unknown;
   published: boolean; downloadable: boolean;
 }): Form {
@@ -265,7 +262,6 @@ function formFromRow(data: {
     title: data.title,
     description: data.description,
     pillar: data.pillar as Pillar,
-    type: data.type as ResourceType,
     author_name: data.author_name,
     author_role: data.author_role ?? "",
     tags: (data.tags ?? []).join(", "),
@@ -312,13 +308,12 @@ function SectionEditBar({
 /* ---------------- Meta block ---------------- */
 
 function MetaBlock({
-  form, setForm, editing, pillar, type, authorAvatar,
+  form, setForm, editing, pillar, authorAvatar,
 }: {
   form: Form;
   setForm: (f: Form) => void;
   editing: boolean;
   pillar: (typeof PILLARS)[Pillar];
-  type: (typeof RESOURCE_TYPES)[ResourceType];
   authorAvatar: string | null;
 }) {
   return (
@@ -375,16 +370,6 @@ function MetaBlock({
         </div>
         <span className="text-muted-foreground">·</span>
         <span className="text-muted-foreground">{readTimeFrom(form.blocks)}</span>
-        <span className="text-muted-foreground">·</span>
-        <EditableInline editing={editing}>
-          {editing ? (
-            <select className="rounded-pill border border-input bg-background px-3 py-1 font-semibold" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as ResourceType })}>
-              {Object.entries(RESOURCE_TYPES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
-            </select>
-          ) : (
-            <span className="rounded-pill border border-border px-3 py-1 font-semibold">{type.label}</span>
-          )}
-        </EditableInline>
       </div>
 
       {editing && (

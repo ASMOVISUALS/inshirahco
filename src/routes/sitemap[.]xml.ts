@@ -22,7 +22,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           },
         });
         const { data } = await client.from("articles").select("slug").eq("published", true).is("archived_at", null).limit(1000);
-        const staticPaths = ["/", "/tadabbur", "/tazkiyah", "/youth", "/suhbah", "/resources", "/about", "/contact"];
+        const staticPaths = ["/", "/tadabbur", "/tazkiyah", "/youth", "/suhbah", "/about", "/contact"];
         const dynamicPaths = (data ?? []).map((c) => `/read/${c.slug}`);
         const paths = [...staticPaths, ...dynamicPaths];
         const urls = paths.map((p) => `  <url><loc>${BASE_URL}${p}</loc><changefreq>weekly</changefreq></url>`);

@@ -71,8 +71,7 @@ export function SiteFooter() {
               <FooterLink key={p.slug} to={p.href}>{p.label}</FooterLink>
             ))}
           </FooterCol>
-          <FooterCol title="Resources">
-            <FooterLink to="/resources">All resources</FooterLink>
+          <FooterCol title="Library">
             <FooterLink to="/saved">Your saved</FooterLink>
           </FooterCol>
           <FooterCol title="Inshirah">

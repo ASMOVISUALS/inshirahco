@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { Bookmark, Copy, Check, Download } from "lucide-react";
-import { PILLARS, RESOURCE_TYPES, type ContentItem } from "@/lib/content";
+import { PILLARS, type ContentItem } from "@/lib/content";
 import { articleBySlugQuery, articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
@@ -54,13 +54,13 @@ export const Route = createFileRoute("/read/$slug")({
     <div className="container-wide py-24 text-center">
       <h1 className="text-4xl">This piece isn't here</h1>
       <p className="mt-3 text-muted-foreground">It may have moved, or never quite existed.</p>
-      <Link to="/resources" className="btn-primary mt-6">Browse resources</Link>
+      <Link to="/" className="btn-primary mt-6">Back home</Link>
     </div>
   ),
   errorComponent: () => (
     <div className="container-wide py-24 text-center">
       <h1 className="text-4xl">Something went sideways</h1>
-      <Link to="/resources" className="btn-primary mt-6">Browse resources</Link>
+      <Link to="/" className="btn-primary mt-6">Back home</Link>
     </div>
   ),
 });
@@ -68,7 +68,6 @@ export const Route = createFileRoute("/read/$slug")({
 function Detail() {
   const { item } = Route.useLoaderData() as { item: ContentItem };
   const pillar = PILLARS[item.pillar];
-  const type = RESOURCE_TYPES[item.type];
   const { data: all = [] } = useQuery(articlesQuery());
   const related = all.filter((c) => c.pillar === item.pillar && c.slug !== item.slug).slice(0, 3);
   const { data: authorProfile } = useQuery({
@@ -147,7 +146,6 @@ function Detail() {
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground">{item.readTime}</span>
             <span className="text-muted-foreground">·</span>
-            <span className="rounded-pill border border-border px-3 py-1 font-semibold">{type.label}</span>
 
             <button
               onClick={() => toggle(item.slug)}

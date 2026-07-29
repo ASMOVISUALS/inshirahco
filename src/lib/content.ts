@@ -1,4 +1,4 @@
-// Static UI config (pillars/formats) + type definitions.
+// Static UI config (pillars) + type definitions.
 // Actual editorial content (articles, reflections, testimonials) lives in Supabase.
 
 export type Pillar =
@@ -7,16 +7,6 @@ export type Pillar =
   | "youth"
   | "suhbah";
 
-export type ResourceType =
-  | "article"
-  | "reflection"
-  | "blog"
-  | "video"
-  | "podcast"
-  | "book"
-  | "course"
-  | "tadabbur"
-  | "worksheet";
 
 export type ContentBlock =
   | { kind: "p"; text: string }
@@ -41,7 +31,7 @@ export interface ContentItem {
   title: string;
   description: string;
   pillar: Pillar;
-  type: ResourceType;
+  
   readTime?: string;
   date: string; // ISO
   author: { name: string; role?: string };
@@ -85,17 +75,6 @@ export const PILLARS: Record<Pillar, { label: string; short: string; letter: str
   },
 };
 
-export const RESOURCE_TYPES: Record<ResourceType, { label: string; plural: string; letter: string }> = {
-  article: { label: "Article", plural: "Articles", letter: "م" },
-  reflection: { label: "Reflection", plural: "Reflections", letter: "ت" },
-  blog: { label: "Blog post", plural: "Blog posts", letter: "و" },
-  video: { label: "Video", plural: "Videos", letter: "ف" },
-  podcast: { label: "Podcast", plural: "Podcasts", letter: "ص" },
-  book: { label: "Book", plural: "Books", letter: "ك" },
-  course: { label: "Course", plural: "Courses", letter: "د" },
-  tadabbur: { label: "Tadabbur", plural: "Tadabbur", letter: "ن" },
-  worksheet: { label: "Worksheet", plural: "Worksheets", letter: "ع" },
-};
 
 // Map a raw articles row from Supabase into the UI's ContentItem shape.
 export function mapArticleRow(row: {
@@ -103,7 +82,7 @@ export function mapArticleRow(row: {
   title: string;
   description: string;
   pillar: string;
-  type: string;
+  
   read_time: string | null;
   author_name: string;
   author_role: string | null;
@@ -117,7 +96,7 @@ export function mapArticleRow(row: {
     title: row.title,
     description: row.description,
     pillar: row.pillar as Pillar,
-    type: row.type as ResourceType,
+    
     readTime: row.read_time ?? undefined,
     author: { name: row.author_name, role: row.author_role ?? undefined },
     tags: row.tags ?? [],

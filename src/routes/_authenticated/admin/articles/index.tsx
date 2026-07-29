@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
+import { PILLARS, type Pillar } from "@/lib/content";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
 import { SortBar } from "@/components/admin/SortBar";
 
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin/articles/")({
 });
 
 type Row = {
-  id: string; slug: string; title: string; pillar: string; type: string;
+  id: string; slug: string; title: string; pillar: string;
   published: boolean; published_at: string | null; archived_at: string | null;
   created_at: string; last_published_at: string | null;
 };
@@ -28,7 +28,7 @@ function ArticlesList() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id,slug,title,pillar,type,published,published_at,archived_at,created_at,last_published_at")
+        .select("id,slug,title,pillar,published,published_at,archived_at,created_at,last_published_at")
         .order("published_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -65,7 +65,7 @@ function ArticlesList() {
         .from("articles")
         .insert({
           slug, title: "Untitled article", description: "",
-          pillar: pillar.slug, pillar_id: pillar.id, type: "article",
+          pillar: pillar.slug, pillar_id: pillar.id,
           read_time: "1 min", author_name: "Inshirah", tags: [],
           body: [], published: false,
         })
@@ -144,7 +144,6 @@ function ArticlesList() {
               <tr>
                 <th className="px-4 py-3 font-semibold">Title</th>
                 <th className="px-4 py-3 font-semibold">Pillar</th>
-                <th className="px-4 py-3 font-semibold">Format</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -161,7 +160,6 @@ function ArticlesList() {
                     <p className="text-xs text-muted-foreground">/{a.slug}</p>
                   </td>
                   <td className="px-4 py-3">{PILLARS[a.pillar as Pillar]?.short ?? a.pillar}</td>
-                  <td className="px-4 py-3">{RESOURCE_TYPES[a.type as ResourceType]?.label ?? a.type}</td>
                   <td className="px-4 py-3">
                     <span
                       className="rounded-pill px-3 py-1 text-xs font-bold"
@@ -219,7 +217,7 @@ function ArticlesList() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                   {tab === "active" ? "No articles yet." : "Archive is empty."}
                 </td></tr>
               )}
