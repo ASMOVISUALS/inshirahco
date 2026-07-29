@@ -121,6 +121,8 @@ export interface FormatRow {
   arabic_letter: string;
   tint: string;
   sort_order: number;
+  show_in_menu: boolean;
+  show_on_site: boolean;
 }
 
 export const pillarsQuery = () =>
@@ -143,12 +145,70 @@ export const formatsQuery = () =>
     queryFn: async (): Promise<FormatRow[]> => {
       const { data, error } = await supabase
         .from("resource_formats")
-        .select("slug,label,plural,arabic_letter,tint,sort_order")
+        .select("slug,label,plural,arabic_letter,tint,sort_order,show_in_menu,show_on_site")
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as FormatRow[];
+      return ((data ?? []) as unknown as Array<Partial<FormatRow>>).map((r) => ({
+        slug: r.slug ?? "",
+        label: r.label ?? "",
+        plural: r.plural ?? "",
+        arabic_letter: r.arabic_letter ?? "",
+        tint: r.tint ?? "heart",
+        sort_order: r.sort_order ?? 0,
+        show_in_menu: r.show_in_menu ?? true,
+        show_on_site: r.show_on_site ?? true,
+      }));
     },
     staleTime: 5 * 60_000,
+  });
+
+// ============ Series ============
+
+export type SeriesStatus = "published" | "hidden" | "coming_soon";
+
+export interface SeriesRow {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  pillar: string | null;
+  cover_image: string | null;
+  arabic_letter: string;
+  tint: string;
+  sort_order: number;
+  status: SeriesStatus;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const seriesQuery = (opts: { includeArchived?: boolean } = {}) =>
+  queryOptions({
+    queryKey: ["cms", "series", opts.includeArchived ? "all" : "active"],
+    queryFn: async (): Promise<SeriesRow[]> => {
+      const base = supabase.from("series" as never).select("*");
+      const q = opts.includeArchived ? base : base.is("archived_at", null);
+      const { data, error } = await q.order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as SeriesRow[];
+    },
+    staleTime: 60_000,
+  });
+
+export const publicSeriesQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "series", "public"],
+    queryFn: async (): Promise<SeriesRow[]> => {
+      const { data, error } = await supabase
+        .from("series" as never)
+        .select("*")
+        .eq("status", "published")
+        .is("archived_at", null)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as SeriesRow[];
+    },
+    staleTime: 60_000,
   });
 
 export type PageContent = Record<string, unknown>;
