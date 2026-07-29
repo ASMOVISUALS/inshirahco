@@ -8,7 +8,7 @@ import { LetterMark } from "./LetterMark";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
-import { usePillars, useFormats } from "@/hooks/use-cms";
+import { usePillars, useMenuFormats } from "@/hooks/use-cms";
 
 import { SearchOverlay } from "./SearchOverlay";
 
@@ -23,7 +23,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
   const pillars = usePillars();
-  const formats = useFormats();
+  const formats = useMenuFormats();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const megaRef = useRef<HTMLDivElement>(null);

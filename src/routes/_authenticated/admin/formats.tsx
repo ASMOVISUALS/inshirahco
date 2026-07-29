@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil } from "lucide-react";
+import { Pencil, Eye, EyeOff, Menu as MenuIcon, MenuSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArabicLetterPicker, TintSelect, TINT_OPTIONS } from "@/components/ArabicLetterPicker";
 
@@ -17,6 +17,8 @@ interface Row {
   arabic_letter: string;
   tint: string;
   sort_order: number;
+  show_in_menu: boolean;
+  show_on_site: boolean;
 }
 
 function tintColor(tint: string): string {
@@ -29,9 +31,14 @@ function FormatsAdmin() {
     queryKey: ["admin", "formats"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("resource_formats").select("*").order("sort_order");
+        .from("resource_formats")
+        .select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return ((data ?? []) as unknown as Row[]).map((r) => ({
+        ...r,
+        show_in_menu: r.show_in_menu ?? true,
+        show_on_site: r.show_on_site ?? true,
+      }));
     },
   });
 
@@ -44,7 +51,9 @@ function FormatsAdmin() {
         label: row.label, plural: row.plural,
         arabic_letter: row.arabic_letter, tint: row.tint,
         sort_order: row.sort_order,
-      }).eq("slug", row.slug);
+        show_in_menu: row.show_in_menu,
+        show_on_site: row.show_on_site,
+      } as never).eq("slug", row.slug);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -52,6 +61,17 @@ function FormatsAdmin() {
       qc.invalidateQueries({ queryKey: ["cms", "formats"] });
       setEditing(null);
       setSelected(null);
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async (p: { slug: string; field: "show_in_menu" | "show_on_site"; value: boolean }) => {
+      const { error } = await supabase.from("resource_formats").update({ [p.field]: p.value } as never).eq("slug", p.slug);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "formats"] });
+      qc.invalidateQueries({ queryKey: ["cms", "formats"] });
     },
   });
 
@@ -127,10 +147,28 @@ function FormatsAdmin() {
 
               {isSelected && (
                 <div
-                  className="mt-4 flex justify-end border-t pt-3"
+                  className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-3"
                   style={{ borderColor: `color-mix(in oklab, ${color} 25%, transparent)` }}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <ToggleChip
+                    active={r.show_in_menu}
+                    color={color}
+                    onIcon={MenuSquare}
+                    offIcon={MenuIcon}
+                    label={r.show_in_menu ? "In menu" : "Not in menu"}
+                    disabled={!r.show_on_site || toggle.isPending}
+                    onClick={() => toggle.mutate({ slug: r.slug, field: "show_in_menu", value: !r.show_in_menu })}
+                  />
+                  <ToggleChip
+                    active={r.show_on_site}
+                    color={color}
+                    onIcon={Eye}
+                    offIcon={EyeOff}
+                    label={r.show_on_site ? "On site" : "Off site"}
+                    disabled={toggle.isPending}
+                    onClick={() => toggle.mutate({ slug: r.slug, field: "show_on_site", value: !r.show_on_site })}
+                  />
                   <button
                     type="button"
                     onClick={() => { setEditing(r); setSelected(null); }}
@@ -234,5 +272,35 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
       <span className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+function ToggleChip({
+  active, color, onIcon: OnIcon, offIcon: OffIcon, label, onClick, disabled,
+}: {
+  active: boolean;
+  color: string;
+  onIcon: React.ComponentType<{ className?: string }>;
+  offIcon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const Icon = active ? OnIcon : OffIcon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-opacity disabled:opacity-40"
+      style={
+        active
+          ? { background: `color-mix(in oklab, ${color} 22%, transparent)`, borderColor: `color-mix(in oklab, ${color} 55%, transparent)`, color: `color-mix(in oklab, ${color} 70%, var(--ink))` }
+          : { background: "transparent", borderColor: "var(--border)", color: "var(--muted-foreground)" }
+      }
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </button>
   );
 }

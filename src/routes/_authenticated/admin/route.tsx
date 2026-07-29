@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Archive,
   Settings,
+  Layers,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +42,7 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     label: "Content",
     items: [
       { title: "Articles", url: "/admin/articles", icon: FileText },
+      { title: "Series", url: "/admin/series", icon: Layers },
       { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
       { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
     ],
