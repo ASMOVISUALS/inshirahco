@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
@@ -14,6 +14,10 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useAuthAccess } from "@/lib/auth-access";
+import { useAuth } from "@/hooks/use-auth";
+import { signOutCompletely } from "@/lib/auth";
+import { hasAdminRoleQuery } from "@/lib/queries";
 
 function NotFoundComponent() {
   return (
@@ -117,6 +121,7 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthAccessEnforcer />
       <div className="flex min-h-screen flex-col">
         {!isBuilder && <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />}
         <main className="flex-1">
@@ -127,4 +132,24 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+function AuthAccessEnforcer() {
+  const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const access = useAuthAccess();
+  const { user } = useAuth();
+  const { data: isAdmin, isPending: adminPending } = useQuery(hasAdminRoleQuery(user?.id ?? null));
+  useEffect(() => {
+    if (!user) return;
+    if (access.signinEnabled) return;
+    // Admins keep access while public sign-in is locked.
+    if (adminPending || isAdmin) return;
+    void signOutCompletely({
+      queryClient,
+      navigate: (opts) => router.navigate(opts),
+    });
+  }, [access.signinEnabled, user, isAdmin, adminPending, queryClient, router]);
+  return null;
+}
+
 

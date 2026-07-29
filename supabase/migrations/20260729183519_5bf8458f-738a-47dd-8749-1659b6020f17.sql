@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.ayahs_surah_ayah_unique;

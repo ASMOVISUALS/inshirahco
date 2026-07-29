@@ -4,9 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { articlesQuery, testimonialsQuery, pageContentQuery, pageStatusQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { LetterMark } from "@/components/LetterMark";
-import { MediaCarousel } from "@/components/MediaCarousel";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { ReflectionOfTheDay } from "@/components/ReflectionOfTheDay";
+import { VerseOfTheWeek } from "@/components/VerseOfTheWeek";
 import { usePillars } from "@/hooks/use-cms";
 import { PageRenderer, isBlockArray, type Block } from "@/lib/page-blocks";
 import { SystemTemplate } from "@/components/SystemTemplate";
@@ -52,7 +51,6 @@ function HomeContent() {
   const page = data.content ?? {};
   const pillars = usePillars();
   const latest = content.slice(0, 3);
-  const media = content.filter((c) => c.type === "video" || c.type === "podcast" || c.type === "tadabbur");
 
   const s = (k: string, fallback = "") => (page[k] as string) ?? fallback;
 
@@ -93,7 +91,7 @@ function HomeContent() {
             {s("hero_description", "Slow writing on Qur'anic reflection, tazkiyah, and the quiet architecture of a life lived in remembrance.")}
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <a href={s("hero_cta_primary_href", "/quranic-reflections")} className="btn-primary">
+            <a href={s("hero_cta_primary_href", "/tadabbur")} className="btn-primary">
               {s("hero_cta_primary_label", "Start reading")} <ArrowRight className="h-4 w-4" />
             </a>
             <a href={s("hero_cta_secondary_href", "/about")} className="btn-ghost">{s("hero_cta_secondary_label", "Our story")}</a>
@@ -144,9 +142,6 @@ function HomeContent() {
             <p className="eyebrow">{s("latest_eyebrow", "Latest writing")}</p>
             <h2 className="mt-3 text-4xl md:text-5xl">{s("latest_title", "Recently, from us to you")}</h2>
           </div>
-          <Link to="/resources" className="hidden text-sm font-bold hover:underline md:inline-flex items-center gap-1" style={{ color: "var(--heart)" }}>
-            All writing <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {latest.map((item) => (
@@ -156,18 +151,8 @@ function HomeContent() {
       </section>
 
       <section className="container-wide py-16 md:py-24">
-        <ReflectionOfTheDay />
+        <VerseOfTheWeek />
       </section>
-
-      {media.length > 0 && (
-        <section className="container-wide py-8 md:py-16">
-          <div className="mb-8">
-            <p className="eyebrow">{s("media_eyebrow", "Listen & watch")}</p>
-            <h2 className="mt-3 text-4xl md:text-5xl">{s("media_title", "Voices from the project")}</h2>
-          </div>
-          <MediaCarousel items={media} />
-        </section>
-      )}
 
       {testimonials.length > 0 && (
         <section className="container-wide py-16 md:py-24">

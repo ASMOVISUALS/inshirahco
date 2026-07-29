@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Pencil, Trash2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType } from "@/lib/content";
+import { PILLARS, type Pillar } from "@/lib/content";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
+import { SortBar } from "@/components/admin/SortBar";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/")({
   head: () => ({ meta: [{ title: "Articles — Admin", }, { name: "robots", content: "noindex" }] }),
@@ -12,9 +13,12 @@ export const Route = createFileRoute("/_authenticated/admin/articles/")({
 });
 
 type Row = {
-  id: string; slug: string; title: string; pillar: string; type: string;
+  id: string; slug: string; title: string; pillar: string;
   published: boolean; published_at: string | null; archived_at: string | null;
+  created_at: string; last_published_at: string | null;
 };
+
+type SortKey = "last_published" | "published" | "created";
 
 function ArticlesList() {
   const qc = useQueryClient();
@@ -24,7 +28,7 @@ function ArticlesList() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("id,slug,title,pillar,type,published,published_at,archived_at")
+        .select("id,slug,title,pillar,published,published_at,archived_at,created_at,last_published_at")
         .order("published_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -32,11 +36,17 @@ function ArticlesList() {
   });
 
   const [tab, setTab] = useState<ArchiveTab>("active");
+  const [sort, setSort] = useState<SortKey>("last_published");
   const { active, archived } = useMemo(() => ({
     active: data.filter((r) => !r.archived_at),
     archived: data.filter((r) => r.archived_at),
   }), [data]);
-  const rows = tab === "active" ? active : archived;
+  const base = tab === "active" ? active : archived;
+  const rows = useMemo(() => {
+    const key = (r: Row) =>
+      sort === "created" ? r.created_at : sort === "published" ? r.published_at : r.last_published_at;
+    return [...base].sort((x, y) => (key(y) ?? "").localeCompare(key(x) ?? ""));
+  }, [base, sort]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-articles"] });
@@ -46,11 +56,16 @@ function ArticlesList() {
   const createNew = useMutation({
     mutationFn: async () => {
       const slug = `new-article-${Date.now().toString(36)}`;
+      // Resolve default pillar (tadabbur) id for the required FK.
+      const { data: pillar, error: pErr } = await supabase
+        .from("pillars").select("id,slug").eq("slug", "tadabbur").maybeSingle();
+      if (pErr) throw pErr;
+      if (!pillar) throw new Error("Default pillar 'tadabbur' not found.");
       const { data, error } = await supabase
         .from("articles")
         .insert({
           slug, title: "Untitled article", description: "",
-          pillar: "quranic-reflections", type: "article",
+          pillar: pillar.slug, pillar_id: pillar.id,
           read_time: "1 min", author_name: "Inshirah", tags: [],
           body: [], published: false,
         })
@@ -64,8 +79,12 @@ function ArticlesList() {
 
   const togglePublish = useMutation({
     mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
-      const patch: { published: boolean; published_at?: string } = { published };
-      if (published) patch.published_at = new Date().toISOString();
+      const patch: { published: boolean; published_at?: string; last_published_at?: string } = { published };
+      if (published) {
+        const now = new Date().toISOString();
+        patch.published_at = now;
+        patch.last_published_at = now;
+      }
       const { error } = await supabase.from("articles").update(patch).eq("id", id);
       if (error) throw error;
     },
@@ -102,6 +121,15 @@ function ArticlesList() {
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-display">Articles</h2>
           <ArchiveTabs tab={tab} onChange={setTab} activeCount={active.length} archiveCount={archived.length} />
+          <SortBar
+            value={sort}
+            onChange={setSort}
+            options={[
+              { value: "last_published", label: "Last published" },
+              { value: "published", label: "Publish date" },
+              { value: "created", label: "Date created" },
+            ]}
+          />
         </div>
         {tab === "active" && (
           <button onClick={() => createNew.mutate()} className="btn-primary">Add an article</button>
@@ -116,7 +144,6 @@ function ArticlesList() {
               <tr>
                 <th className="px-4 py-3 font-semibold">Title</th>
                 <th className="px-4 py-3 font-semibold">Pillar</th>
-                <th className="px-4 py-3 font-semibold">Format</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -133,7 +160,6 @@ function ArticlesList() {
                     <p className="text-xs text-muted-foreground">/{a.slug}</p>
                   </td>
                   <td className="px-4 py-3">{PILLARS[a.pillar as Pillar]?.short ?? a.pillar}</td>
-                  <td className="px-4 py-3">{RESOURCE_TYPES[a.type as ResourceType]?.label ?? a.type}</td>
                   <td className="px-4 py-3">
                     <span
                       className="rounded-pill px-3 py-1 text-xs font-bold"
@@ -191,7 +217,7 @@ function ArticlesList() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                   {tab === "active" ? "No articles yet." : "Archive is empty."}
                 </td></tr>
               )}

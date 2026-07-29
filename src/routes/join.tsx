@@ -5,6 +5,9 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { LetterMark } from "@/components/LetterMark";
 import { supabase } from "@/integrations/supabase/client";
 import { siteUrl } from "@/lib/site-url";
+import { useAuthAccess } from "@/lib/auth-access";
+import { AccessLocked } from "@/components/AccessLocked";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -45,6 +48,7 @@ type Step = 1 | 2 | 3;
 
 function JoinPage() {
   const navigate = useNavigate();
+  const access = useAuthAccess();
   const [step, setStep] = useState<Step>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,6 +62,23 @@ function JoinPage() {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const progress = useMemo(() => (done ? 100 : (step / 3) * 100), [step, done]);
+
+  if (!access.signupEnabled) {
+    return (
+      <AccessLocked
+        eyebrow="Join Inshirah"
+        title="Exclusive access"
+        message="New accounts are closed for now. Sign up for the letter to be the first to know when we open the doors again."
+      >
+        <NewsletterSignup
+          heading="Be the first to know"
+          description="A short note when new sign-ups reopen — nothing else."
+          cta="Notify me"
+          source="join-locked"
+        />
+      </AccessLocked>
+    );
+  }
 
   const goNext = async () => {
     setErrors({});

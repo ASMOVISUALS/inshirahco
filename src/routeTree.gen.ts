@@ -9,14 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as YoungHeartsRouteImport } from './routes/young-hearts'
-import { Route as TazkiyahToolkitRouteImport } from './routes/tazkiyah-toolkit'
+import { Route as YouthRouteImport } from './routes/youth'
+import { Route as VerseRouteImport } from './routes/verse'
+import { Route as TazkiyahRouteImport } from './routes/tazkiyah'
+import { Route as TadabburRouteImport } from './routes/tadabbur'
+import { Route as SuhbahRouteImport } from './routes/suhbah'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
-import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as QuranicReflectionsRouteImport } from './routes/quranic-reflections'
-import { Route as LifeArchitectureRouteImport } from './routes/life-architecture'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -31,11 +31,13 @@ import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
+import { Route as AuthenticatedAdminVersesRouteImport } from './routes/_authenticated/admin/verses'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
+import { Route as AuthenticatedAdminSeriesRouteImport } from './routes/_authenticated/admin/series'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
-import { Route as AuthenticatedAdminFormatsRouteImport } from './routes/_authenticated/admin/formats'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
 import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
 import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
@@ -45,14 +47,29 @@ import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminPillarsSlugEditRouteImport } from './routes/_authenticated/admin/pillars.$slug.edit'
 import { Route as AuthenticatedAdminPagesKeyBuilderRouteImport } from './routes/_authenticated/admin/pages.$key.builder'
 
-const YoungHeartsRoute = YoungHeartsRouteImport.update({
-  id: '/young-hearts',
-  path: '/young-hearts',
+const YouthRoute = YouthRouteImport.update({
+  id: '/youth',
+  path: '/youth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TazkiyahToolkitRoute = TazkiyahToolkitRouteImport.update({
-  id: '/tazkiyah-toolkit',
-  path: '/tazkiyah-toolkit',
+const VerseRoute = VerseRouteImport.update({
+  id: '/verse',
+  path: '/verse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TazkiyahRoute = TazkiyahRouteImport.update({
+  id: '/tazkiyah',
+  path: '/tazkiyah',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TadabburRoute = TadabburRouteImport.update({
+  id: '/tadabbur',
+  path: '/tadabbur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuhbahRoute = SuhbahRouteImport.update({
+  id: '/suhbah',
+  path: '/suhbah',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -65,24 +82,9 @@ const SavedRoute = SavedRouteImport.update({
   path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResourcesRoute = ResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuranicReflectionsRoute = QuranicReflectionsRouteImport.update({
-  id: '/quranic-reflections',
-  path: '/quranic-reflections',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LifeArchitectureRoute = LifeArchitectureRouteImport.update({
-  id: '/life-architecture',
-  path: '/life-architecture',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinRoute = JoinRouteImport.update({
@@ -157,6 +159,12 @@ const AuthenticatedProfileEditRoute =
     path: '/edit',
     getParentRoute: () => AuthenticatedProfileRouteRoute,
   } as any)
+const AuthenticatedAdminVersesRoute =
+  AuthenticatedAdminVersesRouteImport.update({
+    id: '/verses',
+    path: '/verses',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminTestimonialsRoute =
   AuthenticatedAdminTestimonialsRouteImport.update({
     id: '/testimonials',
@@ -169,6 +177,18 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminSeriesRoute =
+  AuthenticatedAdminSeriesRouteImport.update({
+    id: '/series',
+    path: '/series',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminReflectionsRoute =
   AuthenticatedAdminReflectionsRouteImport.update({
     id: '/reflections',
@@ -179,12 +199,6 @@ const AuthenticatedAdminNewsletterRoute =
   AuthenticatedAdminNewsletterRouteImport.update({
     id: '/newsletter',
     path: '/newsletter',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminFormatsRoute =
-  AuthenticatedAdminFormatsRouteImport.update({
-    id: '/formats',
-    path: '/formats',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
@@ -242,25 +256,27 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
+  '/youth': typeof YouthRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
@@ -278,23 +294,25 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
+  '/youth': typeof YouthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -314,25 +332,27 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/contact': typeof ContactRoute
   '/join': typeof JoinRoute
-  '/life-architecture': typeof LifeArchitectureRoute
-  '/quranic-reflections': typeof QuranicReflectionsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/resources': typeof ResourcesRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/tazkiyah-toolkit': typeof TazkiyahToolkitRoute
-  '/young-hearts': typeof YoungHeartsRoute
+  '/suhbah': typeof SuhbahRoute
+  '/tadabbur': typeof TadabburRoute
+  '/tazkiyah': typeof TazkiyahRoute
+  '/verse': typeof VerseRoute
+  '/youth': typeof YouthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
-  '/_authenticated/admin/formats': typeof AuthenticatedAdminFormatsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/_authenticated/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
@@ -352,25 +372,27 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/verse'
+    | '/youth'
     | '/admin'
     | '/profile'
     | '/auth/callback'
     | '/read/$slug'
     | '/admin/archive'
     | '/admin/faqs'
-    | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
+    | '/admin/reports'
+    | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/admin/verses'
     | '/profile/edit'
     | '/admin/'
     | '/profile/'
@@ -388,23 +410,25 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/verse'
+    | '/youth'
     | '/auth/callback'
     | '/read/$slug'
     | '/admin/archive'
     | '/admin/faqs'
-    | '/admin/formats'
     | '/admin/newsletter'
     | '/admin/reflections'
+    | '/admin/reports'
+    | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/admin/verses'
     | '/profile/edit'
     | '/admin'
     | '/profile'
@@ -423,25 +447,27 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/join'
-    | '/life-architecture'
-    | '/quranic-reflections'
     | '/reset-password'
-    | '/resources'
     | '/saved'
     | '/sitemap.xml'
-    | '/tazkiyah-toolkit'
-    | '/young-hearts'
+    | '/suhbah'
+    | '/tadabbur'
+    | '/tazkiyah'
+    | '/verse'
+    | '/youth'
     | '/_authenticated/admin'
     | '/_authenticated/profile'
     | '/auth/callback'
     | '/read/$slug'
     | '/_authenticated/admin/archive'
     | '/_authenticated/admin/faqs'
-    | '/_authenticated/admin/formats'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/reflections'
+    | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/series'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
+    | '/_authenticated/admin/verses'
     | '/_authenticated/profile/edit'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
@@ -461,31 +487,52 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ContactRoute: typeof ContactRoute
   JoinRoute: typeof JoinRoute
-  LifeArchitectureRoute: typeof LifeArchitectureRoute
-  QuranicReflectionsRoute: typeof QuranicReflectionsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ResourcesRoute: typeof ResourcesRoute
   SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  TazkiyahToolkitRoute: typeof TazkiyahToolkitRoute
-  YoungHeartsRoute: typeof YoungHeartsRoute
+  SuhbahRoute: typeof SuhbahRoute
+  TadabburRoute: typeof TadabburRoute
+  TazkiyahRoute: typeof TazkiyahRoute
+  VerseRoute: typeof VerseRoute
+  YouthRoute: typeof YouthRoute
   ReadSlugRoute: typeof ReadSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/young-hearts': {
-      id: '/young-hearts'
-      path: '/young-hearts'
-      fullPath: '/young-hearts'
-      preLoaderRoute: typeof YoungHeartsRouteImport
+    '/youth': {
+      id: '/youth'
+      path: '/youth'
+      fullPath: '/youth'
+      preLoaderRoute: typeof YouthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tazkiyah-toolkit': {
-      id: '/tazkiyah-toolkit'
-      path: '/tazkiyah-toolkit'
-      fullPath: '/tazkiyah-toolkit'
-      preLoaderRoute: typeof TazkiyahToolkitRouteImport
+    '/verse': {
+      id: '/verse'
+      path: '/verse'
+      fullPath: '/verse'
+      preLoaderRoute: typeof VerseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tazkiyah': {
+      id: '/tazkiyah'
+      path: '/tazkiyah'
+      fullPath: '/tazkiyah'
+      preLoaderRoute: typeof TazkiyahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tadabbur': {
+      id: '/tadabbur'
+      path: '/tadabbur'
+      fullPath: '/tadabbur'
+      preLoaderRoute: typeof TadabburRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suhbah': {
+      id: '/suhbah'
+      path: '/suhbah'
+      fullPath: '/suhbah'
+      preLoaderRoute: typeof SuhbahRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -502,32 +549,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/resources': {
-      id: '/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof ResourcesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quranic-reflections': {
-      id: '/quranic-reflections'
-      path: '/quranic-reflections'
-      fullPath: '/quranic-reflections'
-      preLoaderRoute: typeof QuranicReflectionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/life-architecture': {
-      id: '/life-architecture'
-      path: '/life-architecture'
-      fullPath: '/life-architecture'
-      preLoaderRoute: typeof LifeArchitectureRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join': {
@@ -628,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
       parentRoute: typeof AuthenticatedProfileRouteRoute
     }
+    '/_authenticated/admin/verses': {
+      id: '/_authenticated/admin/verses'
+      path: '/verses'
+      fullPath: '/admin/verses'
+      preLoaderRoute: typeof AuthenticatedAdminVersesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/testimonials': {
       id: '/_authenticated/admin/testimonials'
       path: '/testimonials'
@@ -642,6 +675,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/series': {
+      id: '/_authenticated/admin/series'
+      path: '/series'
+      fullPath: '/admin/series'
+      preLoaderRoute: typeof AuthenticatedAdminSeriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/reflections': {
       id: '/_authenticated/admin/reflections'
       path: '/reflections'
@@ -654,13 +701,6 @@ declare module '@tanstack/react-router' {
       path: '/newsletter'
       fullPath: '/admin/newsletter'
       preLoaderRoute: typeof AuthenticatedAdminNewsletterRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/formats': {
-      id: '/_authenticated/admin/formats'
-      path: '/formats'
-      fullPath: '/admin/formats'
-      preLoaderRoute: typeof AuthenticatedAdminFormatsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/faqs': {
@@ -725,11 +765,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
-  AuthenticatedAdminFormatsRoute: typeof AuthenticatedAdminFormatsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminSeriesRoute: typeof AuthenticatedAdminSeriesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTestimonialsRoute: typeof AuthenticatedAdminTestimonialsRoute
+  AuthenticatedAdminVersesRoute: typeof AuthenticatedAdminVersesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminArticlesIdRoute: typeof AuthenticatedAdminArticlesIdRoute
   AuthenticatedAdminArticlesIndexRoute: typeof AuthenticatedAdminArticlesIndexRoute
@@ -743,11 +785,13 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
-    AuthenticatedAdminFormatsRoute: AuthenticatedAdminFormatsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
+    AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+    AuthenticatedAdminSeriesRoute: AuthenticatedAdminSeriesRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminTestimonialsRoute: AuthenticatedAdminTestimonialsRoute,
+    AuthenticatedAdminVersesRoute: AuthenticatedAdminVersesRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminArticlesIdRoute: AuthenticatedAdminArticlesIdRoute,
     AuthenticatedAdminArticlesIndexRoute: AuthenticatedAdminArticlesIndexRoute,
@@ -811,14 +855,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ContactRoute: ContactRoute,
   JoinRoute: JoinRoute,
-  LifeArchitectureRoute: LifeArchitectureRoute,
-  QuranicReflectionsRoute: QuranicReflectionsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ResourcesRoute: ResourcesRoute,
   SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  TazkiyahToolkitRoute: TazkiyahToolkitRoute,
-  YoungHeartsRoute: YoungHeartsRoute,
+  SuhbahRoute: SuhbahRoute,
+  TadabburRoute: TadabburRoute,
+  TazkiyahRoute: TazkiyahRoute,
+  VerseRoute: VerseRoute,
+  YouthRoute: YouthRoute,
   ReadSlugRoute: ReadSlugRoute,
 }
 export const routeTree = rootRouteImport

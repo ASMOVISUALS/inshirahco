@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_series: {
+        Row: {
+          article_id: string
+          created_at: string
+          position: number
+          series_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          position?: number
+          series_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          position?: number
+          series_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_series_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_series_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           archived_at: string | null
@@ -24,14 +60,15 @@ export type Database = {
           description: string
           downloadable: boolean
           id: string
+          last_published_at: string | null
           pillar: string
+          pillar_id: string
           published: boolean
           published_at: string
           read_time: string | null
           slug: string
           tags: string[]
           title: string
-          type: string
           updated_at: string
         }
         Insert: {
@@ -43,14 +80,15 @@ export type Database = {
           description: string
           downloadable?: boolean
           id?: string
+          last_published_at?: string | null
           pillar: string
+          pillar_id: string
           published?: boolean
           published_at?: string
           read_time?: string | null
           slug: string
           tags?: string[]
           title: string
-          type: string
           updated_at?: string
         }
         Update: {
@@ -62,30 +100,86 @@ export type Database = {
           description?: string
           downloadable?: boolean
           id?: string
+          last_published_at?: string | null
           pillar?: string
+          pillar_id?: string
           published?: boolean
           published_at?: string
           read_time?: string | null
           slug?: string
           tags?: string[]
           title?: string
-          type?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "articles_pillar_fkey"
-            columns: ["pillar"]
+            foreignKeyName: "articles_pillar_id_fkey"
+            columns: ["pillar_id"]
             isOneToOne: false
             referencedRelation: "pillars"
-            referencedColumns: ["slug"]
+            referencedColumns: ["id"]
           },
+        ]
+      }
+      ayahs: {
+        Row: {
+          active: boolean
+          arabic: string
+          archived_at: string | null
+          ayah_number: number | null
+          created_at: string
+          day_end: string | null
+          day_start: string | null
+          id: string
+          queue_order: number | null
+          reference: string
+          sort_order: number
+          status: string
+          surah_id: string | null
+          translation: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          arabic: string
+          archived_at?: string | null
+          ayah_number?: number | null
+          created_at?: string
+          day_end?: string | null
+          day_start?: string | null
+          id?: string
+          queue_order?: number | null
+          reference: string
+          sort_order?: number
+          status?: string
+          surah_id?: string | null
+          translation: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          arabic?: string
+          archived_at?: string | null
+          ayah_number?: number | null
+          created_at?: string
+          day_end?: string | null
+          day_start?: string | null
+          id?: string
+          queue_order?: number | null
+          reference?: string
+          sort_order?: number
+          status?: string
+          surah_id?: string | null
+          translation?: string
+          updated_at?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "articles_type_fkey"
-            columns: ["type"]
+            foreignKeyName: "ayahs_surah_id_fkey"
+            columns: ["surah_id"]
             isOneToOne: false
-            referencedRelation: "resource_formats"
-            referencedColumns: ["slug"]
+            referencedRelation: "surahs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -250,10 +344,12 @@ export type Database = {
       pillars: {
         Row: {
           arabic_letter: string
+          archived_at: string | null
           coming_soon: boolean
           created_at: string
           description: string
           href: string
+          id: string
           label: string
           short_label: string
           slug: string
@@ -263,10 +359,12 @@ export type Database = {
         }
         Insert: {
           arabic_letter: string
+          archived_at?: string | null
           coming_soon?: boolean
           created_at?: string
           description?: string
           href: string
+          id?: string
           label: string
           short_label: string
           slug: string
@@ -276,10 +374,12 @@ export type Database = {
         }
         Update: {
           arabic_letter?: string
+          archived_at?: string | null
           coming_soon?: boolean
           created_at?: string
           description?: string
           href?: string
+          id?: string
           label?: string
           short_label?: string
           slug?: string
@@ -328,71 +428,262 @@ export type Database = {
         }
         Relationships: []
       }
-      reflections: {
+      reflection_likes: {
         Row: {
-          active: boolean
-          arabic: string
-          archived_at: string | null
           created_at: string
           id: string
-          reference: string
-          sort_order: number
-          translation: string
+          reflection_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reflection_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reflection_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflection_likes_reflection_id_fkey"
+            columns: ["reflection_id"]
+            isOneToOne: false
+            referencedRelation: "reflections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reflections: {
+        Row: {
+          ayah_id: string
+          body: string
+          created_at: string
+          id: string
+          likes_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ayah_id: string
+          body: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ayah_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflections_ayah_id_fkey"
+            columns: ["ayah_id"]
+            isOneToOne: false
+            referencedRelation: "ayahs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          is_article: boolean
+          is_reflection: boolean
+          is_votw: boolean
+          message: string
+          reporter_email: string | null
+          reporter_id: string | null
+          target_id: string | null
           updated_at: string
         }
         Insert: {
-          active?: boolean
-          arabic: string
-          archived_at?: string | null
           created_at?: string
           id?: string
-          reference: string
-          sort_order?: number
-          translation: string
+          is_article?: boolean
+          is_reflection?: boolean
+          is_votw?: boolean
+          message: string
+          reporter_email?: string | null
+          reporter_id?: string | null
+          target_id?: string | null
           updated_at?: string
         }
         Update: {
-          active?: boolean
-          arabic?: string
-          archived_at?: string | null
           created_at?: string
           id?: string
-          reference?: string
-          sort_order?: number
-          translation?: string
+          is_article?: boolean
+          is_reflection?: boolean
+          is_votw?: boolean
+          message?: string
+          reporter_email?: string | null
+          reporter_id?: string | null
+          target_id?: string | null
           updated_at?: string
         }
         Relationships: []
       }
-      resource_formats: {
+      series: {
         Row: {
           arabic_letter: string
+          archived_at: string | null
+          cover_image: string | null
           created_at: string
-          label: string
-          plural: string
+          description: string
+          id: string
+          pillar: string | null
+          pillar_id: string | null
           slug: string
           sort_order: number
+          status: string
           tint: string
+          title: string
           updated_at: string
         }
         Insert: {
-          arabic_letter: string
+          arabic_letter?: string
+          archived_at?: string | null
+          cover_image?: string | null
           created_at?: string
-          label: string
-          plural: string
+          description?: string
+          id?: string
+          pillar?: string | null
+          pillar_id?: string | null
           slug: string
           sort_order?: number
+          status?: string
           tint?: string
+          title: string
           updated_at?: string
         }
         Update: {
           arabic_letter?: string
+          archived_at?: string | null
+          cover_image?: string | null
           created_at?: string
-          label?: string
-          plural?: string
+          description?: string
+          id?: string
+          pillar?: string | null
+          pillar_id?: string | null
           slug?: string
           sort_order?: number
+          status?: string
           tint?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "series_pillar_id_fkey"
+            columns: ["pillar_id"]
+            isOneToOne: false
+            referencedRelation: "pillars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setting_fields: {
+        Row: {
+          created_at: string
+          default_value: Json | null
+          field_key: string
+          field_type: string
+          group_id: string
+          help: string
+          id: string
+          label: string
+          max_value: number | null
+          min_value: number | null
+          options: Json
+          options_source: string
+          required: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_value?: Json | null
+          field_key: string
+          field_type: string
+          group_id: string
+          help?: string
+          id?: string
+          label: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json
+          options_source?: string
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_value?: Json | null
+          field_key?: string
+          field_type?: string
+          group_id?: string
+          help?: string
+          id?: string
+          label?: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json
+          options_source?: string
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setting_fields_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "setting_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setting_groups: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string | null
+          id: string
+          label: string
+          settings_key: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          label: string
+          settings_key: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string | null
+          id?: string
+          label?: string
+          settings_key?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -415,6 +706,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      surahs: {
+        Row: {
+          created_at: string
+          id: string
+          name_ar: string
+          name_en: string
+          number: number
+          updated_at: string
+          verse_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name_ar: string
+          name_en: string
+          number: number
+          updated_at?: string
+          verse_count: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+          number?: number
+          updated_at?: string
+          verse_count?: number
         }
         Relationships: []
       }
@@ -475,11 +796,90 @@ export type Database = {
         }
         Relationships: []
       }
+      verse_of_the_week: {
+        Row: {
+          ayah_id: string
+          created_at: string
+          week_start: string
+        }
+        Insert: {
+          ayah_id: string
+          created_at?: string
+          week_start: string
+        }
+        Update: {
+          ayah_id?: string
+          created_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verse_of_the_week_ayah_id_fkey"
+            columns: ["ayah_id"]
+            isOneToOne: false
+            referencedRelation: "ayahs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      votw_schedule: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          next_change_at: string | null
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string
+          next_change_at?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          next_change_at?: string | null
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      current_verse_of_the_week: {
+        Args: never
+        Returns: {
+          active: boolean
+          arabic: string
+          archived_at: string | null
+          ayah_number: number | null
+          created_at: string
+          day_end: string | null
+          day_start: string | null
+          id: string
+          queue_order: number | null
+          reference: string
+          sort_order: number
+          status: string
+          surah_id: string | null
+          translation: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ayahs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -487,6 +887,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      rotate_verse_of_the_week: { Args: never; Returns: undefined }
+      rotate_verse_of_the_week_if_due: { Args: never; Returns: undefined }
+      votw_next_friday: { Args: { _from?: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "member"

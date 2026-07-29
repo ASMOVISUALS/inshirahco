@@ -39,7 +39,7 @@ function Saved() {
           <p className="font-arabic text-5xl" style={{ color: "var(--heart)" }}>·</p>
           <h2 className="mt-4 text-2xl">No bookmarks yet</h2>
           <p className="mt-2 text-muted-foreground">Tap the bookmark icon on any article to keep it here.</p>
-          <Link to="/resources" className="btn-primary mt-6">Browse resources</Link>
+          <Link to="/" className="btn-primary mt-6">Back home</Link>
         </div>
       ) : (
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">

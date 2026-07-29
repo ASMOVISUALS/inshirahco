@@ -28,10 +28,11 @@ import {
   Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PILLARS, RESOURCE_TYPES, type Pillar, type ResourceType, type ContentBlock } from "@/lib/content";
+import { PILLARS, type Pillar, type ContentBlock } from "@/lib/content";
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
 import { QuranFetcher } from "@/components/QuranFetcher";
+import { quoteTintStyle, QUOTE_TINT_OPTIONS } from "@/lib/quote-tint";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
   head: () => ({ meta: [{ title: "Edit article — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -93,7 +94,7 @@ function makeByLabel(label: string): ContentBlock | null {
 /* ---------------- root ---------------- */
 
 type Form = {
-  slug: string; title: string; description: string; pillar: Pillar; type: ResourceType;
+  slug: string; title: string; description: string; pillar: Pillar;
   author_name: string; author_role: string; tags: string;
   blocks: ContentBlock[]; published: boolean; downloadable: boolean;
 };
@@ -138,12 +139,17 @@ function EditArticle() {
     mutationFn: async (patch: Partial<Form>) => {
       if (!form) return;
       const next = { ...form, ...patch };
+      // Resolve pillar_id from slug so the FK stays in sync when pillar is changed.
+      const { data: p, error: pErr } = await supabase
+        .from("pillars").select("id").eq("slug", next.pillar).maybeSingle();
+      if (pErr) throw pErr;
+      if (!p) throw new Error(`Pillar "${next.pillar}" not found.`);
       const { error } = await supabase.from("articles").update({
         slug: next.slug,
         title: next.title,
         description: next.description,
         pillar: next.pillar,
-        type: next.type,
+        pillar_id: p.id,
         read_time: readTimeFrom(next.blocks),
         author_name: next.author_name,
         author_role: next.author_role || null,
@@ -164,7 +170,6 @@ function EditArticle() {
   if (isLoading || !form) return <p className="text-muted-foreground">Loading…</p>;
 
   const pillar = PILLARS[form.pillar];
-  const type = RESOURCE_TYPES[form.type];
 
   if (mode === "body") {
     return (
@@ -219,7 +224,6 @@ function EditArticle() {
             setForm={setForm}
             editing={mode === "meta"}
             pillar={pillar}
-            type={type}
             authorAvatar={authorProfile?.avatar_url ?? null}
           />
         </div>
@@ -249,7 +253,7 @@ function EditArticle() {
 }
 
 function formFromRow(data: {
-  slug: string; title: string; description: string; pillar: string; type: string;
+  slug: string; title: string; description: string; pillar: string;
   author_name: string; author_role: string | null; tags: string[]; body: unknown;
   published: boolean; downloadable: boolean;
 }): Form {
@@ -258,7 +262,6 @@ function formFromRow(data: {
     title: data.title,
     description: data.description,
     pillar: data.pillar as Pillar,
-    type: data.type as ResourceType,
     author_name: data.author_name,
     author_role: data.author_role ?? "",
     tags: (data.tags ?? []).join(", "),
@@ -305,13 +308,12 @@ function SectionEditBar({
 /* ---------------- Meta block ---------------- */
 
 function MetaBlock({
-  form, setForm, editing, pillar, type, authorAvatar,
+  form, setForm, editing, pillar, authorAvatar,
 }: {
   form: Form;
   setForm: (f: Form) => void;
   editing: boolean;
   pillar: (typeof PILLARS)[Pillar];
-  type: (typeof RESOURCE_TYPES)[ResourceType];
   authorAvatar: string | null;
 }) {
   return (
@@ -368,16 +370,6 @@ function MetaBlock({
         </div>
         <span className="text-muted-foreground">·</span>
         <span className="text-muted-foreground">{readTimeFrom(form.blocks)}</span>
-        <span className="text-muted-foreground">·</span>
-        <EditableInline editing={editing}>
-          {editing ? (
-            <select className="rounded-pill border border-input bg-background px-3 py-1 font-semibold" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as ResourceType })}>
-              {Object.entries(RESOURCE_TYPES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
-            </select>
-          ) : (
-            <span className="rounded-pill border border-border px-3 py-1 font-semibold">{type.label}</span>
-          )}
-        </EditableInline>
       </div>
 
       {editing && (
@@ -1071,8 +1063,22 @@ function EditableBlock({
     );
   }
   if (block.kind === "quote") {
+    const tint = block.tint ?? "tazkiyah";
     return (
-      <blockquote className="rounded-3xl border-l-4 p-8" style={{ background: "color-mix(in oklab, var(--tazkiyah-soft) 35%, var(--paper-warm))", borderColor: "var(--tazkiyah)" }}>
+      <blockquote className="rounded-3xl border-l-4 p-8" style={quoteTintStyle(tint)}>
+        <div className="mb-3 flex items-center justify-end gap-1.5">
+          {QUOTE_TINT_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => commitPatch({ tint: o.value } as Partial<ContentBlock>)}
+              title={o.label}
+              aria-label={`Tint: ${o.label}`}
+              className={`h-5 w-5 rounded-full border-2 transition ${tint === o.value ? "border-foreground" : "border-transparent hover:border-border"}`}
+              style={{ background: o.swatch }}
+            />
+          ))}
+        </div>
         <AutoTextarea dir="rtl" className={`${base} font-arabic text-3xl leading-loose md:text-4xl`} placeholder="النص العربي (اختياري)" value={block.arabic ?? ""} onChange={(v) => set({ arabic: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ arabic: v } as Partial<ContentBlock>)} />
         <AutoTextarea className={`${base} mt-4 font-display text-xl italic md:text-2xl`} placeholder="Translation / quote" value={block.text} onChange={(v) => set({ text: v } as Partial<ContentBlock>)} onCommit={(v) => commitPatch({ text: v } as Partial<ContentBlock>)} />
         <input className={`${base} mt-3 text-sm text-muted-foreground`} placeholder="Source (e.g. Qur'an 94:5–6)" value={block.source ?? ""} onChange={(e) => set({ source: e.target.value } as Partial<ContentBlock>)} onBlur={(e) => commitPatch({ source: e.target.value } as Partial<ContentBlock>)} />

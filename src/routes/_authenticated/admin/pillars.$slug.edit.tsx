@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { consumePillarEditFlag } from "@/components/AdminPasswordGate";
+import { useAuth } from "@/hooks/use-auth";
+import { AdminPasswordGate, consumePillarEditFlag } from "@/components/AdminPasswordGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { ArabicLetterPicker, TintSelect } from "@/components/ArabicLetterPicker";
 
 export const Route = createFileRoute("/_authenticated/admin/pillars/$slug/edit")({
@@ -31,6 +40,9 @@ function PillarEdit() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteGateOpen, setDeleteGateOpen] = useState(false);
   const verifiedRef = useRef<boolean | null>(null);
   if (verifiedRef.current === null) {
     verifiedRef.current = consumePillarEditFlag(slug);
@@ -66,9 +78,11 @@ function PillarEdit() {
 
   const save = useMutation({
     mutationFn: async (row: Row) => {
+      // Match by original slug (from URL) so slug renames still target the right row.
       const { error } = await supabase
         .from("pillars")
         .update({
+          slug: row.slug,
           label: row.label,
           short_label: row.short_label,
           arabic_letter: row.arabic_letter,
@@ -78,8 +92,12 @@ function PillarEdit() {
           sort_order: row.sort_order,
           coming_soon: row.coming_soon,
         })
-        .eq("slug", row.slug);
+        .eq("slug", slug);
       if (error) throw error;
+      // If slug changed, navigate to the new URL so subsequent edits target it.
+      if (row.slug !== slug) {
+        navigate({ to: "/admin/pillars/$slug/edit", params: { slug: row.slug }, replace: true });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
@@ -89,6 +107,25 @@ function PillarEdit() {
     },
     onError: (e: unknown) => {
       setStatus({ kind: "error", text: e instanceof Error ? e.message : "Save failed." });
+    },
+  });
+
+  const archive = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("pillars")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
+      qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+      qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
+      navigate({ to: "/admin/pillars", replace: true });
+    },
+    onError: (e: unknown) => {
+      setStatus({ kind: "error", text: e instanceof Error ? e.message : "Delete failed." });
     },
   });
 
@@ -115,6 +152,14 @@ function PillarEdit() {
           <ArrowLeft className="h-4 w-4" /> Back to pillars
         </button>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            disabled={archive.isPending}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 className="h-4 w-4" /> Delete pillar
+          </Button>
           <Button variant="outline" disabled={!dirty || save.isPending} onClick={() => data && setForm(data)}>
             Cancel
           </Button>
@@ -149,8 +194,12 @@ function PillarEdit() {
           <Field label="Short label">
             <Input value={form.short_label} onChange={(e) => set("short_label", e.target.value)} />
           </Field>
-          <Field label="Slug (read-only)">
-            <Input value={form.slug} readOnly disabled />
+          <Field label="Slug (URL handle — renames cascade to articles, series, and page keys)">
+            <Input
+              value={form.slug}
+              onChange={(e) => set("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+              className="font-mono"
+            />
           </Field>
           <Field label="Arabic letter">
             <ArabicLetterPicker value={form.arabic_letter} onChange={(v) => set("arabic_letter", v)} />
@@ -188,6 +237,40 @@ function PillarEdit() {
           </Field>
         </div>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this pillar?</DialogTitle>
+            <DialogDescription>
+              Archiving <span className="font-semibold">{form.label}</span> ({form.slug}) has cascading effects across the site: its pillar page will be archived, and any menus, carousels, or lists that reference it will stop showing it. Articles and series linked to this pillar remain, but lose their pillar grouping until it's restored.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              className="border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={() => {
+                setConfirmOpen(false);
+                setDeleteGateOpen(true);
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AdminPasswordGate
+        open={deleteGateOpen}
+        onOpenChange={setDeleteGateOpen}
+        email={user?.email ?? ""}
+        onVerified={() => {
+          setDeleteGateOpen(false);
+          archive.mutate();
+        }}
+      />
     </div>
   );
 }

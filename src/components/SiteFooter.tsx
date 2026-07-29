@@ -71,14 +71,13 @@ export function SiteFooter() {
               <FooterLink key={p.slug} to={p.href}>{p.label}</FooterLink>
             ))}
           </FooterCol>
-          <FooterCol title="Resources">
-            <FooterLink to="/resources">All resources</FooterLink>
+          <FooterCol title="Library">
             <FooterLink to="/saved">Your saved</FooterLink>
           </FooterCol>
           <FooterCol title="Inshirah">
             <FooterLink to="/about">About</FooterLink>
             <FooterLink to="/contact">Contact & support</FooterLink>
-            <FooterLink to="/life-architecture">Life Architecture</FooterLink>
+            <FooterLink to="/suhbah">Suhbah</FooterLink>
           </FooterCol>
           <FooterCol title="Small print">
             <p className="text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>

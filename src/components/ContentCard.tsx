@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { Bookmark, Download } from "lucide-react";
 import type { ContentItem } from "@/lib/content";
 import { useBookmarks } from "@/hooks/use-theme";
-import { usePillarMap, useFormatMap, pillarLabel, formatLabel } from "@/hooks/use-cms";
+import { usePillarMap, pillarLabel } from "@/hooks/use-cms";
 
 const TINT_STYLES: Record<string, { grad: string }> = {
-  "quranic-reflections": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
-  "tazkiyah-toolkit": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--tazkiyah) 22%, var(--paper-warm)), color-mix(in oklab, var(--tazkiyah-soft) 60%, var(--paper-warm)))" },
-  "young-hearts": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)), color-mix(in oklab, var(--gold-decorative) 24%, var(--paper-warm)))" },
-  "life-architecture": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--gold-decorative) 30%, var(--paper-warm)), color-mix(in oklab, var(--ink) 12%, var(--paper-warm)))" },
+  "tadabbur": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart) 22%, var(--paper-warm)), color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)))" },
+  "tazkiyah": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--tazkiyah) 22%, var(--paper-warm)), color-mix(in oklab, var(--tazkiyah-soft) 60%, var(--paper-warm)))" },
+  "youth": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--heart-soft) 40%, var(--paper-warm)), color-mix(in oklab, var(--gold-decorative) 24%, var(--paper-warm)))" },
+  "suhbah": { grad: "linear-gradient(135deg, color-mix(in oklab, var(--gold-decorative) 30%, var(--paper-warm)), color-mix(in oklab, var(--ink) 12%, var(--paper-warm)))" },
 };
 
 interface Props {
@@ -18,9 +18,7 @@ interface Props {
 
 export function ContentCard({ item, compact }: Props) {
   const pillars = usePillarMap();
-  const formats = useFormatMap();
   const pillar = pillarLabel(pillars, item.pillar);
-  const type = formatLabel(formats, item.type);
   const grad = TINT_STYLES[item.pillar]?.grad;
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
@@ -54,7 +52,7 @@ export function ContentCard({ item, compact }: Props) {
 
       <div className={`flex flex-1 flex-col gap-3 p-6 ${compact ? "" : ""}`}>
         <div className="flex items-center justify-between">
-          <span className="eyebrow">{type.label} · {pillar.short_label}</span>
+          <span className="eyebrow">{pillar.short_label}</span>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); toggle(item.slug); }}

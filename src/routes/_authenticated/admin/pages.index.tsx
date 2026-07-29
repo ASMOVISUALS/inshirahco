@@ -41,9 +41,27 @@ function PagesAdmin() {
         .select("key,slug,title,is_published,status,archived_at")
         .order("key");
       if (error) throw error;
-      return (data ?? []) as PageRow[];
+      // "join" visibility is controlled by the account-access setting toggle,
+      // so it is not managed here.
+      return ((data ?? []) as PageRow[]).filter((p) => p.slug !== "join" && p.key !== "join");
     },
   });
+
+  const { data: activePillarSlugs = new Set<string>() } = useQuery({
+    queryKey: ["admin", "pillars", "active-slugs"],
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase
+        .from("pillars")
+        .select("slug,archived_at");
+      if (error) throw error;
+      return new Set(
+        (data ?? [])
+          .filter((r: { archived_at: string | null }) => !r.archived_at)
+          .map((r: { slug: string }) => r.slug),
+      );
+    },
+  });
+
 
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -59,6 +77,8 @@ function PagesAdmin() {
     | null
   >(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+  const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
+
 
   const setStatusMutation = useMutation({
     mutationFn: async (p: { key: string; next: PageStatus }) => {
@@ -132,8 +152,8 @@ function PagesAdmin() {
 
   const active = data.filter((r) => !r.archived_at);
   const archived = data.filter((r) => !!r.archived_at);
-  const core = active.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:") && r.key !== "life-architecture");
-  const pillars = active.filter((r) => r.key.startsWith("pillar:") || r.key === "life-architecture");
+  const core = active.filter((r) => !r.key.startsWith("pillar:") && !r.key.startsWith("custom:") && !r.key.startsWith("system:"));
+  const pillars = active.filter((r) => r.key.startsWith("pillar:"));
   const custom = active.filter((r) => r.key.startsWith("custom:"));
   const system = active.filter((r) => r.key.startsWith("system:"));
 
@@ -198,7 +218,7 @@ function PagesAdmin() {
             activeKey={activeKey}
             onSelect={setActiveKey}
             onStatus={(row) => setStatusOverlay({ key: row.key, current: row.status })}
-            onDelete={null}
+            onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
             onRestore={null}
             onPurge={null}
           />
@@ -250,9 +270,32 @@ function PagesAdmin() {
           onDelete={null}
           onRestore={(row) => setConfirm({ kind: "restore", key: row.key, title: row.title || row.slug })}
           onPurge={(row) => setConfirm({ kind: "purge", key: row.key, title: row.title || row.slug })}
+          isRestoreLocked={(row) => {
+            if (!row.key.startsWith("pillar:")) return false;
+            const pillarSlug = row.key.slice("pillar:".length);
+            return !activePillarSlugs.has(pillarSlug);
+          }}
+          onRestoreLocked={(row) => setPillarLocked({ title: row.title || row.slug, slug: row.key.slice("pillar:".length) })}
           note={archived.length === 0 ? "No archived pages. Deleted pages land here so you can restore them." : "Deleted pages live here. Restore or permanently delete."}
         />
       )}
+
+      {pillarLocked && (
+        <Dialog open onOpenChange={(o) => { if (!o) setPillarLocked(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>This page belongs to a pillar</DialogTitle>
+              <DialogDescription>
+                "{pillarLocked.title}" is the page for the archived pillar <span className="font-mono">{pillarLocked.slug}</span>. It can't be restored on its own — restore the pillar itself first, and this page will come back with it.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => setPillarLocked(null)}>Got it</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
 
       {creating && (
         <CreateDialog
@@ -317,7 +360,7 @@ function PagesAdmin() {
 
 
 function Section({
-  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, note,
+  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, isRestoreLocked, onRestoreLocked, note,
 }: {
   label: string;
   rows: PageRow[];
@@ -327,6 +370,8 @@ function Section({
   onDelete: ((row: PageRow) => void) | null;
   onRestore: ((row: PageRow) => void) | null;
   onPurge: ((row: PageRow) => void) | null;
+  isRestoreLocked?: (row: PageRow) => boolean;
+  onRestoreLocked?: (row: PageRow) => void;
   note?: string;
 }) {
   return (
@@ -337,18 +382,23 @@ function Section({
       </div>
       {rows.length > 0 && (
         <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {rows.map((r) => (
-            <PageTile
-              key={r.key}
-              row={r}
-              active={activeKey === r.key}
-              onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
-              onStatus={onStatus ? () => onStatus(r) : null}
-              onDelete={onDelete ? () => onDelete(r) : null}
-              onRestore={onRestore ? () => onRestore(r) : null}
-              onPurge={onPurge ? () => onPurge(r) : null}
-            />
-          ))}
+          {rows.map((r) => {
+            const locked = onRestore && isRestoreLocked ? isRestoreLocked(r) : false;
+            return (
+              <PageTile
+                key={r.key}
+                row={r}
+                active={activeKey === r.key}
+                onSelect={() => onSelect(activeKey === r.key ? null : r.key)}
+                onStatus={onStatus ? () => onStatus(r) : null}
+                onDelete={onDelete ? () => onDelete(r) : null}
+                onRestore={onRestore ? () => onRestore(r) : null}
+                onPurge={onPurge ? () => onPurge(r) : null}
+                restoreLocked={locked}
+                onRestoreLocked={onRestoreLocked ? () => onRestoreLocked(r) : null}
+              />
+            );
+          })}
         </div>
       )}
     </section>
@@ -356,7 +406,7 @@ function Section({
 }
 
 function PageTile({
-  row, active, onSelect, onStatus, onDelete, onRestore, onPurge,
+  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, restoreLocked, onRestoreLocked,
 }: {
   row: PageRow;
   active: boolean;
@@ -365,7 +415,10 @@ function PageTile({
   onDelete: (() => void) | null;
   onRestore: (() => void) | null;
   onPurge: (() => void) | null;
+  restoreLocked?: boolean;
+  onRestoreLocked?: (() => void) | null;
 }) {
+
   const statusMeta =
     row.archived_at ? { label: "Archived", icon: Archive, color: "var(--muted-foreground)" } :
     row.status === "published" ? { label: "Published", icon: Eye, color: "var(--ink)" } :
@@ -431,14 +484,25 @@ function PageTile({
             </button>
           )}
           {onRestore && (
-            <button
-              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
-              onClick={onRestore}
-              title="Restore page"
-            >
-              <RotateCcw className="h-3 w-3" /> Restore
-            </button>
+            restoreLocked ? (
+              <button
+                className="inline-flex cursor-not-allowed items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-semibold text-muted-foreground opacity-60"
+                onClick={onRestoreLocked ?? undefined}
+                title="This page is a pillar — restore the pillar first"
+              >
+                <RotateCcw className="h-3 w-3" /> Restore
+              </button>
+            ) : (
+              <button
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+                onClick={onRestore}
+                title="Restore page"
+              >
+                <RotateCcw className="h-3 w-3" /> Restore
+              </button>
+            )
           )}
+
           {onPurge && (
             <button
               className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/10"

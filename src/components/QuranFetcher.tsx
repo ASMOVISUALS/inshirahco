@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { fetchAyah, SURAH_VERSE_COUNTS, type FetchedAyah } from "@/lib/quran";
 
 type Props = {
-  onFetched: (ayah: FetchedAyah) => void;
+  onFetched: (ayah: FetchedAyah, meta: { surah: number; ayah: number }) => void;
   /** Optional layout tweaks */
   compact?: boolean;
 };
@@ -44,7 +44,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
     setLoading(true);
     try {
       const res = await fetchAyah(s, a);
-      onFetched(res);
+      onFetched(res, { surah: s, ayah: a });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch verse.");
     } finally {
@@ -53,7 +53,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
   };
 
   const inputCls =
-    "rounded-md border border-border bg-background px-2 py-1 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+    "rounded-md border border-tazkiyah/50 bg-tazkiyah/5 px-2 py-1 text-tazkiyah outline-none placeholder:text-tazkiyah/50 focus:border-tazkiyah [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
   return (
     <div className={compact ? "flex flex-col gap-2 text-sm" : "mt-4 flex flex-wrap items-end gap-2 border-t pt-3 text-sm"}
@@ -61,7 +61,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
     >
       <div className={compact ? "grid grid-cols-2 gap-2" : "contents"}>
         <div className="flex flex-col">
-          <label className="text-xs text-muted-foreground">Surah</label>
+          <label className="text-xs font-medium text-tazkiyah">Surah</label>
           <input
             key={`s-${glowKey.current}-${surahGlow}`}
             type="text"
@@ -73,7 +73,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <label className="text-xs text-muted-foreground">Ayah</label>
+          <label className="text-xs font-medium text-tazkiyah">Ayah</label>
           <input
             key={`a-${glowKey.current}-${ayahGlow}`}
             type="text"
@@ -89,7 +89,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
         type="button"
         disabled={loading}
         onClick={run}
-        className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary disabled:opacity-50 ${compact ? "w-full" : ""}`}
+        className={`rounded-md border border-tazkiyah bg-tazkiyah px-3 py-1.5 text-sm font-medium text-paper hover:bg-tazkiyah/90 disabled:opacity-50 ${compact ? "w-full" : ""}`}
       >
         {loading ? "Fetching…" : "Fetch from Quran.com"}
       </button>

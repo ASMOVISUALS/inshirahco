@@ -10,11 +10,13 @@ import {
   MessageSquareQuote,
   Mail,
   Columns3,
-  LayoutTemplate,
   FileStack,
   HelpCircle,
   Archive,
+  Flag,
   Settings,
+  Layers,
+  
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +43,8 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     label: "Content",
     items: [
       { title: "Articles", url: "/admin/articles", icon: FileText },
+      { title: "Series", url: "/admin/series", icon: Layers },
+      { title: "Verse of the Week", url: "/admin/verses", icon: Sparkles },
       { title: "Reflections", url: "/admin/reflections", icon: Sparkles },
       { title: "FAQs", url: "/admin/faqs", icon: HelpCircle },
     ],
@@ -56,7 +60,6 @@ const sections: { label: string; items: { title: string; url: string; icon: type
     label: "Structure",
     items: [
       { title: "Pillars", url: "/admin/pillars", icon: Columns3 },
-      { title: "Formats", url: "/admin/formats", icon: LayoutTemplate },
     ],
   },
   {
@@ -146,6 +149,14 @@ function AdminSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/reports")} tooltip="Reports">
+              <Link to="/admin/reports">
+                <Flag className="h-4 w-4" />
+                <span>Reports</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/admin/archive")} tooltip="Archive">
               <Link to="/admin/archive">

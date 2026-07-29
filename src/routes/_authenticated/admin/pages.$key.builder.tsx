@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Undo2, Redo2,
+  ArrowLeft, Plus, Trash2, Undo2, Redo2,
   Monitor, Tablet, Smartphone, ExternalLink, Layers, Type, Palette, Image as ImageIcon,
-  Layout as LayoutIcon, BarChart3,
+  Layout as LayoutIcon, BarChart3, ChevronDown, GripVertical,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/page-blocks";
 import { newslettersQuery } from "@/lib/queries";
 import { seedBlocksFor } from "@/lib/page-seed";
+import { QuranFetcher } from "@/components/QuranFetcher";
 
 export const Route = createFileRoute("/_authenticated/admin/pages/$key/builder")({
   head: () => ({ meta: [{ title: "Page builder — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -90,11 +91,7 @@ function PageBuilderRoute() {
 
   const addBlock = (type: BlockType) => { const b = newBlock(type); commit([...blocks, b]); setSelectedId(b.id); };
   const removeBlock = (id: string) => { commit(blocks.filter((b) => b.id !== id)); if (selectedId === id) setSelectedId(null); };
-  const moveBlock = (id: string, dir: -1 | 1) => {
-    const idx = blocks.findIndex((b) => b.id === id); if (idx < 0) return;
-    const j = idx + dir; if (j < 0 || j >= blocks.length) return;
-    const next = [...blocks]; [next[idx], next[j]] = [next[j], next[idx]]; commit(next);
-  };
+  
   const updateBlock = (id: string, props: Record<string, unknown>) => {
     commit(blocks.map((b) => (b.id === id ? { ...b, props } : b)));
   };
@@ -119,7 +116,7 @@ function PageBuilderRoute() {
     return <div className="p-12 text-center text-muted-foreground">Loading builder…</div>;
   }
 
-  const selected = blocks.find((b) => b.id === selectedId) ?? null;
+  void selectedId;
   const vpWidth = viewport === "desktop" ? "100%" : viewport === "tablet" ? "820px" : "390px";
 
   return (
@@ -201,33 +198,8 @@ function PageBuilderRoute() {
           </div>
         )}
 
-        {/* Canvas: block list + preview */}
+        {/* Canvas: preview */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Block list strip */}
-          <div className="max-h-40 shrink-0 overflow-auto border-b border-border bg-card px-3 py-2">
-            {blocks.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                No blocks yet. Add one from the left toolbar.
-              </div>
-            ) : (
-              <ol className="flex flex-wrap gap-1.5">
-                {blocks.map((b, i) => (
-                  <li key={b.id}>
-                    <div className={`group flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] ${selectedId === b.id ? "border-heart bg-secondary" : "border-border hover:bg-secondary"}`}>
-                      <button className="font-semibold" onClick={() => setSelectedId(b.id)}>
-                        {i + 1}. {BLOCK_LABEL[b.type] ?? b.type}
-                      </button>
-                      <button className="opacity-0 group-hover:opacity-100" onClick={() => moveBlock(b.id, -1)} title="Up"><ChevronUp className="h-3 w-3" /></button>
-                      <button className="opacity-0 group-hover:opacity-100" onClick={() => moveBlock(b.id, 1)} title="Down"><ChevronDown className="h-3 w-3" /></button>
-                      <button className="opacity-0 text-destructive group-hover:opacity-100" onClick={() => removeBlock(b.id)} title="Delete"><Trash2 className="h-3 w-3" /></button>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-
-          {/* Preview */}
           <div className="flex-1 overflow-auto bg-background p-6">
             <div
               className="mx-auto rounded-2xl border border-border bg-[color:var(--paper)] shadow-sm"
@@ -240,38 +212,158 @@ function PageBuilderRoute() {
 
         {/* Inspector */}
         <div className="w-80 shrink-0 overflow-auto border-l border-border bg-card p-4">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inspector</p>
-          {selected ? (
-            <BlockInspector key={selected.id} block={selected} onChange={(props) => updateBlock(selected.id, props)} />
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold">Page settings</div>
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold">SEO title</label>
-                <input
-                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-                  value={seoTitle}
-                  onChange={(e) => { setSeoTitle(e.target.value); setDirty(true); }}
-                  placeholder={row.title}
-                />
-                <p className="mt-1 text-[10px] text-muted-foreground">Shown in browser tab and search results. Falls back to page title.</p>
+          <div className="mb-4 rounded-md border border-border">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-md bg-secondary/60 px-3 py-2 text-xs font-semibold">
+                Page settings
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="flex flex-col gap-3 p-3">
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SEO title</label>
+                  <input
+                    className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                    value={seoTitle}
+                    onChange={(e) => { setSeoTitle(e.target.value); setDirty(true); }}
+                    placeholder={row.title}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SEO description</label>
+                  <textarea
+                    rows={4}
+                    className="w-full resize-y rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+                    value={seoDesc}
+                    onChange={(e) => { setSeoDesc(e.target.value); setDirty(true); }}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold">SEO description</label>
-                <textarea
-                  rows={4}
-                  className="w-full resize-y rounded-md border border-input bg-background px-2 py-1.5 text-sm"
-                  value={seoDesc}
-                  onChange={(e) => { setSeoDesc(e.target.value); setDirty(true); }}
-                />
-                <p className="mt-1 text-[10px] text-muted-foreground">One or two sentences describing the page for search & social previews.</p>
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">Select a block above to edit its properties.</p>
+            </details>
+          </div>
+
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Blocks</p>
+          {blocks.length === 0 ? (
+            <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              No blocks yet. Add one from the left toolbar.
             </div>
+          ) : (
+            <BlockList
+              blocks={blocks}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onReorder={(next) => commit(next)}
+              onDelete={removeBlock}
+              onChange={updateBlock}
+            />
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// -------- Block list (accordion + drag reorder) --------
+
+function BlockList({
+  blocks, selectedId, onSelect, onReorder, onDelete, onChange,
+}: {
+  blocks: Block[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+  onReorder: (next: Block[]) => void;
+  onDelete: (id: string) => void;
+  onChange: (id: string, props: Record<string, unknown>) => void;
+}) {
+  const dragId = useRef<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const handleDrop = (targetId: string) => {
+    const from = dragId.current;
+    dragId.current = null;
+    setOverId(null);
+    if (!from || from === targetId) return;
+    const fromIdx = blocks.findIndex((b) => b.id === from);
+    const toIdx = blocks.findIndex((b) => b.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const next = [...blocks];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    onReorder(next);
+  };
+
+  return (
+    <ol className="flex flex-col gap-1">
+      {blocks.map((b, i) => {
+        const open = selectedId === b.id;
+        const confirming = confirmId === b.id;
+        return (
+          <li
+            key={b.id}
+            onDragOver={(e) => { e.preventDefault(); if (dragId.current && dragId.current !== b.id) setOverId(b.id); }}
+            onDragLeave={() => { if (overId === b.id) setOverId(null); }}
+            onDrop={(e) => { e.preventDefault(); handleDrop(b.id); }}
+            className={overId === b.id ? "ring-2 ring-heart rounded-sm" : ""}
+          >
+            <div
+              className={`flex items-center gap-1 border-l-2 bg-card ${
+                open
+                  ? "border-l-heart border-y border-r border-border"
+                  : "border-l-transparent border-y border-r border-transparent hover:border-border hover:border-l-border"
+              }`}
+            >
+              <button
+                type="button"
+                draggable
+                onDragStart={() => { dragId.current = b.id; }}
+                onDragEnd={() => { dragId.current = null; setOverId(null); }}
+                className="grid h-9 w-6 cursor-grab place-items-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
+                title="Drag to reorder"
+                aria-label="Drag handle"
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onSelect(open ? null : b.id)}
+                className="flex flex-1 items-center justify-between gap-2 py-2 pr-1 text-left text-xs font-semibold"
+              >
+                <span>{i + 1}. {BLOCK_LABEL[b.type] ?? b.type}</span>
+                <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmId(b.id)}
+                className="mr-1.5 grid h-7 w-7 place-items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                title="Delete block"
+                aria-label="Delete block"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {confirming && (
+              <div className="border-x border-b border-border bg-destructive/5 px-3 py-2 text-[11px]">
+                <p className="mb-2 font-semibold text-destructive">Delete this {BLOCK_LABEL[b.type] ?? b.type} block?</p>
+                <div className="flex justify-end gap-2">
+                  <button className="btn-ghost !py-1 text-[11px]" onClick={() => setConfirmId(null)}>Cancel</button>
+                  <button
+                    className="rounded-md bg-destructive px-2 py-1 text-[11px] font-semibold text-destructive-foreground hover:opacity-90"
+                    onClick={() => { setConfirmId(null); onDelete(b.id); }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+            {open && (
+              <div className="border-x border-b border-border bg-background p-3">
+                <BlockInspector block={b} onChange={(props) => onChange(b.id, props)} />
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -280,15 +372,23 @@ function PageBuilderRoute() {
 function BlockInspector({ block, onChange }: { block: Block; onChange: (props: Record<string, unknown>) => void }) {
   const props = block.props as Record<string, unknown>;
   const set = (k: string, v: unknown) => onChange({ ...props, [k]: v });
+  const setMany = (patch: Record<string, unknown>) => onChange({ ...props, ...patch });
   const fields = FIELDS[block.type] ?? [];
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold">{BLOCK_LABEL[block.type]}</div>
       {fields.length === 0 && <p className="text-xs text-muted-foreground">This block has no editable fields.</p>}
       {fields.map((f) => (
         <Field key={f.key} field={f} value={props[f.key]} onChange={(v) => set(f.key, v)} />
       ))}
+      {block.type === "arabic_verse" && (
+        <div className="rounded-md border border-border bg-secondary/30 p-2">
+          <QuranFetcher
+            compact
+            onFetched={(a) => setMany({ arabic: a.arabic, translation: a.translation, reference: a.reference })}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -435,9 +535,60 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "arabic", label: "Arabic", kind: "arabic" },
     { key: "translation", label: "Translation", kind: "textarea", rows: 3 },
     { key: "reference", label: "Reference", kind: "text" },
+    { key: "tint", label: "Tint", kind: "select", options: [
+      { value: "tazkiyah", label: "Green" }, { value: "heart", label: "Red" },
+      { value: "heart-soft", label: "Soft red" }, { value: "gold", label: "Gold" },
+    ]},
   ],
   divider: [],
   spacer: [{ key: "size", label: "Size", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] }],
+  pillar_hero: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "badge", label: "Badge (e.g. Coming soon)", kind: "text" },
+  ],
+  pillar_articles: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "count", label: "How many", kind: "number", min: 1, max: 60 },
+  ],
+  pillar_series: [
+    { key: "title", label: "Title", kind: "text" },
+    { key: "count", label: "How many", kind: "number", min: 1, max: 30 },
+  ],
+  previews_grid: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "description", label: "Description", kind: "textarea", rows: 3 },
+    { key: "items", label: "Items", kind: "list_object", shape: [
+      { key: "icon", label: "Icon", kind: "select", options: [
+        { value: "sparkles", label: "Sparkles" }, { value: "users", label: "Users" }, { value: "mountain", label: "Mountain" },
+        { value: "compass", label: "Compass" }, { value: "book", label: "Book" }, { value: "calendar", label: "Calendar" },
+        { value: "heart", label: "Heart" }, { value: "star", label: "Star" }, { value: "quote", label: "Quote" }, { value: "feather", label: "Feather" },
+      ]},
+      { key: "tag", label: "Tag", kind: "text" },
+      { key: "title", label: "Title", kind: "text" },
+      { key: "description", label: "Description", kind: "textarea" },
+    ]},
+  ],
+  mentors_row: [
+    { key: "title", label: "Title", kind: "text" },
+    { key: "description", label: "Description", kind: "textarea", rows: 2 },
+    { key: "items", label: "Mentors", kind: "list_object", shape: [
+      { key: "name", label: "Name", kind: "text" },
+      { key: "title", label: "Title / caption", kind: "text" },
+      { key: "role", label: "Role", kind: "text" },
+      { key: "qualification", label: "Qualification", kind: "text" },
+      { key: "image", label: "Photo URL", kind: "text" },
+    ]},
+  ],
+  contact_form: [
+    { key: "success_arabic", label: "Success Arabic", kind: "arabic" },
+    { key: "success_title", label: "Success title", kind: "text" },
+    { key: "success_description", label: "Success description", kind: "textarea", rows: 2 },
+    { key: "support_title", label: "Support panel title", kind: "text" },
+    { key: "support_body", label: "Support panel body", kind: "textarea", rows: 4 },
+    { key: "support_footnote", label: "Support panel footnote", kind: "text" },
+  ],
 };
 
 function Field({ field, value, onChange }: { field: FieldDef; value: unknown; onChange: (v: unknown) => void }) {
