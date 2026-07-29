@@ -177,50 +177,57 @@ function PillarsAdmin() {
         </TabsList>
 
         <TabsContent value="active" className="mt-4">
-          <div className="overflow-x-auto">
-            <Table className="min-w-max">
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-12 border-0 bg-transparent p-0" />
-                  <TableHead>Label</TableHead>
-                  <TableHead>Short Label</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Arabic Letter</TableHead>
-                  <TableHead>Tint</TableHead>
-                  <TableHead>Href</TableHead>
-                  <TableHead className="text-right">Sort Order</TableHead>
-                  <TableHead className="min-w-[280px]">Description</TableHead>
-                  <TableHead className="text-center">Coming soon</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((r) => (
-                  <TableRow key={r.slug}>
-                    <TableCell className="w-12 border-0 bg-transparent p-0 pr-3 align-middle">
-                      <button
-                        onClick={() => setGateIntent({ kind: "edit", slug: r.slug })}
-                        className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-heart hover:text-heart"
-                        aria-label={`Edit ${r.label}`}
+          <Table className="w-full table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-12 border-0 bg-transparent p-0" />
+                <TableHead className="w-[22%]">Pillar</TableHead>
+                <TableHead className="w-[12%]">Short</TableHead>
+                <TableHead className="w-[14%]">Slug</TableHead>
+                <TableHead className="w-[10%]">Tint</TableHead>
+                <TableHead className="w-[14%] text-center">Sort / Soon</TableHead>
+                <TableHead>Description</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((r) => (
+                <TableRow key={r.slug}>
+                  <TableCell className="w-12 border-0 bg-transparent p-0 pr-2 align-middle">
+                    <button
+                      onClick={() => setGateIntent({ kind: "edit", slug: r.slug })}
+                      className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-heart hover:text-heart"
+                      aria-label={`Edit ${r.label}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="grid h-8 w-8 flex-none place-items-center rounded-full font-arabic text-base"
+                        style={{ background: `color-mix(in oklab, var(--${r.tint}) 18%, transparent)`, color: `var(--${r.tint})` }}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    </TableCell>
-                    <TableCell className="font-semibold">{r.label}</TableCell>
-                    <TableCell>{r.short_label}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{r.slug}</TableCell>
-                    <TableCell className="text-lg">{r.arabic_letter}</TableCell>
-                    <TableCell>{r.tint}</TableCell>
-                    <TableCell className="font-mono text-xs">{r.href}</TableCell>
-                    <TableCell className="text-right">{r.sort_order}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.description}</TableCell>
-                    <TableCell className="text-center">
+                        {r.arabic_letter}
+                      </span>
+                      <span className="truncate font-semibold">{r.label}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="truncate">{r.short_label}</TableCell>
+                  <TableCell className="truncate font-mono text-xs text-muted-foreground">{r.slug}</TableCell>
+                  <TableCell className="truncate text-sm">{r.tint}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-3 text-sm">
+                      <span className="tabular-nums text-muted-foreground">{r.sort_order}</span>
                       <Checkbox checked={r.coming_soon} disabled aria-label="Coming soon" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    <span className="line-clamp-2">{r.description}</span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </TabsContent>
 
         <TabsContent value="archive" className="mt-4">
