@@ -320,9 +320,19 @@ function PagesArchive() {
       return (data ?? []) as { key: string; slug: string; title: string; archived_at: null }[];
     },
   });
+  // Active (non-archived) pillar slugs — used to lock restore of pillar pages
+  const { data: activePillarSlugs = new Set<string>() } = useQuery({
+    queryKey: ["archive-pages-active-pillars"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("pillars").select("slug").is("archived_at", null);
+      if (error) throw error;
+      return new Set<string>(((data ?? []) as { slug: string }[]).map((r) => r.slug));
+    },
+  });
 
   const [gateOpen, setGateOpen] = useState(false);
   const [pending, setPending] = useState<{ kind: "restore" | "purge"; key: string; title: string } | null>(null);
+  const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   const invalidate = () => {
