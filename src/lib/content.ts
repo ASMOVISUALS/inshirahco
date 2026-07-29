@@ -85,17 +85,6 @@ export const PILLARS: Record<Pillar, { label: string; short: string; letter: str
   },
 };
 
-export const RESOURCE_TYPES: Record<ResourceType, { label: string; plural: string; letter: string }> = {
-  article: { label: "Article", plural: "Articles", letter: "م" },
-  reflection: { label: "Reflection", plural: "Reflections", letter: "ت" },
-  blog: { label: "Blog post", plural: "Blog posts", letter: "و" },
-  video: { label: "Video", plural: "Videos", letter: "ف" },
-  podcast: { label: "Podcast", plural: "Podcasts", letter: "ص" },
-  book: { label: "Book", plural: "Books", letter: "ك" },
-  course: { label: "Course", plural: "Courses", letter: "د" },
-  tadabbur: { label: "Tadabbur", plural: "Tadabbur", letter: "ن" },
-  worksheet: { label: "Worksheet", plural: "Worksheets", letter: "ع" },
-};
 
 // Map a raw articles row from Supabase into the UI's ContentItem shape.
 export function mapArticleRow(row: {
