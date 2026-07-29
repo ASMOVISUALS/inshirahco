@@ -243,8 +243,39 @@ function VersesAdmin() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-display">Verse of the Week</h2>
-          <div onClick={(e) => e.stopPropagation()}>
-            <ArchiveTabs tab={tab} onChange={setTab} activeCount={active.length} archiveCount={archived.length} />
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("all"); }}
+              className={chipCls(tab === "active" && statusFilter === "all")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Active
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{active.length}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("pool"); }}
+              className={chipCls(tab === "active" && statusFilter === "pool")}
+            >
+              In pool
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{poolCount}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab("active"); setStatusFilter("used"); }}
+              className={chipCls(tab === "active" && statusFilter === "used")}
+            >
+              Used
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{usedCount}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("archive")}
+              className={chipCls(tab === "archive")}
+            >
+              <Archive className="h-3.5 w-3.5" /> Archive
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{archived.length}</span>
+            </button>
           </div>
           <div onClick={(e) => e.stopPropagation()}>
             <SortBar
