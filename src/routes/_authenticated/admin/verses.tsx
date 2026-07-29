@@ -195,28 +195,13 @@ function VersesAdmin() {
       }
       const { error } = await supabase
         .from("ayahs")
-        .update({ status, active: status !== "paused" })
+        .update({ status, active: true })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
-  const archive = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").update({ archived_at: new Date().toISOString() }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { setSelectedId(null); invalidate(); },
-  });
-
-  const restore = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ayahs").update({ archived_at: null }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { setSelectedId(null); invalidate(); },
-  });
 
   const purge = useMutation({
     mutationFn: async (id: string) => {
