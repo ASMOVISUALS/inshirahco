@@ -69,7 +69,6 @@ export type Database = {
           slug: string
           tags: string[]
           title: string
-          type: string
           updated_at: string
         }
         Insert: {
@@ -90,7 +89,6 @@ export type Database = {
           slug: string
           tags?: string[]
           title: string
-          type: string
           updated_at?: string
         }
         Update: {
@@ -111,7 +109,6 @@ export type Database = {
           slug?: string
           tags?: string[]
           title?: string
-          type?: string
           updated_at?: string
         }
         Relationships: [
@@ -121,13 +118,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "pillars"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "articles_type_fkey"
-            columns: ["type"]
-            isOneToOne: false
-            referencedRelation: "resource_formats"
-            referencedColumns: ["slug"]
           },
         ]
       }
@@ -540,45 +530,6 @@ export type Database = {
           reporter_email?: string | null
           reporter_id?: string | null
           target_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      resource_formats: {
-        Row: {
-          arabic_letter: string
-          created_at: string
-          label: string
-          plural: string
-          show_in_menu: boolean
-          show_on_site: boolean
-          slug: string
-          sort_order: number
-          tint: string
-          updated_at: string
-        }
-        Insert: {
-          arabic_letter: string
-          created_at?: string
-          label: string
-          plural: string
-          show_in_menu?: boolean
-          show_on_site?: boolean
-          slug: string
-          sort_order?: number
-          tint?: string
-          updated_at?: string
-        }
-        Update: {
-          arabic_letter?: string
-          created_at?: string
-          label?: string
-          plural?: string
-          show_in_menu?: boolean
-          show_on_site?: boolean
-          slug?: string
-          sort_order?: number
-          tint?: string
           updated_at?: string
         }
         Relationships: []
