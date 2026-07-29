@@ -347,7 +347,7 @@ function VersesAdmin() {
               boxShadow: "0 6px 20px -8px color-mix(in oklab, var(--tazkiyah) 60%, transparent)",
             }}
           >
-            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
+            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set next verse"}
           </button>
         </div>
 
