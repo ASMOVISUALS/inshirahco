@@ -191,8 +191,8 @@ function VersesAdmin() {
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
-      const dup = findDuplicate(d);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
+      // Duplicates are allowed — a past verse can be added again as a fresh pool item.
+
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").insert({
         arabic: d.arabic,
