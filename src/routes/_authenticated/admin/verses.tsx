@@ -59,6 +59,30 @@ function VersesAdmin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [gateOpen, setGateOpen] = useState(false);
+  const { user } = useAuth();
+
+  const currentVerse = useMemo(
+    () => data.find((r) => r.status === "current" && !r.archived_at) ?? null,
+    [data],
+  );
+
+  const rollVerse = useMutation({
+    mutationFn: async () => {
+      const pool = data.filter((r) => r.status === "pool" && !r.archived_at);
+      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      const { error: retire } = await supabase
+        .from("ayahs").update({ status: "used" }).eq("status", "current");
+      if (retire) throw retire;
+      const { error } = await supabase
+        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
+      if (error) throw error;
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); invalidate(); },
+  });
+
 
   const surahIdByNumber = useMemo(
     () => new Map(surahs.map((s) => [s.number, s.id] as const)),
