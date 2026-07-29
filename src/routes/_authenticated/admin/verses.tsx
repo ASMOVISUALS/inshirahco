@@ -443,22 +443,22 @@ function VersesAdmin() {
               </span>
               {!r.surah_id && <p className="mt-1 text-xs text-destructive">Not linked to a surah — edit to fix.</p>}
 
-              {selected && (
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
-                  <StatusSlider
-                    value={r.status}
-                    onChange={(status) => setStatus.mutate({ id: r.id, status })}
-                  />
-                  <div className="flex items-center gap-2">
-                    <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
-                      <Pencil className="h-4 w-4" />
-                    </IconBtn>
-                    <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </IconBtn>
-                  </div>
+              {selected && r.status !== "used" && (
+                <div className="mt-3 flex items-center justify-end gap-2 border-t border-heart/20 pt-3">
+                  <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
+                    <Pencil className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
+                    <Trash2 className="h-4 w-4" />
+                  </IconBtn>
                 </div>
               )}
+              {selected && r.status === "used" && (
+                <p className="mt-3 border-t border-heart/20 pt-3 text-xs text-muted-foreground">
+                  Used verses are kept as a permanent record. To run this verse again, add it to the pool as a new entry.
+                </p>
+              )}
+
             </div>
           );
         })}
