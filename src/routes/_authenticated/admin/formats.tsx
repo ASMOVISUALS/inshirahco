@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil } from "lucide-react";
+import { Pencil, Eye, EyeOff, Menu as MenuIcon, MenuSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArabicLetterPicker, TintSelect, TINT_OPTIONS } from "@/components/ArabicLetterPicker";
 
