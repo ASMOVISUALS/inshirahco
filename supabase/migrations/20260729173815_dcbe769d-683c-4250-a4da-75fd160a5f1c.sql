@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_reflection_likes() FROM PUBLIC, anon, authenticated;
