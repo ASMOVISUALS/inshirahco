@@ -44,7 +44,7 @@ function useNow(intervalMs = 1000) {
 
 function Countdown({ target, now }: { target: string | null; now: number }) {
   if (!target) {
-    return <p className="font-display text-2xl text-muted-foreground">No change scheduled</p>;
+    return <p className="text-center font-display text-2xl text-muted-foreground">No change scheduled</p>;
   }
   const ms = Math.max(0, new Date(target).getTime() - now);
   const total = Math.floor(ms / 1000);
@@ -55,7 +55,7 @@ function Countdown({ target, now }: { target: string | null; now: number }) {
     { v: total % 60, l: "Seconds" },
   ];
   return (
-    <div className="flex flex-wrap items-end gap-6">
+    <div className="flex flex-wrap items-end justify-center gap-6 text-center">
       {parts.map((p) => (
         <div key={p.l} className="text-center">
           <div
