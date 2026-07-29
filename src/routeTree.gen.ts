@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuhbahRouteImport } from './routes/suhbah'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -40,6 +41,11 @@ import { Route as AuthenticatedAdminArticlesIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminPillarsSlugEditRouteImport } from './routes/_authenticated/admin/pillars.$slug.edit'
 import { Route as AuthenticatedAdminPagesKeyBuilderRouteImport } from './routes/_authenticated/admin/pages.$key.builder'
 
+const SuhbahRoute = SuhbahRouteImport.update({
+  id: '/suhbah',
+  path: '/suhbah',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/suhbah': typeof SuhbahRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/suhbah': typeof SuhbahRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/suhbah': typeof SuhbahRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/saved'
     | '/sitemap.xml'
+    | '/suhbah'
     | '/admin'
     | '/profile'
     | '/auth/callback'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/saved'
     | '/sitemap.xml'
+    | '/suhbah'
     | '/auth/callback'
     | '/read/$slug'
     | '/admin/archive'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/saved'
     | '/sitemap.xml'
+    | '/suhbah'
     | '/_authenticated/admin'
     | '/_authenticated/profile'
     | '/auth/callback'
@@ -404,11 +416,19 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SavedRoute: typeof SavedRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SuhbahRoute: typeof SuhbahRoute
   ReadSlugRoute: typeof ReadSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/suhbah': {
+      id: '/suhbah'
+      path: '/suhbah'
+      fullPath: '/suhbah'
+      preLoaderRoute: typeof SuhbahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -715,6 +735,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SavedRoute: SavedRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SuhbahRoute: SuhbahRoute,
   ReadSlugRoute: ReadSlugRoute,
 }
 export const routeTree = rootRouteImport
