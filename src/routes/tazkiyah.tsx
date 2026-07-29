@@ -1,28 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PillarArchive } from "@/components/PillarArchive";
 import { pageContentQuery, pageStatusQuery } from "@/lib/queries";
+import { CmsPage } from "@/components/CmsPage";
+
+const KEY = "pillar:tazkiyah";
 
 export const Route = createFileRoute("/tazkiyah")({
   loader: async ({ context }) => {
-    const status = await context.queryClient.fetchQuery(pageStatusQuery("pillar:tazkiyah"));
-    if (status.status === "published") {
-      await context.queryClient.ensureQueryData(pageContentQuery("pillar:tazkiyah"));
-    }
+    const status = await context.queryClient.fetchQuery(pageStatusQuery(KEY));
+    if (status.status === "published") await context.queryClient.ensureQueryData(pageContentQuery(KEY));
   },
   head: () => ({
     meta: [
       { title: "Tazkiyah — Inshirah" },
-      { name: "description", content: "Practical, printable exercises and gentle daily practices for the slow polishing of the heart." },
+      { name: "description", content: "The Tazkiyah toolkit — practices for purification of the soul." },
       { property: "og:title", content: "Tazkiyah — Inshirah" },
-      { property: "og:description", content: "Practices and printables for the slow polishing of the heart." },
-      { property: "og:url", content: "/tazkiyah" },
+      { property: "og:description", content: "Practices for purification of the soul." },
     ],
     links: [{ rel: "canonical", href: "/tazkiyah" }],
   }),
-  component: () => (
-    <PillarArchive
-      pillar="tazkiyah"
-      tint="tazkiyah"
-    />
-  ),
+  component: () => <CmsPage pageKey={KEY} fallbackName="Tazkiyah" />,
 });

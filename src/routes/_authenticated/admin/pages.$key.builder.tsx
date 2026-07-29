@@ -438,6 +438,54 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
   ],
   divider: [],
   spacer: [{ key: "size", label: "Size", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] }],
+  pillar_hero: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "badge", label: "Badge (e.g. Coming soon)", kind: "text" },
+  ],
+  pillar_articles: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "count", label: "How many", kind: "number", min: 1, max: 60 },
+  ],
+  pillar_series: [
+    { key: "title", label: "Title", kind: "text" },
+    { key: "count", label: "How many", kind: "number", min: 1, max: 30 },
+  ],
+  previews_grid: [
+    { key: "eyebrow", label: "Eyebrow", kind: "text" },
+    { key: "title", label: "Title", kind: "text" },
+    { key: "description", label: "Description", kind: "textarea", rows: 3 },
+    { key: "items", label: "Items", kind: "list_object", shape: [
+      { key: "icon", label: "Icon", kind: "select", options: [
+        { value: "sparkles", label: "Sparkles" }, { value: "users", label: "Users" }, { value: "mountain", label: "Mountain" },
+        { value: "compass", label: "Compass" }, { value: "book", label: "Book" }, { value: "calendar", label: "Calendar" },
+        { value: "heart", label: "Heart" }, { value: "star", label: "Star" }, { value: "quote", label: "Quote" }, { value: "feather", label: "Feather" },
+      ]},
+      { key: "tag", label: "Tag", kind: "text" },
+      { key: "title", label: "Title", kind: "text" },
+      { key: "description", label: "Description", kind: "textarea" },
+    ]},
+  ],
+  mentors_row: [
+    { key: "title", label: "Title", kind: "text" },
+    { key: "description", label: "Description", kind: "textarea", rows: 2 },
+    { key: "items", label: "Mentors", kind: "list_object", shape: [
+      { key: "name", label: "Name", kind: "text" },
+      { key: "title", label: "Title / caption", kind: "text" },
+      { key: "role", label: "Role", kind: "text" },
+      { key: "qualification", label: "Qualification", kind: "text" },
+      { key: "image", label: "Photo URL", kind: "text" },
+    ]},
+  ],
+  contact_form: [
+    { key: "success_arabic", label: "Success Arabic", kind: "arabic" },
+    { key: "success_title", label: "Success title", kind: "text" },
+    { key: "success_description", label: "Success description", kind: "textarea", rows: 2 },
+    { key: "support_title", label: "Support panel title", kind: "text" },
+    { key: "support_body", label: "Support panel body", kind: "textarea", rows: 4 },
+    { key: "support_footnote", label: "Support panel footnote", kind: "text" },
+  ],
+  resources_library: [],
 };
 
 function Field({ field, value, onChange }: { field: FieldDef; value: unknown; onChange: (v: unknown) => void }) {
