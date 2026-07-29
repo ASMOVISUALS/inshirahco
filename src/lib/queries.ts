@@ -132,6 +132,7 @@ export const pillarsQuery = () =>
       const { data, error } = await supabase
         .from("pillars")
         .select("slug,label,short_label,arabic_letter,tint,description,href,sort_order,coming_soon")
+        .is("archived_at", null)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return (data ?? []) as PillarRow[];
