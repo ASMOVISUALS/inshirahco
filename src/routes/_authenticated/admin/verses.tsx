@@ -147,7 +147,7 @@ function VersesAdmin() {
   const save = useMutation({
     mutationFn: async (d: Draft) => {
       const dup = findDuplicate(d);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference})${dup.archived_at ? " in the archive" : ""}.`);
+      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").insert({
         arabic: d.arabic,
@@ -157,7 +157,7 @@ function VersesAdmin() {
         ayah_number: d.ayah_number,
         active: true,
         status: "pool",
-        sort_order: active.length,
+        sort_order: data.length,
       });
       if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
     },
