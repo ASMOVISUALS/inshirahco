@@ -17,6 +17,8 @@ interface Row {
   arabic_letter: string;
   tint: string;
   sort_order: number;
+  show_in_menu: boolean;
+  show_on_site: boolean;
 }
 
 function tintColor(tint: string): string {
