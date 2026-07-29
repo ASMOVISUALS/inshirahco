@@ -56,7 +56,7 @@ function PillarsAdmin() {
   const { user } = useAuth();
   const [gateIntent, setGateIntent] = useState<GateIntent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [form, setForm] = useState<Row>({
+  const emptyForm: Row = {
     slug: "",
     label: "",
     short_label: "",
@@ -66,8 +66,10 @@ function PillarsAdmin() {
     href: "",
     sort_order: 0,
     coming_soon: false,
-  });
+  };
+  const [form, setForm] = useState<Row>(emptyForm);
   const [createError, setCreateError] = useState<string | null>(null);
+
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["admin", "pillars"],
@@ -114,13 +116,15 @@ function PillarsAdmin() {
         </div>
         <Button
           onClick={() => {
-            setForm((f) => ({ ...f, sort_order: nextSort }));
+            setForm({ ...emptyForm, sort_order: nextSort });
+            setCreateError(null);
             setGateIntent({ kind: "create" });
           }}
           className="gap-2"
         >
           <Plus className="h-4 w-4" /> New pillar
         </Button>
+
       </div>
 
       <div className="overflow-x-auto">
@@ -190,8 +194,12 @@ function PillarsAdmin() {
         open={createOpen}
         onOpenChange={(o) => {
           setCreateOpen(o);
-          if (!o) setCreateError(null);
+          if (!o) {
+            setCreateError(null);
+            setForm(emptyForm);
+          }
         }}
+
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
