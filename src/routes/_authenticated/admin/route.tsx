@@ -16,7 +16,7 @@ import {
   Archive,
   Settings,
   Layers,
-  UserCog,
+  
 } from "lucide-react";
 import {
   Sidebar,
