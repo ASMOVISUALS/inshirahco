@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, RotateCcw, Archive } from "lucide-react";
+import { Trash2, Plus, Pencil, RotateCcw, Archive, Shuffle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
+import { AdminPasswordGate } from "@/components/AdminPasswordGate";
+import { useAuth } from "@/hooks/use-auth";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
 import { SortBar } from "@/components/admin/SortBar";
 import { surahsQuery } from "@/lib/queries";
@@ -57,6 +59,30 @@ function VersesAdmin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [gateOpen, setGateOpen] = useState(false);
+  const { user } = useAuth();
+
+  const currentVerse = useMemo(
+    () => data.find((r) => r.status === "current" && !r.archived_at) ?? null,
+    [data],
+  );
+
+  const rollVerse = useMutation({
+    mutationFn: async () => {
+      const pool = data.filter((r) => r.status === "pool" && !r.archived_at);
+      if (pool.length === 0) throw new Error("No verses left in the pool. Add or reset some verses first.");
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      const { error: retire } = await supabase
+        .from("ayahs").update({ status: "used" }).eq("status", "current");
+      if (retire) throw retire;
+      const { error } = await supabase
+        .from("ayahs").update({ status: "current", active: true }).eq("id", pick.id);
+      if (error) throw error;
+    },
+    onError: (e: Error) => setError(e.message),
+    onSuccess: () => { setError(null); invalidate(); },
+  });
+
 
   const surahIdByNumber = useMemo(
     () => new Map(surahs.map((s) => [s.number, s.id] as const)),
@@ -225,19 +251,57 @@ function VersesAdmin() {
             />
           </div>
         </div>
-        {tab === "active" && (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setError(null); if (!draft) setDraft(emptyDraft); }}
-            disabled={!!draft}
-            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+            onClick={() => { setError(null); setGateOpen(true); }}
+            disabled={rollVerse.isPending}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+            style={{ background: "var(--tazkiyah, #2f7d5c)" }}
           >
-            <Plus className="h-4 w-4" /> Add verse
+            <Shuffle className="h-4 w-4" /> {rollVerse.isPending ? "Setting…" : "Set new verse"}
           </button>
-        )}
+          {tab === "active" && (
+            <button
+              type="button"
+              onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
+              disabled={!!draft}
+              className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" /> Add verse
+            </button>
+          )}
+        </div>
       </div>
 
+      {currentVerse && (
+        <section
+          className="rounded-3xl border p-8 text-center md:p-10"
+          style={{
+            background: "color-mix(in oklab, var(--heart) 8%, var(--paper-warm, transparent))",
+            borderColor: "color-mix(in oklab, var(--heart) 30%, transparent)",
+          }}
+        >
+          <p className="eyebrow" style={{ color: "var(--heart)" }}>This week's verse</p>
+          <p className="font-arabic mx-auto mt-5 max-w-2xl text-3xl leading-loose md:text-4xl" dir="rtl" style={{ color: "var(--ink)" }}>
+            {currentVerse.arabic}
+          </p>
+          <p className="mx-auto mt-5 max-w-lg font-display text-xl italic" style={{ fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>
+            "{currentVerse.translation}"
+          </p>
+          <p className="mt-3 text-sm font-semibold text-muted-foreground">— {currentVerse.reference}</p>
+        </section>
+      )}
+
+      <AdminPasswordGate
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        email={user?.email ?? ""}
+        onVerified={() => { setGateOpen(false); rollVerse.mutate(); }}
+      />
+
       {error && <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
+
 
       <div className="grid items-start gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {tab === "active" && draft && (
