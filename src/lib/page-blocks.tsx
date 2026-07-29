@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather, Search } from "lucide-react";
+import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
 import { articlesQuery, testimonialsQuery, faqsQuery, publicSeriesQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
@@ -41,8 +41,7 @@ export type BlockType =
   | "pillar_series"
   | "previews_grid"
   | "mentors_row"
-  | "contact_form"
-;
+  | "contact_form";
 
 
 export interface Block<TProps = Record<string, unknown>> {
