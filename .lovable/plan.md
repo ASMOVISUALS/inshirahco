@@ -1,57 +1,58 @@
-## Account access settings
+## Goal
 
-New admin page `Settings → Users` with two independent toggles that control the sign-in and sign-up surfaces. State lives in `site_settings` (already used for global config) under a single key `auth_access`.
+Replace the raw-JSON settings editor with a safe, typed, form-driven UI. Non-technical admins get proper controls (toggles, text, numbers, selects, multi-selects) — no way to break the site with a stray comma.
 
-```json
-{
-  "signin_enabled": true,
-  "signup_enabled": true,
-  "signin_locked_message": ""
-}
+## Architecture
+
+Schema-driven UI backed by two new tables that describe each setting and its fields. Values still live in `site_settings.value` (JSONB) so existing consumers (`auth_access`, `article_editor`, `nav`, `footer`) keep working unchanged.
+
+```text
+setting_groups (parent)          setting_fields (child)
+─────────────────────            ─────────────────────
+id, key, label, description,     id, group_id, key, label, help,
+icon, sort_order                 field_type, required, default_value,
+                                 options (jsonb), options_source,
+                                 sort_order
 ```
 
-### 1. Migration
+`field_type`: `toggle | text | textarea | number | select | multiselect | color`
+`options_source` (for select/multiselect, optional): `static` (use `options` array) | `block_kinds` | `pillars` | `formats` | `newsletters` | `pages`. Dynamic sources are resolved client-side from the existing hooks/queries so the article-editor "columnable kinds" select is always in sync with the real block palette.
 
-Seed one `site_settings` row with key `auth_access` and the default value above. Add narrow public `TO anon` SELECT policy for this key only (so the public join/sign-in pages can read the flags without auth); writes stay admin-only via existing policies.
+Each setting's saved shape stays a flat JSON object keyed by field `key` → matches today's `EditorSettings`, `AuthAccess`, etc.
 
-### 2. Admin UI — `src/routes/_authenticated/admin/settings/users.tsx`
+## Migrations
 
-- **Toggle 1: "Users can sign in to their accounts"**
-  - When switched OFF, opens a modal: "Add an optional message to display on the sign-in page" with a textarea (empty allowed) and Save.
-  - On save: writes `signin_enabled=false` and `signin_locked_message=<text>`.
-  - Below the toggle, when locked, show the current message in muted text with a pencil edit icon → reopens the same modal to edit any time. If no message, show "No message set — click to add".
-  - Editing the message does not require flipping the toggle.
-  - **Side effect on save-off:** invoke a `signOutAllUsers` server function (admin-only, uses `supabaseAdmin.auth.admin.signOut` per user, or bumps a `signed_out_after` timestamp — see technical note) so currently-signed-in users are forced out on their next request/tab focus.
+1. Create `setting_groups` and `setting_fields` (+ grants + RLS: public read, admin write via `has_role`).
+2. Seed groups + fields for the three real settings in use:
+   - **Account access** (`auth_access`): toggle `signinEnabled`, toggle `signupEnabled`, textarea `signinLockedMessage`.
+   - **Article editor** (`article_editor`): number `max_columns` (min 1, max 3), multiselect `columnable_kinds` (source: `block_kinds`).
+   - **Navigation** (`nav`) and **Footer** (`footer`): keep as-is for now with a "raw" fallback view (see below) — we don't yet know every consumer field, so we won't fake a schema.
 
-- **Toggle 2: "Users can create new accounts"**
-  - Simple switch. No message. Writes `signup_enabled`.
+## Admin UI (`/admin/settings`)
 
-Register the page in the admin sidebar under `Structure` (or `Dev`, per your existing section grouping) — placed in the same section that already holds `Settings`. Access remains gated by the `_authenticated/admin` layout.
+- Left rail: list from `setting_groups` (label + description).
+- Right pane: form auto-rendered from `setting_fields`:
+  - toggle → Switch
+  - text → Input
+  - textarea → Textarea
+  - number → number Input with min/max
+  - select → shadcn Select
+  - multiselect → checkbox list (values from static `options` or resolved source)
+- Save writes the assembled object to `site_settings.value` via upsert on `key`; validates required fields client-side; single "Save changes" button per group; dirty indicator.
+- For groups without a schema yet (`nav`, `footer`), show a collapsed "Advanced (raw JSON)" panel so nothing is lost — clearly marked as advanced. Once we schema those too, the raw panel disappears.
 
-### 3. Public gating
+## Users settings
 
-New tiny hook `useAuthAccess()` → reads `site_settings` for `auth_access` via a public query (cached, staletime 30s). Returns `{ signinEnabled, signupEnabled, signinLockedMessage }`.
+The existing `/admin/users` page keeps its bespoke UI (it has the password-gated modal). No change to consumers.
 
-- **`src/routes/auth.tsx`**: when `!signinEnabled`, render a locked template — keeps the current hero layout, heading "Sign-in paused", subheading = `signinLockedMessage` (fallback: "Account access is temporarily closed. Please check back soon."), no form. Magic link and password reset paths are also hidden (they're all account access).
-- **`src/routes/join.tsx`**: when `!signupEnabled`, render a locked template — heading "Exclusive access", body copy "Sign up for the newsletter to find out when we open new accounts.", followed by the existing `NewsletterSignup` component (default newsletter). No wizard steps rendered.
-- **`src/routes/reset-password.tsx`**: gated together with sign-in (`!signinEnabled` → locked template). Password reset is meaningless if the user can't sign in.
-- Nav/footer: hide "Sign in" / "Join" links when their respective flag is off. Small addition to `SiteNav` and `SiteFooter`.
+## Out of scope
 
-### 4. Force-logout on sign-in lockdown
+- No changes to how settings are read anywhere else. `auth-access.ts`, `SiteNav`, `SiteFooter`, and the article editor keep their current queries and shapes.
+- No new admin-only tables of business content; this is strictly settings scaffolding.
 
-Preferred: when the admin flips `signin_enabled` to false, call a new server fn `revokeAllUserSessions` (uses `supabaseAdmin.auth.admin.signOut` iterating over users) so existing sessions are invalidated server-side. On the client, the existing root `onAuthStateChange` catches the resulting 401 and routes to `/auth` (which now shows the locked template).
+## Rollout
 
-Fallback (belt-and-braces client-side): `useAuthAccess()` in `__root.tsx` watches the flag; when it flips to disabled and a user session exists, run `signOutCompletely` (already implemented in `src/lib/auth.ts`) and navigate home.
-
-### 5. Verify
-
-- Toggle sign-in off with a custom message → `/auth` shows the locked template with the message; existing session is signed out and lands on `/`.
-- Edit the message from the settings page → `/auth` updates without a redeploy.
-- Toggle sign-up off → `/join` shows the exclusive-access template with the newsletter form; nav "Join" hidden. Existing users can still sign in.
-- Toggle both back on → both routes return to normal instantly.
-
-### Technical notes
-
-- Message editing UI uses the same `AdminPasswordGate` pattern already in place, so toggle changes stay password-protected in line with other admin destructive actions.
-- No new tables — reuses `site_settings`. No schema churn to page rows or hardcoded route files besides adding a gate wrapper at the top of each affected component.
-- Bulk sign-out iterates via `auth.admin.listUsers()` paginated. If that ever becomes too heavy, swap to the "epoch" pattern (store `signed_out_after` timestamp; a lightweight middleware compares `iat` and forces sign-out) — noted for later, not needed now.
+1. Migration: create tables, RLS, seed rows for the three schemas above.
+2. Rewrite `src/routes/_authenticated/admin/settings.tsx` as the schema renderer.
+3. Add `src/lib/settings-schema.ts` with the dynamic option-source resolvers.
+4. Verify: toggle `auth_access` from the new UI and confirm `/auth` gate still updates; change `article_editor.max_columns` and confirm the article builder honors it.
