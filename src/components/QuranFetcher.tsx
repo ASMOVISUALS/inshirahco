@@ -73,7 +73,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <label className="text-xs text-muted-foreground">Ayah</label>
+          <label className="text-xs font-medium text-tazkiyah">Ayah</label>
           <input
             key={`a-${glowKey.current}-${ayahGlow}`}
             type="text"
@@ -89,7 +89,7 @@ export function QuranFetcher({ onFetched, compact = false }: Props) {
         type="button"
         disabled={loading}
         onClick={run}
-        className={`rounded-md border border-border px-3 py-1.5 text-sm hover:bg-secondary disabled:opacity-50 ${compact ? "w-full" : ""}`}
+        className={`rounded-md border border-tazkiyah bg-tazkiyah px-3 py-1.5 text-sm font-medium text-paper hover:bg-tazkiyah/90 disabled:opacity-50 ${compact ? "w-full" : ""}`}
       >
         {loading ? "Fetching…" : "Fetch from Quran.com"}
       </button>
