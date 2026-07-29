@@ -1,92 +1,57 @@
+## Account access settings
 
-# Everything is a page — real edition
+New admin page `Settings → Users` with two independent toggles that control the sign-in and sign-up surfaces. State lives in `site_settings` (already used for global config) under a single key `auth_access`.
 
-Turn the page builder into the single way content pages are shaped. Code holds only app functionality (auth, join wizard, article reader, admin, profile).
+```json
+{
+  "signin_enabled": true,
+  "signup_enabled": true,
+  "signin_locked_message": ""
+}
+```
 
-## The endgame
+### 1. Migration
 
-- Admin creates a new pillar in the pillars table → the URL exists → its page appears in the builder gallery → admin drops blocks → live.
-- Every content page renders 100% from `pages.content.blocks`. No hardcoded JSX for hero copy, feature grids, mentor rows, etc.
-- The admin only sees builder tiles for pages they can actually edit.
+Seed one `site_settings` row with key `auth_access` and the default value above. Add narrow public `TO anon` SELECT policy for this key only (so the public join/sign-in pages can read the flags without auth); writes stay admin-only via existing policies.
 
-## Audit — what's here today
+### 2. Admin UI — `src/routes/_authenticated/admin/settings/users.tsx`
 
-| Route file | Status | Notes |
-|---|---|---|
-| `index.tsx` (Home) | Builder-driven ✅ | 6 blocks in DB. Keep. |
-| `about.tsx` | Builder-driven ✅ | 3 blocks. Keep. |
-| `tadabbur.tsx` / `tazkiyah.tsx` / `youth.tsx` | Thin wrappers around `<PillarArchive>` component | 28 lines each. Pillar page has 0 blocks — the component ignores the page row and renders a hardcoded article/series grid. |
-| `suhbah.tsx` | Bespoke (174 lines) | Hero + "what to look forward to" grid + mentors row + waitlist. All hardcoded. |
-| `contact.tsx` | Bespoke (144 lines) | Hero + contact form + FAQ. |
-| `resources.tsx` | Bespoke (142 lines) | Format tiles, series tiles. |
-| `saved.tsx` | App page (bookmarks list) | Stays code. |
-| `join.tsx`, `auth*.tsx`, `reset-password.tsx`, `read.$slug.tsx` | App pages | Stay code. |
+- **Toggle 1: "Users can sign in to their accounts"**
+  - When switched OFF, opens a modal: "Add an optional message to display on the sign-in page" with a textarea (empty allowed) and Save.
+  - On save: writes `signin_enabled=false` and `signin_locked_message=<text>`.
+  - Below the toggle, when locked, show the current message in muted text with a pencil edit icon → reopens the same modal to edit any time. If no message, show "No message set — click to add".
+  - Editing the message does not require flipping the toggle.
+  - **Side effect on save-off:** invoke a `signOutAllUsers` server function (admin-only, uses `supabaseAdmin.auth.admin.signOut` per user, or bumps a `signed_out_after` timestamp — see technical note) so currently-signed-in users are forced out on their next request/tab focus.
 
-## Plan
+- **Toggle 2: "Users can create new accounts"**
+  - Simple switch. No message. Writes `signup_enabled`.
 
-### 1. New block types
+Register the page in the admin sidebar under `Structure` (or `Dev`, per your existing section grouping) — placed in the same section that already holds `Settings`. Access remains gated by the `_authenticated/admin` layout.
 
-Add to `src/lib/page-blocks.tsx`:
+### 3. Public gating
 
-- `pillar_hero` — pillar arabic letter + label + description, tint-aware. Auto-populates from the current pillar context, no fields.
-- `pillar_articles` — articles grid filtered by current pillar (or explicit `pillar` field on non-pillar pages). Fields: `title`, `count`, `layout: grid|list`.
-- `pillar_series` — series row filtered by current pillar. Fields: `title`, `count`.
-- `previews_grid` — the "what to look forward to" cards. Fields: array of `{ icon?, tag?, title, description }`.
-- `mentors_row` — circular photo + name + role. Fields: array of `{ avatar_url, name, role }`.
-- `contact_form` — the contact form UI, submits to existing handler. Fields: `heading`, `description`, `success_message`.
-- `format_gallery` — the resources page format tiles (auto-fetched, respects `show_on_site`). Fields: `title`, `description`.
-- `series_gallery` — all series tiles. Fields: `title`, `description`.
+New tiny hook `useAuthAccess()` → reads `site_settings` for `auth_access` via a public query (cached, staletime 30s). Returns `{ signinEnabled, signupEnabled, signinLockedMessage }`.
 
-Each gets a renderer in `page-blocks.tsx` and an inspector schema.
+- **`src/routes/auth.tsx`**: when `!signinEnabled`, render a locked template — keeps the current hero layout, heading "Sign-in paused", subheading = `signinLockedMessage` (fallback: "Account access is temporarily closed. Please check back soon."), no form. Magic link and password reset paths are also hidden (they're all account access).
+- **`src/routes/join.tsx`**: when `!signupEnabled`, render a locked template — heading "Exclusive access", body copy "Sign up for the newsletter to find out when we open new accounts.", followed by the existing `NewsletterSignup` component (default newsletter). No wizard steps rendered.
+- **`src/routes/reset-password.tsx`**: gated together with sign-in (`!signinEnabled` → locked template). Password reset is meaningless if the user can't sign in.
+- Nav/footer: hide "Sign in" / "Join" links when their respective flag is off. Small addition to `SiteNav` and `SiteFooter`.
 
-### 2. Dynamic pillar route
+### 4. Force-logout on sign-in lockdown
 
-- Create `src/routes/$pillarSlug.tsx`. Loader fetches pillar by slug (404 if missing/archived) + page row keyed `pillar:<slug>`. Passes `pillarContext` to block renderer so pillar-scoped blocks know which pillar they're in.
-- Add `$pillarSlug` to the excluded list in `$pageSlug.tsx` so the two catch-alls don't collide (pillars take precedence: check pillars table first, else fall through to pages).
-- Delete `tadabbur.tsx`, `tazkiyah.tsx`, `youth.tsx`, `suhbah.tsx`.
-- Delete `PillarArchive.tsx` (its logic moves into the `pillar_articles` + `pillar_series` block renderers).
+Preferred: when the admin flips `signin_enabled` to false, call a new server fn `revokeAllUserSessions` (uses `supabaseAdmin.auth.admin.signOut` iterating over users) so existing sessions are invalidated server-side. On the client, the existing root `onAuthStateChange` catches the resulting 401 and routes to `/auth` (which now shows the locked template).
 
-### 3. Convert Contact and Resources to builder pages
+Fallback (belt-and-braces client-side): `useAuthAccess()` in `__root.tsx` watches the flag; when it flips to disabled and a user session exists, run `signOutCompletely` (already implemented in `src/lib/auth.ts`) and navigate home.
 
-- Delete `contact.tsx`, `resources.tsx`.
-- Add `contact` and `resources` to the excluded list flip — they now resolve through `$pageSlug.tsx` reading the `pages` table.
-- Seed their `pages` rows with blocks matching today's UI (see Seed section).
+### 5. Verify
 
-### 4. Seed every content page
+- Toggle sign-in off with a custom message → `/auth` shows the locked template with the message; existing session is signed out and lands on `/`.
+- Edit the message from the settings page → `/auth` updates without a redeploy.
+- Toggle sign-up off → `/join` shows the exclusive-access template with the newsletter form; nav "Join" hidden. Existing users can still sign in.
+- Toggle both back on → both routes return to normal instantly.
 
-Migration writes `pages.content.blocks` for:
+### Technical notes
 
-- `pillar:tadabbur` → `[pillar_hero, pillar_articles, pillar_series, newsletter]`
-- `pillar:tazkiyah` → same shape
-- `pillar:youth` → same shape
-- `pillar:suhbah` → `[pillar_hero, previews_grid (with current 4 cards), mentors_row (with current mentors), newsletter (waitlist copy)]`
-- `contact` → `[hero, contact_form, faq_accordion(page_key='contact')]`
-- `resources` → `[hero, format_gallery, series_gallery]`
-
-Seed values are pulled verbatim from the current hardcoded JSX so nothing regresses visually.
-
-### 5. Auto-create page row on pillar create
-
-Update the Pillars admin "create" mutation: after inserting the pillar row, insert a `pages` row `pillar:<slug>` with a default template `[pillar_hero, pillar_articles, pillar_series, newsletter]`. Also extend the existing `sync_pillar_slug` DB trigger — it already renames the `pages.key` from `pillar:<old>` to `pillar:<new>`, so nothing extra needed for renames.
-
-### 6. Clean up admin builder gallery
-
-In `src/routes/_authenticated/admin/pages.index.tsx`, filter out app-page keys (`join`, anything under `auth`, `read`, `saved`, `reset-password`, `admin`, `profile`). Delete their orphaned `pages` rows (Join is the only one). Group tiles by section: Core (home, about, contact, resources), Pillars (dynamic list from pillars table), System (coming-soon, hidden templates).
-
-### 7. Verify
-
-- Playwright pass: load `/`, `/about`, `/contact`, `/resources`, `/tadabbur`, `/tazkiyah`, `/youth`, `/suhbah`. Screenshot each. Compare to current. Nothing regresses.
-- Create a test pillar `sabr` in admin → visit `/sabr` → confirm default template renders → edit blocks → confirm changes appear → archive → confirm 404.
-
-## Technical notes
-
-- `pillar_hero`, `pillar_articles`, `pillar_series` read pillar context via a React context provided by `$pillarSlug.tsx`. On non-pillar pages they either hide themselves or require an explicit `pillar` field in the inspector (leaning toward hide — keeps the inspector clean).
-- Sync trigger already handles slug renames across `articles.pillar`, `series.pillar`, `pages.key`, `faqs.page_key` — no change needed.
-- Tints stay as enum dropdown (`heart | tazkiyah | gold | ink`) in the pillar inspector; new tints are still a code change (design token additions).
-- The dynamic `$pillarSlug.tsx` loader uses the existing two-stage `pageStatusQuery` / `pageContentQuery` pattern so hidden/coming-soon pillars never leak content in the flash.
-
-## What's explicitly out of scope
-
-- App pages (join, auth, article reader, admin, profile, saved bookmarks) stay as code. These are functionality, not content.
-- No design changes. Blocks reproduce current UI 1:1.
-- Adding new tint tokens or Arabic letter options.
+- Message editing UI uses the same `AdminPasswordGate` pattern already in place, so toggle changes stay password-protected in line with other admin destructive actions.
+- No new tables — reuses `site_settings`. No schema churn to page rows or hardcoded route files besides adding a gate wrapper at the top of each affected component.
+- Bulk sign-out iterates via `auth.admin.listUsers()` paginated. If that ever becomes too heavy, swap to the "epoch" pattern (store `signed_out_after` timestamp; a lightweight middleware compares `iat` and forces sign-out) — noted for later, not needed now.
