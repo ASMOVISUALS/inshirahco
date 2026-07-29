@@ -89,14 +89,35 @@ function PillarsAdmin() {
     },
   });
 
+  const { data: archived = [], isLoading: archivedLoading } = useQuery({
+    queryKey: ["admin", "pillars", "archived"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pillars")
+        .select("*")
+        .not("archived_at", "is", null)
+        .order("archived_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Row[];
+    },
+  });
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
+    qc.invalidateQueries({ queryKey: ["admin", "pillars", "archived"] });
+    qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
+    qc.invalidateQueries({ queryKey: ["cms"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages"] });
+    qc.invalidateQueries({ queryKey: ["archive-pages-active-pillars"] });
+  };
+
   const create = useMutation({
     mutationFn: async (row: Row) => {
       const { error } = await supabase.from("pillars").insert(row);
       if (error) throw error;
     },
     onSuccess: (_d, row) => {
-      qc.invalidateQueries({ queryKey: ["admin", "pillars"] });
-      qc.invalidateQueries({ queryKey: ["cms", "pillars"] });
+      invalidateAll();
       setCreateOpen(false);
       setPillarEditFlag(row.slug);
       navigate({ to: "/admin/pillars/$slug/edit", params: { slug: row.slug } });
@@ -104,6 +125,21 @@ function PillarsAdmin() {
     onError: (e: unknown) => {
       setCreateError(e instanceof Error ? e.message : "Could not create pillar.");
     },
+  });
+
+  const restore = useMutation({
+    mutationFn: async (slug: string) => {
+      const { error } = await supabase.from("pillars").update({ archived_at: null }).eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: invalidateAll,
+  });
+  const purge = useMutation({
+    mutationFn: async (slug: string) => {
+      const { error } = await supabase.from("pillars").delete().eq("slug", slug);
+      if (error) throw error;
+    },
+    onSuccess: invalidateAll,
   });
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
