@@ -231,35 +231,27 @@ function VersesAdmin() {
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("all"); }}
-              className={chipCls(tab === "active" && statusFilter === "all")}
+              onClick={() => setStatusFilter("current")}
+              className={chipCls(statusFilter === "current")}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Active
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{active.length}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.current}</span>
             </button>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("pool"); }}
-              className={chipCls(tab === "active" && statusFilter === "pool")}
+              onClick={() => setStatusFilter("pool")}
+              className={chipCls(statusFilter === "pool")}
             >
               In pool
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{poolCount}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.pool}</span>
             </button>
             <button
               type="button"
-              onClick={() => { setTab("active"); setStatusFilter("used"); }}
-              className={chipCls(tab === "active" && statusFilter === "used")}
+              onClick={() => setStatusFilter("used")}
+              className={chipCls(statusFilter === "used")}
             >
               Used
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{usedCount}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("archive")}
-              className={chipCls(tab === "archive")}
-            >
-              <Archive className="h-3.5 w-3.5" /> Archive
-              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{archived.length}</span>
+              <span className="rounded-full bg-background px-1.5 py-0.5 text-[10px]">{counts.used}</span>
             </button>
           </div>
           <div onClick={(e) => e.stopPropagation()}>
@@ -274,16 +266,14 @@ function VersesAdmin() {
           </div>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          {tab === "active" && (
-            <button
-              type="button"
-              onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
-              disabled={!!draft}
-              className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" /> Add verse
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => { setError(null); if (!draft) setDraft(emptyDraft); }}
+            disabled={!!draft}
+            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" /> Add verse
+          </button>
           <button
             type="button"
             onClick={() => { setError(null); setGateOpen(true); }}
