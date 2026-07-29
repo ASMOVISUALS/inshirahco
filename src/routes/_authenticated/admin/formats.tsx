@@ -31,9 +31,14 @@ function FormatsAdmin() {
     queryKey: ["admin", "formats"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("resource_formats").select("*").order("sort_order");
+        .from("resource_formats")
+        .select("*").order("sort_order");
       if (error) throw error;
-      return (data ?? []) as Row[];
+      return ((data ?? []) as unknown as Row[]).map((r) => ({
+        ...r,
+        show_in_menu: r.show_in_menu ?? true,
+        show_on_site: r.show_on_site ?? true,
+      }));
     },
   });
 
