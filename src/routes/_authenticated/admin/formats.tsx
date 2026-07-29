@@ -51,7 +51,9 @@ function FormatsAdmin() {
         label: row.label, plural: row.plural,
         arabic_letter: row.arabic_letter, tint: row.tint,
         sort_order: row.sort_order,
-      }).eq("slug", row.slug);
+        show_in_menu: row.show_in_menu,
+        show_on_site: row.show_on_site,
+      } as never).eq("slug", row.slug);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -59,6 +61,17 @@ function FormatsAdmin() {
       qc.invalidateQueries({ queryKey: ["cms", "formats"] });
       setEditing(null);
       setSelected(null);
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async (p: { slug: string; field: "show_in_menu" | "show_on_site"; value: boolean }) => {
+      const { error } = await supabase.from("resource_formats").update({ [p.field]: p.value } as never).eq("slug", p.slug);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "formats"] });
+      qc.invalidateQueries({ queryKey: ["cms", "formats"] });
     },
   });
 
