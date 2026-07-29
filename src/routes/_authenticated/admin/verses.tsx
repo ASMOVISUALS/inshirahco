@@ -474,24 +474,8 @@ function VersesAdmin() {
   );
 }
 
-function StatusSlider({ value, onChange }: { value: VerseStatus; onChange: (v: VerseStatus) => void }) {
-  const index = Math.max(0, STATUSES.findIndex((s) => s.value === value));
-  return (
-    <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-      <input
-        type="range"
-        min={0}
-        max={STATUSES.length - 1}
-        step={1}
-        value={index}
-        aria-label="Verse status"
-        onChange={(e) => onChange(STATUSES[Number(e.target.value)].value)}
-        className="h-1.5 w-28 cursor-pointer appearance-none rounded-full bg-muted accent-heart"
-      />
-      <span className="text-[11px] font-semibold" title={STATUSES[index].hint}>{STATUSES[index].label}</span>
-    </div>
-  );
-}
+
+
 
 function IconBtn({ children, label, onClick, danger }: { children: React.ReactNode; label: string; onClick: (e: React.MouseEvent) => void; danger?: boolean }) {
   return (
