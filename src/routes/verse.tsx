@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Flag } from "lucide-react";
-import { currentVerseQuery, myLikesQuery, verseReflectionsQuery, type PublicReflection } from "@/lib/queries";
+import { currentVerseQuery, myLikesQuery, myReflectionsQuery, verseReflectionsQuery, type PublicReflection } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
