@@ -97,15 +97,12 @@ function VersesAdmin() {
     [surahs],
   );
 
-  const { active, archived } = useMemo(() => ({
-    active: data.filter((r) => !r.archived_at),
-    archived: data.filter((r) => r.archived_at),
+  const counts = useMemo(() => ({
+    current: data.filter((r) => r.status === "current").length,
+    pool: data.filter((r) => r.status === "pool").length,
+    used: data.filter((r) => r.status === "used").length,
   }), [data]);
-  const poolCount = active.filter((r) => r.status === "pool").length;
-  const usedCount = active.filter((r) => r.status === "used").length;
-  const base = tab === "active"
-    ? statusFilter === "all" ? active : active.filter((r) => r.status === statusFilter)
-    : archived;
+  const base = data.filter((r) => r.status === statusFilter);
   const rows = useMemo(() => {
     const list = [...base];
     if (sort === "added") {
