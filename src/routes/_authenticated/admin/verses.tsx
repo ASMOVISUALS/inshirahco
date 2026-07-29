@@ -176,14 +176,8 @@ function VersesAdmin() {
   };
 
   /** Duplicate guard — the same surah/ayah may only ever exist once. */
-  const findDuplicate = (d: Draft, ignoreId?: string) =>
-    data.find(
-      (r) =>
-        r.id !== ignoreId &&
-        r.ayah_number === d.ayah_number &&
-        r.surah_id != null &&
-        surahNumberById.get(r.surah_id) === d.surah_number,
-    );
+
+
 
   const resolve = (d: Draft) => {
     if (!d.surah_number || !d.ayah_number) throw new Error("Pick a surah and ayah number first.");
@@ -197,8 +191,8 @@ function VersesAdmin() {
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
-      const dup = findDuplicate(d);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
+      // Duplicates are allowed — a past verse can be added again as a fresh pool item.
+
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").insert({
         arabic: d.arabic,
@@ -220,8 +214,6 @@ function VersesAdmin() {
 
   const update = useMutation({
     mutationFn: async ({ id, d }: { id: string; d: Draft }) => {
-      const dup = findDuplicate(d, id);
-      if (dup) throw new Error(`This ayah already exists (${dup.reference}).`);
       const { surah_id, surah } = resolve(d);
       const { error } = await supabase.from("ayahs").update({
         arabic: d.arabic,
@@ -230,29 +222,13 @@ function VersesAdmin() {
         surah_id,
         ayah_number: d.ayah_number,
       }).eq("id", id);
-      if (error) throw new Error(error.code === "23505" ? "This ayah already exists." : error.message);
+      if (error) throw new Error(error.message);
     },
     onMutate: () => setError(null),
     onError: (e: Error) => setError(e.message),
     onSuccess: () => { setEditingId(null); setEditDraft(null); invalidate(); },
   });
 
-  const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: VerseStatus }) => {
-      // Only one verse can hold "this week" at a time.
-      if (status === "current") {
-        const { error: clearErr } = await supabase
-          .from("ayahs").update({ status: "used" }).eq("status", "current").neq("id", id);
-        if (clearErr) throw clearErr;
-      }
-      const { error } = await supabase
-        .from("ayahs")
-        .update({ status, active: true })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
 
 
   const purge = useMutation({
@@ -467,22 +443,22 @@ function VersesAdmin() {
               </span>
               {!r.surah_id && <p className="mt-1 text-xs text-destructive">Not linked to a surah — edit to fix.</p>}
 
-              {selected && (
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-heart/20 pt-3">
-                  <StatusSlider
-                    value={r.status}
-                    onChange={(status) => setStatus.mutate({ id: r.id, status })}
-                  />
-                  <div className="flex items-center gap-2">
-                    <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
-                      <Pencil className="h-4 w-4" />
-                    </IconBtn>
-                    <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </IconBtn>
-                  </div>
+              {selected && r.status !== "used" && (
+                <div className="mt-3 flex items-center justify-end gap-2 border-t border-heart/20 pt-3">
+                  <IconBtn label="Edit verse" onClick={(e) => { e.stopPropagation(); beginEdit(r); }}>
+                    <Pencil className="h-4 w-4" />
+                  </IconBtn>
+                  <IconBtn label="Delete verse" danger onClick={(e) => { e.stopPropagation(); if (confirm("Permanently delete this verse?")) purge.mutate(r.id); }}>
+                    <Trash2 className="h-4 w-4" />
+                  </IconBtn>
                 </div>
               )}
+              {selected && r.status === "used" && (
+                <p className="mt-3 border-t border-heart/20 pt-3 text-xs text-muted-foreground">
+                  Used verses are kept as a permanent record. To run this verse again, add it to the pool as a new entry.
+                </p>
+              )}
+
             </div>
           );
         })}
@@ -498,24 +474,8 @@ function VersesAdmin() {
   );
 }
 
-function StatusSlider({ value, onChange }: { value: VerseStatus; onChange: (v: VerseStatus) => void }) {
-  const index = Math.max(0, STATUSES.findIndex((s) => s.value === value));
-  return (
-    <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-      <input
-        type="range"
-        min={0}
-        max={STATUSES.length - 1}
-        step={1}
-        value={index}
-        aria-label="Verse status"
-        onChange={(e) => onChange(STATUSES[Number(e.target.value)].value)}
-        className="h-1.5 w-28 cursor-pointer appearance-none rounded-full bg-muted accent-heart"
-      />
-      <span className="text-[11px] font-semibold" title={STATUSES[index].hint}>{STATUSES[index].label}</span>
-    </div>
-  );
-}
+
+
 
 function IconBtn({ children, label, onClick, danger }: { children: React.ReactNode; label: string; onClick: (e: React.MouseEvent) => void; danger?: boolean }) {
   return (
