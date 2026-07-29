@@ -412,6 +412,21 @@ function PagesArchive() {
         email={user?.email ?? ""}
         onVerified={onVerified}
       />
+      {pillarLocked && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => setPillarLocked(null)}>
+          <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold">Pillar is archived</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{pillarLocked.title}</span> is linked to
+              the pillar <span className="font-mono">/{pillarLocked.slug}</span>, which is currently
+              archived. Restore the pillar from the Pillars admin — its page will come back automatically.
+            </p>
+            <div className="mt-4 flex justify-end">
+              <button className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold hover:bg-secondary" onClick={() => setPillarLocked(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
