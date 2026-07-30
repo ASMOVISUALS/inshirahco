@@ -280,6 +280,13 @@ function PagesAdmin() {
 
       {tab === "active" ? (
         <>
+          <NavbarSection
+            rows={navRows}
+            onReorder={(keys) => navReorderMutation.mutate(keys)}
+            onRemove={(row) => navToggleMutation.mutate({ key: row.key, next: false, order: 0 })}
+            onLabel={(key, label) => navLabelMutation.mutate({ key, label })}
+          />
+
           <Section
             label="Core"
             rows={core}
