@@ -602,12 +602,19 @@ function PageTile({
       <div className="flex min-h-[88px] flex-col gap-1.5">
         <h3 className="text-base font-bold leading-tight">{row.title || row.slug}</h3>
         <p className="font-mono text-[11px] text-muted-foreground">/{row.slug}</p>
-        <span
-          className="mt-auto inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-          style={{ borderColor: statusMeta.color, color: statusMeta.color }}
-        >
-          <StatusIcon className="h-3 w-3" /> {statusMeta.label}
-        </span>
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+            style={{ borderColor: statusMeta.color, color: statusMeta.color }}
+          >
+            <StatusIcon className="h-3 w-3" /> {statusMeta.label}
+          </span>
+          {row.in_nav && !row.archived_at && (
+            <span className="inline-flex w-fit items-center gap-1 rounded-full border border-emerald-600/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+              <PanelTop className="h-3 w-3" /> In navbar
+            </span>
+          )}
+        </div>
       </div>
 
       {active && (
@@ -621,6 +628,18 @@ function PageTile({
               <StatusIcon className="h-3 w-3" /> Status
             </button>
           )}
+          {onNav && (
+            <button
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold hover:bg-secondary ${
+                row.in_nav ? "border-emerald-600/60 text-emerald-600" : "border-border"
+              }`}
+              onClick={onNav}
+              title={row.in_nav ? "Remove from navbar" : "Add to navbar"}
+            >
+              <PanelTop className="h-3 w-3" /> {row.in_nav ? "In navbar" : "Navbar"}
+            </button>
+          )}
+
           {!row.archived_at && (
             <>
               <Link
