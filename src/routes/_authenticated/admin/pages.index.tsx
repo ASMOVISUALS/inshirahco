@@ -215,6 +215,15 @@ function PagesAdmin() {
   const pillars = active.filter((r) => r.key.startsWith("pillar:"));
   const custom = active.filter((r) => r.key.startsWith("custom:"));
   const system = active.filter((r) => r.key.startsWith("system:"));
+  const navRows = active
+    .filter((r) => r.in_nav && r.status !== "hidden")
+    .sort((a, b) => a.nav_order - b.nav_order);
+  const nextNavOrder = navRows.length > 0 ? Math.max(...navRows.map((r) => r.nav_order)) + 1 : 1;
+  const canBeInNav = (r: PageRow) =>
+    !r.archived_at && r.status !== "hidden" && !r.key.startsWith("system:") && !!r.slug;
+  const toggleNav = (r: PageRow) =>
+    navToggleMutation.mutate({ key: r.key, next: !r.in_nav, order: nextNavOrder });
+
 
   const runGated = (action: PendingAction) => {
     setConfirm(null);
