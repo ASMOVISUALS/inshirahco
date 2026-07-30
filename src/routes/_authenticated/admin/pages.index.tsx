@@ -42,7 +42,7 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,status,archived_at")
+        .select("key,slug,title,is_published,status,archived_at,in_nav,nav_label,nav_order")
         .order("key");
       if (error) throw error;
       // "join" visibility is controlled by the account-access setting toggle,
