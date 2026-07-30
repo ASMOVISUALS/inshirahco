@@ -6,7 +6,7 @@ import { Menu, Moon, Search, Sun, X, Bookmark, LogOut, Shield, ArrowLeft, User }
 import { Logo } from "./Logo";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
-import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
+import { hasAdminRoleQuery, siteSettingQuery, navItemsQuery, type NavItemRow } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 
 import { SearchOverlay } from "./SearchOverlay";
@@ -19,12 +19,21 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { user } = useAuth();
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
+  const { data: navRows } = useQuery(navItemsQuery());
   const pillars = usePillars();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const aboutLabel = (nav.about_label as string) ?? "About";
   const contactLabel = (nav.contact_label as string) ?? "Contact";
+
+  // Admin-chosen navbar items; falls back to pillars + About so the nav is never empty.
+  const fallbackItems: NavItemRow[] = [
+    ...pillars.map((p, i) => ({ key: `pillar:${p.slug}`, slug: p.href.replace(/^\//, ""), label: p.short_label, nav_order: i })),
+    { key: "about", slug: "about", label: aboutLabel, nav_order: 90 },
+  ];
+  const navItems = navRows && navRows.length > 0 ? navRows : fallbackItems;
+
 
   const signOut = () => signOutCompletely({ queryClient, navigate });
 
@@ -69,26 +78,19 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
 
           {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-            {pillars.map((p) => (
+            {navItems.map((item) => (
               <Link
-                key={p.slug}
-                to={p.href}
+                key={item.key}
+                to={`/${item.slug}`}
                 className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ style: { color: "var(--heart)" } }}
               >
-                {p.short_label}
+                {item.label}
               </Link>
             ))}
-
-            <Link
-              to="/about"
-              className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ style: { color: "var(--heart)" } }}
-            >
-              {aboutLabel}
-            </Link>
           </nav>
           )}
+
 
           <div className="flex items-center gap-1">
             {!minimal && (
@@ -173,12 +175,12 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
               </button>
             </div>
             <nav className="mt-8 flex flex-col gap-1" aria-label="Mobile primary">
-              {pillars.map((p) => (
-                <Link key={p.slug} to={p.href} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
-                  {p.label}
+              {navItems.map((item) => (
+                <Link key={item.key} to={`/${item.slug}`} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
+                  {item.label}
                 </Link>
               ))}
-              <Link to="/about" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{aboutLabel}</Link>
+
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{contactLabel}</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>

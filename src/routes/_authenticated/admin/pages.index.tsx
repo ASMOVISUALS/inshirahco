@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2, Archive, RotateCcw } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2, Archive, RotateCcw, GripVertical, PanelTop } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,7 +22,11 @@ interface PageRow {
   is_published: boolean;
   status: PageStatus;
   archived_at: string | null;
+  in_nav: boolean;
+  nav_label: string | null;
+  nav_order: number;
 }
+
 
 type PendingAction =
   | { kind: "status"; key: string; next: PageStatus }
@@ -38,7 +42,7 @@ function PagesAdmin() {
     queryFn: async (): Promise<PageRow[]> => {
       const { data, error } = await supabase
         .from("pages")
-        .select("key,slug,title,is_published,status,archived_at")
+        .select("key,slug,title,is_published,status,archived_at,in_nav,nav_label,nav_order")
         .order("key");
       if (error) throw error;
       // "join" visibility is controlled by the account-access setting toggle,
@@ -80,9 +84,60 @@ function PagesAdmin() {
   const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
 
 
+  // ---- Navbar controls -------------------------------------------------
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+    qc.invalidateQueries({ queryKey: ["cms"] });
+  };
+
+  const navToggleMutation = useMutation({
+    mutationFn: async (p: { key: string; next: boolean; order: number }) => {
+      const { error } = await supabase
+        .from("pages")
+        .update({ in_nav: p.next, nav_order: p.next ? p.order : 0 } as never)
+        .eq("key", p.key);
+      if (error) throw error;
+      return p.next;
+    },
+    onSuccess: (next) => {
+      setToast({ kind: "ok", msg: next ? "Added to the navbar." : "Removed from the navbar." });
+      invalidateAll();
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const navLabelMutation = useMutation({
+    mutationFn: async (p: { key: string; label: string }) => {
+      const { error } = await supabase
+        .from("pages")
+        .update({ nav_label: p.label.trim() || null } as never)
+        .eq("key", p.key);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setToast({ kind: "ok", msg: "Navbar label saved." });
+      invalidateAll();
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const navReorderMutation = useMutation({
+    mutationFn: async (keys: string[]) => {
+      await Promise.all(
+        keys.map((key, i) =>
+          supabase.from("pages").update({ nav_order: i + 1 } as never).eq("key", key),
+        ),
+      );
+    },
+    onSuccess: invalidateAll,
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
   const setStatusMutation = useMutation({
     mutationFn: async (p: { key: string; next: PageStatus }) => {
-      const { error } = await supabase.from("pages").update({ status: p.next } as never).eq("key", p.key);
+      // Hidden pages can never sit in the navbar.
+      const patch = p.next === "hidden" ? { status: p.next, in_nav: false } : { status: p.next };
+      const { error } = await supabase.from("pages").update(patch as never).eq("key", p.key);
       if (error) throw error;
       return p.next;
     },
@@ -102,10 +157,14 @@ function PagesAdmin() {
 
   const archiveMutation = useMutation({
     mutationFn: async (key: string) => {
-      const { error } = await supabase.from("pages").update({ archived_at: new Date().toISOString() } as never).eq("key", key);
+      const { error } = await supabase
+        .from("pages")
+        .update({ archived_at: new Date().toISOString(), in_nav: false } as never)
+        .eq("key", key);
       if (error) throw error;
       return key;
     },
+
     onSuccess: (key) => {
       setToast({ kind: "ok", msg: "Page moved to archive." });
       if (activeKey === key) setActiveKey(null);
@@ -156,6 +215,15 @@ function PagesAdmin() {
   const pillars = active.filter((r) => r.key.startsWith("pillar:"));
   const custom = active.filter((r) => r.key.startsWith("custom:"));
   const system = active.filter((r) => r.key.startsWith("system:"));
+  const navRows = active
+    .filter((r) => r.in_nav && r.status !== "hidden")
+    .sort((a, b) => a.nav_order - b.nav_order);
+  const nextNavOrder = navRows.length > 0 ? Math.max(...navRows.map((r) => r.nav_order)) + 1 : 1;
+  const canBeInNav = (r: PageRow) =>
+    !r.archived_at && r.status !== "hidden" && !r.key.startsWith("system:") && !!r.slug;
+  const toggleNav = (r: PageRow) =>
+    navToggleMutation.mutate({ key: r.key, next: !r.in_nav, order: nextNavOrder });
+
 
   const runGated = (action: PendingAction) => {
     setConfirm(null);
@@ -212,6 +280,13 @@ function PagesAdmin() {
 
       {tab === "active" ? (
         <>
+          <NavbarSection
+            rows={navRows}
+            onReorder={(keys) => navReorderMutation.mutate(keys)}
+            onRemove={(row) => navToggleMutation.mutate({ key: row.key, next: false, order: 0 })}
+            onLabel={(key, label) => navLabelMutation.mutate({ key, label })}
+          />
+
           <Section
             label="Core"
             rows={core}
@@ -221,6 +296,8 @@ function PagesAdmin() {
             onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
             onRestore={null}
             onPurge={null}
+            onNav={(row) => toggleNav(row)}
+            canNav={canBeInNav}
           />
           {pillars.length > 0 && (
             <Section
@@ -232,6 +309,8 @@ function PagesAdmin() {
               onDelete={null}
               onRestore={null}
               onPurge={null}
+              onNav={(row) => toggleNav(row)}
+              canNav={canBeInNav}
             />
           )}
           {custom.length > 0 && (
@@ -244,8 +323,11 @@ function PagesAdmin() {
               onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
               onRestore={null}
               onPurge={null}
+              onNav={(row) => toggleNav(row)}
+              canNav={canBeInNav}
             />
           )}
+
           {system.length > 0 && (
             <Section
               label="System templates"
@@ -359,8 +441,85 @@ function PagesAdmin() {
 }
 
 
+/** Ordered list of pages currently shown in the site navbar. Drag to reorder. */
+function NavbarSection({
+  rows, onReorder, onRemove, onLabel,
+}: {
+  rows: PageRow[];
+  onReorder: (keys: string[]) => void;
+  onRemove: (row: PageRow) => void;
+  onLabel: (key: string, label: string) => void;
+}) {
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [order, setOrder] = useState<string[] | null>(null);
+  const keys = order ?? rows.map((r) => r.key);
+  const byKey = new Map(rows.map((r) => [r.key, r]));
+  const items = keys.map((k) => byKey.get(k)).filter(Boolean) as PageRow[];
+
+  const onDrop = (targetKey: string) => {
+    if (!dragKey || dragKey === targetKey) return;
+    const next = keys.filter((k) => k !== dragKey);
+    next.splice(next.indexOf(targetKey), 0, dragKey);
+    setOrder(next);
+    setDragKey(null);
+    onReorder(next);
+  };
+
+  return (
+    <section onClick={(e) => e.stopPropagation()}>
+      <div className="mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Navbar</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          These pages appear in the site navigation, in this order. Drag to reorder, rename the label, or remove.
+          Add a page with the “Navbar” button on its tile below.
+        </p>
+      </div>
+      {items.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border p-4 text-xs text-muted-foreground">
+          No pages in the navbar yet — the site falls back to pillars + About until you add some.
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {items.map((r) => (
+            <div
+              key={r.key}
+              draggable
+              onDragStart={() => setDragKey(r.key)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onDrop(r.key)}
+              className={`flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 ${
+                dragKey === r.key ? "border-heart opacity-60" : "border-border"
+              }`}
+            >
+              <GripVertical className="h-3.5 w-3.5 cursor-grab text-muted-foreground" />
+              <input
+                defaultValue={r.nav_label ?? r.title ?? r.slug}
+                placeholder={r.title || r.slug}
+                onBlur={(e) => {
+                  const v = e.target.value;
+                  if (v !== (r.nav_label ?? r.title ?? r.slug)) onLabel(r.key, v);
+                }}
+                className="w-28 bg-transparent text-sm font-semibold outline-none"
+              />
+              <span className="font-mono text-[10px] text-muted-foreground">/{r.slug}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${r.title || r.slug} from navbar`}
+                onClick={() => { setOrder(null); onRemove(r); }}
+                className="text-muted-foreground hover:text-heart"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Section({
-  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, isRestoreLocked, onRestoreLocked, note,
+  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, onNav, canNav, isRestoreLocked, onRestoreLocked, note,
 }: {
   label: string;
   rows: PageRow[];
@@ -370,10 +529,13 @@ function Section({
   onDelete: ((row: PageRow) => void) | null;
   onRestore: ((row: PageRow) => void) | null;
   onPurge: ((row: PageRow) => void) | null;
+  onNav?: (row: PageRow) => void;
+  canNav?: (row: PageRow) => boolean;
   isRestoreLocked?: (row: PageRow) => boolean;
   onRestoreLocked?: (row: PageRow) => void;
   note?: string;
 }) {
+
   return (
     <section>
       <div className="mb-3">
@@ -394,8 +556,10 @@ function Section({
                 onDelete={onDelete ? () => onDelete(r) : null}
                 onRestore={onRestore ? () => onRestore(r) : null}
                 onPurge={onPurge ? () => onPurge(r) : null}
+                onNav={onNav && canNav?.(r) ? () => onNav(r) : null}
                 restoreLocked={locked}
                 onRestoreLocked={onRestoreLocked ? () => onRestoreLocked(r) : null}
+
               />
             );
           })}
@@ -406,7 +570,7 @@ function Section({
 }
 
 function PageTile({
-  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, restoreLocked, onRestoreLocked,
+  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, onNav, restoreLocked, onRestoreLocked,
 }: {
   row: PageRow;
   active: boolean;
@@ -415,9 +579,11 @@ function PageTile({
   onDelete: (() => void) | null;
   onRestore: (() => void) | null;
   onPurge: (() => void) | null;
+  onNav?: (() => void) | null;
   restoreLocked?: boolean;
   onRestoreLocked?: (() => void) | null;
 }) {
+
 
   const statusMeta =
     row.archived_at ? { label: "Archived", icon: Archive, color: "var(--muted-foreground)" } :
@@ -436,12 +602,19 @@ function PageTile({
       <div className="flex min-h-[88px] flex-col gap-1.5">
         <h3 className="text-base font-bold leading-tight">{row.title || row.slug}</h3>
         <p className="font-mono text-[11px] text-muted-foreground">/{row.slug}</p>
-        <span
-          className="mt-auto inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
-          style={{ borderColor: statusMeta.color, color: statusMeta.color }}
-        >
-          <StatusIcon className="h-3 w-3" /> {statusMeta.label}
-        </span>
+        <div className="mt-auto flex flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest"
+            style={{ borderColor: statusMeta.color, color: statusMeta.color }}
+          >
+            <StatusIcon className="h-3 w-3" /> {statusMeta.label}
+          </span>
+          {row.in_nav && !row.archived_at && (
+            <span className="inline-flex w-fit items-center gap-1 rounded-full border border-emerald-600/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+              <PanelTop className="h-3 w-3" /> In navbar
+            </span>
+          )}
+        </div>
       </div>
 
       {active && (
@@ -455,6 +628,18 @@ function PageTile({
               <StatusIcon className="h-3 w-3" /> Status
             </button>
           )}
+          {onNav && (
+            <button
+              className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold hover:bg-secondary ${
+                row.in_nav ? "border-emerald-600/60 text-emerald-600" : "border-border"
+              }`}
+              onClick={onNav}
+              title={row.in_nav ? "Remove from navbar" : "Add to navbar"}
+            >
+              <PanelTop className="h-3 w-3" /> {row.in_nav ? "In navbar" : "Navbar"}
+            </button>
+          )}
+
           {!row.archived_at && (
             <>
               <Link

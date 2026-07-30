@@ -410,6 +410,38 @@ export const pageBySlugContentQuery = (slug: string) =>
     staleTime: 60_000,
   });
 
+export interface NavItemRow {
+  key: string;
+  slug: string;
+  label: string;
+  nav_order: number;
+}
+
+/** Navbar items chosen by admins in the Pages panel. */
+export const navItemsQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "nav-items"],
+    queryFn: async (): Promise<NavItemRow[]> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("key,slug,title,nav_label,nav_order,status,in_nav,archived_at")
+        .eq("in_nav", true)
+        .is("archived_at", null)
+        .order("nav_order", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as Array<Record<string, unknown>>)
+        .filter((r) => r.status !== "hidden" && !!r.slug)
+        .map((r) => ({
+          key: String(r.key),
+          slug: String(r.slug),
+          label: String((r.nav_label as string) || (r.title as string) || r.slug),
+          nav_order: Number(r.nav_order ?? 0),
+        }));
+    },
+    staleTime: 60_000,
+  });
+
+
 export const pageBySlugQuery = (slug: string) =>
   queryOptions({
     queryKey: ["cms", "page-by-slug", slug],

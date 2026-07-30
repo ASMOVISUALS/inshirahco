@@ -304,9 +304,12 @@ export type Database = {
           archived_at: string | null
           content: Json
           created_at: string
+          in_nav: boolean
           is_locked: boolean
           is_published: boolean
           key: string
+          nav_label: string | null
+          nav_order: number
           slug: string | null
           status: Database["public"]["Enums"]["page_status"]
           template: string
@@ -317,9 +320,12 @@ export type Database = {
           archived_at?: string | null
           content?: Json
           created_at?: string
+          in_nav?: boolean
           is_locked?: boolean
           is_published?: boolean
           key: string
+          nav_label?: string | null
+          nav_order?: number
           slug?: string | null
           status?: Database["public"]["Enums"]["page_status"]
           template?: string
@@ -330,9 +336,12 @@ export type Database = {
           archived_at?: string | null
           content?: Json
           created_at?: string
+          in_nav?: boolean
           is_locked?: boolean
           is_published?: boolean
           key?: string
+          nav_label?: string | null
+          nav_order?: number
           slug?: string | null
           status?: Database["public"]["Enums"]["page_status"]
           template?: string
