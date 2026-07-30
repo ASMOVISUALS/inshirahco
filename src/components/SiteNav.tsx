@@ -6,7 +6,7 @@ import { Menu, Moon, Search, Sun, X, Bookmark, LogOut, Shield, ArrowLeft, User }
 import { Logo } from "./Logo";
 import { useTheme, useBookmarks } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
-import { hasAdminRoleQuery, siteSettingQuery } from "@/lib/queries";
+import { hasAdminRoleQuery, siteSettingQuery, navItemsQuery, type NavItemRow } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 
 import { SearchOverlay } from "./SearchOverlay";
@@ -19,12 +19,21 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
   const { user } = useAuth();
   const { data: isAdmin } = useQuery(hasAdminRoleQuery(user?.id ?? null));
   const { data: nav = {} } = useQuery(siteSettingQuery("nav"));
+  const { data: navRows } = useQuery(navItemsQuery());
   const pillars = usePillars();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const aboutLabel = (nav.about_label as string) ?? "About";
   const contactLabel = (nav.contact_label as string) ?? "Contact";
+
+  // Admin-chosen navbar items; falls back to pillars + About so the nav is never empty.
+  const fallbackItems: NavItemRow[] = [
+    ...pillars.map((p, i) => ({ key: `pillar:${p.slug}`, slug: p.href.replace(/^\//, ""), label: p.short_label, nav_order: i })),
+    { key: "about", slug: "about", label: aboutLabel, nav_order: 90 },
+  ];
+  const navItems = navRows && navRows.length > 0 ? navRows : fallbackItems;
+
 
   const signOut = () => signOutCompletely({ queryClient, navigate });
 
