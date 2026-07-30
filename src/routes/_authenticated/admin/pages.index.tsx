@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2, Archive, RotateCcw } from "lucide-react";
+import { ExternalLink, LayoutTemplate, Plus, Eye, EyeOff, Clock, Trash2, Archive, RotateCcw, GripVertical, PanelTop } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
 import { useAuth } from "@/hooks/use-auth";
