@@ -78,26 +78,19 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
 
           {!minimal && (
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
-            {pillars.map((p) => (
+            {navItems.map((item) => (
               <Link
-                key={p.slug}
-                to={p.href}
+                key={item.key}
+                to={`/${item.slug}`}
                 className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ style: { color: "var(--heart)" } }}
               >
-                {p.short_label}
+                {item.label}
               </Link>
             ))}
-
-            <Link
-              to="/about"
-              className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ style: { color: "var(--heart)" } }}
-            >
-              {aboutLabel}
-            </Link>
           </nav>
           )}
+
 
           <div className="flex items-center gap-1">
             {!minimal && (
