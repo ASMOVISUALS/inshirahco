@@ -441,8 +441,85 @@ function PagesAdmin() {
 }
 
 
+/** Ordered list of pages currently shown in the site navbar. Drag to reorder. */
+function NavbarSection({
+  rows, onReorder, onRemove, onLabel,
+}: {
+  rows: PageRow[];
+  onReorder: (keys: string[]) => void;
+  onRemove: (row: PageRow) => void;
+  onLabel: (key: string, label: string) => void;
+}) {
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [order, setOrder] = useState<string[] | null>(null);
+  const keys = order ?? rows.map((r) => r.key);
+  const byKey = new Map(rows.map((r) => [r.key, r]));
+  const items = keys.map((k) => byKey.get(k)).filter(Boolean) as PageRow[];
+
+  const onDrop = (targetKey: string) => {
+    if (!dragKey || dragKey === targetKey) return;
+    const next = keys.filter((k) => k !== dragKey);
+    next.splice(next.indexOf(targetKey), 0, dragKey);
+    setOrder(next);
+    setDragKey(null);
+    onReorder(next);
+  };
+
+  return (
+    <section onClick={(e) => e.stopPropagation()}>
+      <div className="mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Navbar</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          These pages appear in the site navigation, in this order. Drag to reorder, rename the label, or remove.
+          Add a page with the “Navbar” button on its tile below.
+        </p>
+      </div>
+      {items.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border p-4 text-xs text-muted-foreground">
+          No pages in the navbar yet — the site falls back to pillars + About until you add some.
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {items.map((r) => (
+            <div
+              key={r.key}
+              draggable
+              onDragStart={() => setDragKey(r.key)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onDrop(r.key)}
+              className={`flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 ${
+                dragKey === r.key ? "border-heart opacity-60" : "border-border"
+              }`}
+            >
+              <GripVertical className="h-3.5 w-3.5 cursor-grab text-muted-foreground" />
+              <input
+                defaultValue={r.nav_label ?? r.title ?? r.slug}
+                placeholder={r.title || r.slug}
+                onBlur={(e) => {
+                  const v = e.target.value;
+                  if (v !== (r.nav_label ?? r.title ?? r.slug)) onLabel(r.key, v);
+                }}
+                className="w-28 bg-transparent text-sm font-semibold outline-none"
+              />
+              <span className="font-mono text-[10px] text-muted-foreground">/{r.slug}</span>
+              <button
+                type="button"
+                aria-label={`Remove ${r.title || r.slug} from navbar`}
+                onClick={() => { setOrder(null); onRemove(r); }}
+                className="text-muted-foreground hover:text-heart"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Section({
-  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, isRestoreLocked, onRestoreLocked, note,
+  label, rows, activeKey, onSelect, onStatus, onDelete, onRestore, onPurge, onNav, canNav, isRestoreLocked, onRestoreLocked, note,
 }: {
   label: string;
   rows: PageRow[];
@@ -452,10 +529,13 @@ function Section({
   onDelete: ((row: PageRow) => void) | null;
   onRestore: ((row: PageRow) => void) | null;
   onPurge: ((row: PageRow) => void) | null;
+  onNav?: (row: PageRow) => void;
+  canNav?: (row: PageRow) => boolean;
   isRestoreLocked?: (row: PageRow) => boolean;
   onRestoreLocked?: (row: PageRow) => void;
   note?: string;
 }) {
+
   return (
     <section>
       <div className="mb-3">
