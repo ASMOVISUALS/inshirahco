@@ -22,7 +22,11 @@ interface PageRow {
   is_published: boolean;
   status: PageStatus;
   archived_at: string | null;
+  in_nav: boolean;
+  nav_label: string | null;
+  nav_order: number;
 }
+
 
 type PendingAction =
   | { kind: "status"; key: string; next: PageStatus }
