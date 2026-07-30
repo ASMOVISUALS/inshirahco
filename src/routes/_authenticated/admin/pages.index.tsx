@@ -296,6 +296,8 @@ function PagesAdmin() {
             onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
             onRestore={null}
             onPurge={null}
+            onNav={(row) => toggleNav(row)}
+            canNav={canBeInNav}
           />
           {pillars.length > 0 && (
             <Section
@@ -307,6 +309,8 @@ function PagesAdmin() {
               onDelete={null}
               onRestore={null}
               onPurge={null}
+              onNav={(row) => toggleNav(row)}
+              canNav={canBeInNav}
             />
           )}
           {custom.length > 0 && (
@@ -319,8 +323,11 @@ function PagesAdmin() {
               onDelete={(row) => setConfirm({ kind: "archive", key: row.key, title: row.title || row.slug })}
               onRestore={null}
               onPurge={null}
+              onNav={(row) => toggleNav(row)}
+              canNav={canBeInNav}
             />
           )}
+
           {system.length > 0 && (
             <Section
               label="System templates"
