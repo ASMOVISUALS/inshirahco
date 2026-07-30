@@ -570,7 +570,7 @@ function Section({
 }
 
 function PageTile({
-  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, restoreLocked, onRestoreLocked,
+  row, active, onSelect, onStatus, onDelete, onRestore, onPurge, onNav, restoreLocked, onRestoreLocked,
 }: {
   row: PageRow;
   active: boolean;
@@ -579,9 +579,11 @@ function PageTile({
   onDelete: (() => void) | null;
   onRestore: (() => void) | null;
   onPurge: (() => void) | null;
+  onNav?: (() => void) | null;
   restoreLocked?: boolean;
   onRestoreLocked?: (() => void) | null;
 }) {
+
 
   const statusMeta =
     row.archived_at ? { label: "Archived", icon: Archive, color: "var(--muted-foreground)" } :
