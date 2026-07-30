@@ -556,8 +556,10 @@ function Section({
                 onDelete={onDelete ? () => onDelete(r) : null}
                 onRestore={onRestore ? () => onRestore(r) : null}
                 onPurge={onPurge ? () => onPurge(r) : null}
+                onNav={onNav && canNav?.(r) ? () => onNav(r) : null}
                 restoreLocked={locked}
                 onRestoreLocked={onRestoreLocked ? () => onRestoreLocked(r) : null}
+
               />
             );
           })}
