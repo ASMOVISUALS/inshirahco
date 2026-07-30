@@ -84,9 +84,60 @@ function PagesAdmin() {
   const [pillarLocked, setPillarLocked] = useState<{ title: string; slug: string } | null>(null);
 
 
+  // ---- Navbar controls -------------------------------------------------
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["admin", "pages"] });
+    qc.invalidateQueries({ queryKey: ["cms"] });
+  };
+
+  const navToggleMutation = useMutation({
+    mutationFn: async (p: { key: string; next: boolean; order: number }) => {
+      const { error } = await supabase
+        .from("pages")
+        .update({ in_nav: p.next, nav_order: p.next ? p.order : 0 } as never)
+        .eq("key", p.key);
+      if (error) throw error;
+      return p.next;
+    },
+    onSuccess: (next) => {
+      setToast({ kind: "ok", msg: next ? "Added to the navbar." : "Removed from the navbar." });
+      invalidateAll();
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const navLabelMutation = useMutation({
+    mutationFn: async (p: { key: string; label: string }) => {
+      const { error } = await supabase
+        .from("pages")
+        .update({ nav_label: p.label.trim() || null } as never)
+        .eq("key", p.key);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setToast({ kind: "ok", msg: "Navbar label saved." });
+      invalidateAll();
+    },
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
+  const navReorderMutation = useMutation({
+    mutationFn: async (keys: string[]) => {
+      await Promise.all(
+        keys.map((key, i) =>
+          supabase.from("pages").update({ nav_order: i + 1 } as never).eq("key", key),
+        ),
+      );
+    },
+    onSuccess: invalidateAll,
+    onError: (e: Error) => setToast({ kind: "err", msg: e.message }),
+  });
+
   const setStatusMutation = useMutation({
     mutationFn: async (p: { key: string; next: PageStatus }) => {
-      const { error } = await supabase.from("pages").update({ status: p.next } as never).eq("key", p.key);
+      // Hidden pages can never sit in the navbar.
+      const patch = p.next === "hidden" ? { status: p.next, in_nav: false } : { status: p.next };
+      const { error } = await supabase.from("pages").update(patch as never).eq("key", p.key);
       if (error) throw error;
       return p.next;
     },
@@ -106,10 +157,14 @@ function PagesAdmin() {
 
   const archiveMutation = useMutation({
     mutationFn: async (key: string) => {
-      const { error } = await supabase.from("pages").update({ archived_at: new Date().toISOString() } as never).eq("key", key);
+      const { error } = await supabase
+        .from("pages")
+        .update({ archived_at: new Date().toISOString(), in_nav: false } as never)
+        .eq("key", key);
       if (error) throw error;
       return key;
     },
+
     onSuccess: (key) => {
       setToast({ kind: "ok", msg: "Page moved to archive." });
       if (activeKey === key) setActiveKey(null);
