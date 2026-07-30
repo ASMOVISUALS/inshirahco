@@ -175,12 +175,12 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
               </button>
             </div>
             <nav className="mt-8 flex flex-col gap-1" aria-label="Mobile primary">
-              {pillars.map((p) => (
-                <Link key={p.slug} to={p.href} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
-                  {p.label}
+              {navItems.map((item) => (
+                <Link key={item.key} to={`/${item.slug}`} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
+                  {item.label}
                 </Link>
               ))}
-              <Link to="/about" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{aboutLabel}</Link>
+
               <Link to="/contact" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">{contactLabel}</Link>
               <Link to="/saved" onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">Saved ({slugs.length})</Link>
             </nav>
