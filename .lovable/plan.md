@@ -1,36 +1,39 @@
-## My recommendation
+## Goal
 
-Yes — remove it entirely for now. Don't build empty Videos/Courses pages.
+The navbar currently hardcodes: pillars (from the `pillars` table) + an "About" link. Instead, admins choose which pages appear in the navbar, in what order, and with what label — all from the Pages panel.
 
-Reasons, based on what's actually in the code:
-- `resource_formats` currently drives the nav mega-menu, the Resources library block filters, the format labels on every content card, the search overlay, and a settings option source. That's a lot of moving parts maintaining a concept you have exactly one value for.
-- `articles.type` is a foreign key to `resource_formats.slug`. Keeping a one-value FK is pure overhead.
-- When videos/podcasts/courses genuinely arrive, they won't share the articles schema anyway (duration, embed URL, transcript, modules/lessons). A separate `videos` / `courses` table created then will be cleaner than a format flag bolted on now. Adding an empty table today locks in guesses.
+## Approach
 
-So: one `articles` table, no formats, no Resources hub. Add new tables when the content actually exists.
+Make the `pages` table the single source of truth for navigation. Pillar pages already exist there as rows keyed `pillar:<slug>`, so pillars and normal pages get the same on/off control.
 
-## What changes
+### 1. Database
 
-**Database (one migration)**
-- Drop the `articles_type_fkey` constraint and the `articles.type` column.
-- Drop the `resource_formats` table.
+Add three columns to `public.pages`:
+- `in_nav` (boolean, default false)
+- `nav_label` (text, nullable — falls back to the page title / pillar short label)
+- `nav_order` (integer, default 0)
 
-**Public site**
-- Delete the `/resources` route and its `resources` page record; remove the Resources item from the nav mega-menu (`SiteNav.tsx`, desktop + mobile), the "All resources" footer link, and `/resources` from the sitemap.
-- Remove the `ResourcesLibraryBlock` page block (and its entry in the block-kind registry) from `page-blocks.tsx`.
-- Content cards, the article page, and the search overlay stop showing a format label — the eyebrow becomes pillar-only.
-- Homepage "media" strip currently filters by `type === video | podcast | tadabbur`; that filter goes, and the carousel is either dropped or fed by the same article list. I'll confirm with you visually once it's built if it looks thin.
+Seed: set `in_nav = true` for the four pillar pages (order 1–4) and the About page (order 5), so the navbar looks exactly as it does today after the change.
 
-**Admin**
-- Delete `/admin/formats` and its sidebar entry.
-- Remove the Format column from the articles list and the format picker from the article editor; new articles no longer set `type`.
-- Remove the `formats` dynamic option source from the settings schema (and any setting field pointing at it).
+### 2. Pages panel UI
 
-**Shared code**
-- Remove `ResourceType`, `RESOURCE_TYPES`, `FormatRow`, `formatsQuery`, `useFormats`, `useFormatMap`, `useOnSiteFormatSlugs`, `formatLabel`, and `type` from `ContentItem`.
+In the Active tab of `/admin/pages`, each page card gets a "Nav" control:
+- A toggle "Show in navbar" (same click-to-reveal actions pattern as existing status controls).
+- When on, an inline label field (placeholder = page title) so the nav can show a short name.
+- A dedicated "Navbar" section at the top of the page listing only the pages currently in the nav, drag-to-reorder (same HTML5 drag pattern used for the verse queue) to set `nav_order`.
 
-## Ordering
-Migration first (it needs your approval and regenerates types), then the code cleanup in one pass.
+Rules:
+- Only non-archived, non-hidden pages can be added to the nav; archiving or hiding a page automatically drops it from the navbar.
+- No password gate on nav toggles (it's presentation only, not access control) — say the word if you want it gated.
 
-## Note on existing data
-Any articles currently stored with a non-article type (video, podcast, etc.) stay as normal articles — only the label disappears. If you'd rather archive those rows instead, say so and I'll add it.
+### 3. Frontend nav
+
+- New `navItemsQuery` in `src/lib/queries.ts` fetching pages where `in_nav` is true, not archived, status not hidden, ordered by `nav_order`.
+- `SiteNav.tsx` (desktop + mobile menus) renders that list instead of `usePillars()` + hardcoded About. Contact / Saved / auth buttons in the mobile drawer stay as-is.
+- Falls back to the current pillar-based list if the query returns nothing, so the nav is never empty.
+
+## Technical notes
+
+- Public read of the new columns is covered by the existing pages select policy; admin update by the existing admin policy.
+- Coming-soon pillar pages keep rendering their coming-soon state; they just appear in the nav if toggled on.
+- `SiteFooter` links are left untouched.
