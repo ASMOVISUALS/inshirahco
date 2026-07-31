@@ -115,6 +115,22 @@ function MembersAdmin() {
                     )}
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.email_mask ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    {m.role_tag === "admin" ? (
+                      <span className="text-xs font-semibold" style={{ color: colourFor("admin") }}>Admin</span>
+                    ) : (
+                      <select
+                        value={m.role_tag}
+                        disabled={setSpecial.isPending}
+                        onChange={(e) => setSpecial.mutate({ userId: m.user_id, special: e.target.value === "special" })}
+                        className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+                      >
+                        <option value="member">Member</option>
+                        <option value="special">Special</option>
+                      </select>
+                    )}
+                  </td>
+
                 </tr>
               ))}
             </tbody>
