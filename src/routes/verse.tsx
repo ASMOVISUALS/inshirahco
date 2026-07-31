@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { currentVerseQuery, myLikesQuery, myReflectionsQuery, publicProfilesQuery, verseReflectionsQuery } from "@/lib/queries";
+import { currentVerseQuery, myLikesQuery, myPublicProfileQuery, myReflectionsQuery, publicProfilesQuery, verseReflectionsQuery } from "@/lib/queries";
+import { RefreshCw, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
@@ -33,6 +34,19 @@ function VersePage() {
   const hasReflected = mine.length > 0;
   const authorIds = useMemo(() => [...new Set(reflections.map((r) => r.user_id))], [reflections]);
   const { data: authors = {} } = useQuery(publicProfilesQuery(authorIds));
+  const { data: myProfile } = useQuery(myPublicProfileQuery(user?.id ?? null));
+  const myOrg = myProfile?.organisation ?? null;
+  const [orgOnly, setOrgOnly] = useState(false);
+
+  /** Most liked reflections rise to the top; the org filter narrows to your ISOC. */
+  const visibleReflections = useMemo(() => {
+    const list = orgOnly && myProfile?.organisation_id
+      ? reflections.filter((r) => authors[r.user_id]?.organisation_id === myProfile.organisation_id)
+      : reflections;
+    return [...list].sort(
+      (a, b) => b.likes_count - a.likes_count || b.created_at.localeCompare(a.created_at),
+    );
+  }, [reflections, orgOnly, myProfile, authors]);
 
   const [body, setBody] = useState("");
   const [reportId, setReportId] = useState<string | null>(null);
@@ -163,11 +177,43 @@ function VersePage() {
 
       {/* Floating reflections */}
       <section className="mt-14">
-        {reflections.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-muted-foreground">No reflections yet — be the first.</p>
+        <div className="flex items-center justify-end gap-4 text-xs">
+          {myOrg && (
+            <button
+              type="button"
+              onClick={() => setOrgOnly((v) => !v)}
+              aria-pressed={orgOnly}
+              className="inline-flex items-center gap-1.5 font-semibold transition-colors"
+              style={{ color: orgOnly ? "var(--tazkiyah)" : "var(--muted-foreground)" }}
+            >
+              <span
+                className="grid h-3.5 w-3.5 place-items-center rounded-[4px] border"
+                style={{
+                  borderColor: orgOnly ? "var(--tazkiyah)" : "var(--border)",
+                  background: orgOnly ? "var(--tazkiyah)" : "transparent",
+                }}
+              >
+                {orgOnly && <Check className="h-2.5 w-2.5" style={{ color: "var(--paper)" }} />}
+              </span>
+              My {myOrg.short_name ?? myOrg.name}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={refresh}
+            className="inline-flex items-center gap-1.5 font-semibold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </button>
+        </div>
+        {visibleReflections.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            {orgOnly ? "No reflections from your organisation yet." : "No reflections yet — be the first."}
+          </p>
         ) : (
           <FloatingReflections
-            reflections={reflections}
+            reflections={visibleReflections}
             authors={authors}
             likedIds={likedSet}
             canAct={!!user}
