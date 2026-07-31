@@ -39,27 +39,41 @@ function VersePage() {
   const { data: myProfile } = useQuery(myPublicProfileQuery(user?.id ?? null));
   const myOrg = myProfile?.organisation ?? null;
   const [orgOnly, setOrgOnly] = useState(false);
+  const [sort, setSort] = useState<"popular" | "recent">("popular");
 
-  /** Most liked reflections rise to the top; the org filter narrows to your ISOC. */
+  /** Popular puts the most liked first; recent puts the newest first. */
   const visibleReflections = useMemo(() => {
     const list = orgOnly && myProfile?.organisation_id
       ? reflections.filter((r) => authors[r.user_id]?.organisation_id === myProfile.organisation_id)
       : reflections;
-    return [...list].sort(
-      (a, b) => b.likes_count - a.likes_count || b.created_at.localeCompare(a.created_at),
+    return [...list].sort((a, b) =>
+      sort === "recent"
+        ? b.created_at.localeCompare(a.created_at)
+        : b.likes_count - a.likes_count || b.created_at.localeCompare(a.created_at),
     );
-  }, [reflections, orgOnly, myProfile, authors]);
+  }, [reflections, orgOnly, myProfile, authors, sort]);
 
   const [body, setBody] = useState("");
   const [reportId, setReportId] = useState<string | null>(null);
 
   const likedSet = useMemo(() => new Set(liked), [liked]);
 
-  const refresh = () => {
-    qc.invalidateQueries({ queryKey: ["verse-reflections"] });
-    qc.invalidateQueries({ queryKey: ["my-likes"] });
-    qc.invalidateQueries({ queryKey: ["my-reflections"] });
+  const [refreshing, setRefreshing] = useState(false);
+
+  /** Refetch just the reflection data — keeps the current tiles on screen. */
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        qc.refetchQueries({ queryKey: ["verse-reflections"] }),
+        qc.refetchQueries({ queryKey: ["my-likes"] }),
+        qc.refetchQueries({ queryKey: ["my-reflections"] }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
+
 
   const share = useMutation({
     mutationFn: async () => {
