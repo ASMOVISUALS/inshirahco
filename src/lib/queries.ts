@@ -575,15 +575,20 @@ export type PublicProfileRow = {
   user_id: string;
   username: string;
   email_mask: string | null;
+  is_admin: boolean;
+  organisation_id: string | null;
   organisation: { name: string; short_name: string | null; logo_url: string | null } | null;
 };
 
-const selectPublicProfiles = "user_id,username,email_mask,organisations(name,short_name,logo_url)";
+const selectPublicProfiles =
+  "user_id,username,email_mask,is_admin,organisation_id,organisations(name,short_name,logo_url)";
 
 const mapPublicProfile = (r: Record<string, unknown>): PublicProfileRow => ({
   user_id: String(r.user_id),
   username: String(r.username),
   email_mask: (r.email_mask as string) ?? null,
+  is_admin: r.is_admin === true,
+  organisation_id: (r.organisation_id as string) ?? null,
   organisation: (r.organisations as PublicProfileRow["organisation"]) ?? null,
 });
 
@@ -604,6 +609,23 @@ export const publicProfilesQuery = (userIds: string[]) =>
         map[p.user_id] = p;
       }
       return map;
+    },
+    staleTime: 60_000,
+  });
+
+/** The signed-in member's own public identity (used for the "my org" filter). */
+export const myPublicProfileQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["my-public-profile", userId ?? "anon"],
+    enabled: !!userId,
+    queryFn: async (): Promise<PublicProfileRow | null> => {
+      const { data, error } = await supabase
+        .from("public_profiles")
+        .select(selectPublicProfiles)
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? mapPublicProfile(data as Record<string, unknown>) : null;
     },
     staleTime: 60_000,
   });
