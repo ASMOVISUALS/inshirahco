@@ -1,5 +1,7 @@
+import { useCallback } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Heart, Flag } from "lucide-react";
+import { Masonry, type RenderComponentProps } from "masonic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicReflection, PublicProfileRow } from "@/lib/queries";
 import { useUsernameColour } from "@/lib/member-colours";
@@ -23,10 +25,49 @@ type Props = {
   onReport: (id: string) => void;
 };
 
-/** Reflections drifting slowly around the verse, like leaves on still water. */
+/**
+ * Reflections packed into a measured masonry grid (no overlap), each tile
+ * drifting gently within its gutter so the wall still feels alive.
+ */
 export function FloatingReflections({ reflections, authors, likedIds, canAct, onLike, onReport }: Props) {
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
+
+  const renderTile = useCallback(
+    ({ index, data: r }: RenderComponentProps<PublicReflection>) => {
+      const driftX = 2 + seeded(r.id, 3) * 2;
+      const driftY = 2 + seeded(r.id, 4) * 2;
+      const duration = 18 + seeded(r.id, 5) * 14;
+      const tilt = 0.3 + seeded(r.id, 6) * 0.4;
+
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: Math.min(index, 8) * 0.05, ease: "easeOut" }}
+        >
+          <motion.div
+            animate={
+              reduceMotion
+                ? undefined
+                : { x: [-driftX, driftX, -driftX], y: [driftY, -driftY, driftY], rotate: [-tilt, tilt, -tilt] }
+            }
+            transition={{ duration, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
+          >
+            <Tile
+              r={r}
+              author={authors[r.user_id]}
+              liked={likedIds.has(r.id)}
+              canAct={canAct}
+              onLike={onLike}
+              onReport={onReport}
+            />
+          </motion.div>
+        </motion.div>
+      );
+    },
+    [authors, likedIds, canAct, onLike, onReport, reduceMotion],
+  );
 
   if (isMobile) {
     return (
@@ -38,49 +79,22 @@ export function FloatingReflections({ reflections, authors, likedIds, canAct, on
     );
   }
 
-  const cols = reflections.length > 6 ? 3 : Math.max(reflections.length, 1);
-  const rows = Math.ceil(reflections.length / cols);
-  const rowHeight = 210;
-
   return (
-    <div className="relative mt-8" style={{ height: rows * rowHeight + 80 }}>
-      {reflections.map((r, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const jitterX = (seeded(r.id, 1) - 0.5) * 8;
-        const jitterY = (seeded(r.id, 2) - 0.5) * 40;
-        const driftX = 14 + seeded(r.id, 3) * 22;
-        const driftY = 12 + seeded(r.id, 4) * 20;
-        const duration = 22 + seeded(r.id, 5) * 18;
-        const tilt = (seeded(r.id, 6) - 0.5) * 4;
-
-        return (
-          <motion.div
-            key={r.id}
-            className="absolute w-[min(320px,30%)]"
-            style={{
-              left: `${(col * 100) / cols + 50 / cols + jitterX}%`,
-              top: row * rowHeight + 20 + jitterY,
-              translateX: "-50%",
-            }}
-            animate={
-              reduceMotion
-                ? undefined
-                : {
-                    x: [-driftX, driftX, -driftX],
-                    y: [driftY, -driftY, driftY],
-                    rotate: [-tilt, tilt, -tilt],
-                  }
-            }
-            transition={{ duration, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
-          >
-            <Tile r={r} author={authors[r.user_id]} liked={likedIds.has(r.id)} canAct={canAct} onLike={onLike} onReport={onReport} />
-          </motion.div>
-        );
-      })}
+    <div className="mt-8">
+      <Masonry
+        key={reflections.map((r) => r.id).join(",")}
+        items={reflections}
+        itemKey={(r) => r.id}
+        columnWidth={300}
+        columnGutter={24}
+        rowGutter={24}
+        overscanBy={3}
+        render={renderTile}
+      />
     </div>
   );
 }
+
 
 function Tile({
   r, author, liked, canAct, onLike, onReport,
