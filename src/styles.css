@@ -306,7 +306,8 @@
   z-index: -1;
   opacity: 0;
   clip-path: circle(0% at 50% 50%);
-  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out;
+  /* Hover-out: slow fade, clip resets instantly once faded */
+  transition: opacity 900ms ease-out, clip-path 0ms linear 900ms;
   /* Brand girih tile artwork (light variant by default) */
   background-image: var(--votw-tile-light);
   background-repeat: repeat;
@@ -337,19 +338,12 @@
 .votw-tile:hover .votw-pattern,
 .votw-tile:focus-visible .votw-pattern {
   clip-path: circle(85% at 50% 50%);
-  animation: votw-settle 1500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: var(--votw-rest);
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 0ms linear;
 }
 
 .votw-tile:hover .votw-ring,
 .votw-tile:focus-visible .votw-ring { animation: votw-wave 950ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-
-/* Reveal bright as the wave passes, then settle low so the verse stays readable */
-@keyframes votw-settle {
-  0%   { opacity: 0; }
-  35%  { opacity: 0.42; }
-  60%  { opacity: 0.42; }
-  100% { opacity: var(--votw-rest); }
-}
 
 @keyframes votw-wave {
   0%   { transform: scale(0.05); opacity: 0; }
