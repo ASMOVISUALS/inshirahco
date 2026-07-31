@@ -1,39 +1,37 @@
 ## Goal
 
-The navbar currently hardcodes: pillars (from the `pillars` table) + an "About" link. Instead, admins choose which pages appear in the navbar, in what order, and with what label — all from the Pages panel.
+Replace the hand-coded CSS girih mask on the Verse of the Week tile with your uploaded Islamic geometric tile, recoloured to the Inshirah palette and settled at a low opacity so the verse text stays readable.
+
+## What the uploaded file is
+
+`Islamic-Geometric-Tile-2.svg` — a 1600×1600 vector panel with flat fills in four source colours:
+
+| Source colour | Role in the artwork | Maps to |
+|---|---|---|
+| `#002C7C` navy (dominant) | main star / strapwork lattice | `--tazkiyah` green |
+| `#007EA1` teal (secondary) | interlacing bands | mid-green (tazkiyah blended toward soft) |
+| `#BF5700` burnt orange | accent shapes | `--heart` red |
+| `#FFAB00` amber | small highlight nodes | `--gold-decorative` |
+| `#FFFFFF` | background plate | made transparent so the tile's own warm background shows through |
 
 ## Approach
 
-Make the `pages` table the single source of truth for navigation. Pillar pages already exist there as rows keyed `pillar:<slug>`, so pillars and normal pages get the same on/off control.
+1. **Create the brand asset.** Recolour the SVG by swapping those five fills for brand values, and produce two variants:
+   - `girih-tile-light.svg` — light-mode tokens (`#4F7F62`, `#A63C33`, `#C99A44`)
+   - `girih-tile-dark.svg` — warm-dark tokens (`#A8CFB5`, `#E29A91`, `#E0B458`)
 
-### 1. Database
+   Two static files rather than one CSS-variable-driven inline SVG, because a 148 KB inlined SVG in the JS bundle would be heavy and background-image data URIs can't read CSS variables. Both go through the Lovable asset CDN, so nothing large lands in the repo.
 
-Add three columns to `public.pages`:
-- `in_nav` (boolean, default false)
-- `nav_label` (text, nullable — falls back to the page title / pillar short label)
-- `nav_order` (integer, default 0)
+2. **Check tileability.** Render the artwork repeated 2×2 and inspect for seams. If it tiles cleanly it becomes a `repeat` background at roughly 320–400 px; if the edges don't meet, it is used as a single centred motif scaled to cover the card instead. Either way the geometry is your artwork, unchanged.
 
-Seed: set `in_nav = true` for the four pillar pages (order 1–4) and the About page (order 5), so the navbar looks exactly as it does today after the change.
+3. **Wire it into the tile.** In `src/styles.css`, `.votw-pattern` drops the two hand-built mask layers (`::before` star lattice, `::after` gold rosettes) and instead paints the asset as a `background-image`. The `.dark` variant points at the dark file.
 
-### 2. Pages panel UI
+4. **Keep the existing motion, adjust the settle.** The reveal stays exactly as it is now — `clip-path: circle(0% → 85%)` easing outward from the centre, with the `.votw-ring` glow expanding ahead of it. The change is the end state: the pattern animates in bright (around `0.42` opacity) as the wave passes, then eases down over ~600 ms to a resting `0.13` in light mode and `0.16` in dark, so the verse, translation and reference stay comfortably readable. On mouse-out it fades back to zero.
 
-In the Active tab of `/admin/pages`, each page card gets a "Nav" control:
-- A toggle "Show in navbar" (same click-to-reveal actions pattern as existing status controls).
-- When on, an inline label field (placeholder = page title) so the nav can show a short name.
-- A dedicated "Navbar" section at the top of the page listing only the pages currently in the nav, drag-to-reorder (same HTML5 drag pattern used for the verse queue) to set `nav_order`.
-
-Rules:
-- Only non-archived, non-hidden pages can be added to the nav; archiving or hiding a page automatically drops it from the navbar.
-- No password gate on nav toggles (it's presentation only, not access control) — say the word if you want it gated.
-
-### 3. Frontend nav
-
-- New `navItemsQuery` in `src/lib/queries.ts` fetching pages where `in_nav` is true, not archived, status not hidden, ordered by `nav_order`.
-- `SiteNav.tsx` (desktop + mobile menus) renders that list instead of `usePillars()` + hardcoded About. Contact / Saved / auth buttons in the mobile drawer stay as-is.
-- Falls back to the current pillar-based list if the query returns nothing, so the nav is never empty.
+5. **Motion safety.** Keep the existing `prefers-reduced-motion` handling — no wave, just a straight fade to the resting opacity.
 
 ## Technical notes
 
-- Public read of the new columns is covered by the existing pages select policy; admin update by the existing admin policy.
-- Coming-soon pillar pages keep rendering their coming-soon state; they just appear in the nav if toggled on.
-- `SiteFooter` links are left untouched.
+- Files touched: `src/styles.css` (pattern layers and the settle keyframes), plus the two new asset pointers under `src/assets/`. `VerseOfTheWeek.tsx` keeps its existing `.votw-pattern` / `.votw-ring` spans, so no component change is expected.
+- Resting opacity values are a starting point — easy to nudge once you see it live.
+- Contrast is checked against the Arabic and the italic translation at the resting opacity before finishing.
