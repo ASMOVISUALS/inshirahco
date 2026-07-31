@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Heart, Flag } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicReflection, PublicProfileRow } from "@/lib/queries";
+import { useUsernameColour } from "@/lib/member-colours";
 
 /** Deterministic pseudo-random in [0,1) from a string seed. */
 function seeded(id: string, salt: number) {
@@ -91,11 +92,12 @@ function Tile({
   onLike: (id: string) => void;
   onReport: (id: string) => void;
 }) {
+  const colourFor = useUsernameColour();
   return (
     <article className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
       <p
         className="mb-3 text-xs font-bold tracking-wide"
-        style={{ color: author?.is_admin ? "var(--tazkiyah)" : "var(--heart)" }}
+        style={{ color: colourFor(author?.role_tag) }}
       >
         @{author?.username ?? "member"}
       </p>
