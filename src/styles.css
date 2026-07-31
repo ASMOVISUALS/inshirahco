@@ -289,3 +289,58 @@
   }
 }
 
+
+/* Verse of the week tile — glowing geometric wave on hover */
+.votw-tile { position: relative; isolation: isolate; overflow: hidden; }
+
+.votw-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease-out;
+  background-color: color-mix(in oklab, var(--tazkiyah-soft) 55%, var(--paper-warm));
+  background-image:
+    repeating-linear-gradient(45deg,
+      color-mix(in oklab, var(--tazkiyah) 22%, transparent) 0 1px,
+      transparent 1px 22px),
+    repeating-linear-gradient(-45deg,
+      color-mix(in oklab, var(--tazkiyah) 22%, transparent) 0 1px,
+      transparent 1px 22px),
+    radial-gradient(circle at 11px 11px,
+      color-mix(in oklab, var(--gold-decorative) 45%, transparent) 0 1.5px,
+      transparent 2px);
+  background-size: 22px 22px, 22px 22px, 22px 22px;
+}
+
+.votw-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 140%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 999px;
+  opacity: 0;
+  background: radial-gradient(circle,
+    transparent 58%,
+    color-mix(in oklab, var(--gold-decorative) 60%, transparent) 68%,
+    color-mix(in oklab, var(--tazkiyah) 35%, transparent) 76%,
+    transparent 84%);
+  filter: blur(6px);
+}
+
+.votw-tile:hover .votw-pattern,
+.votw-tile:focus-visible .votw-pattern { opacity: 1; clip-path: circle(85% at 50% 50%); }
+
+.votw-tile:hover .votw-ring,
+.votw-tile:focus-visible .votw-ring { animation: votw-wave 950ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes votw-wave {
+  0%   { transform: scale(0.05); opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { opacity: 0.85; }
+  100% { transform: scale(1); opacity: 0; }
+}
