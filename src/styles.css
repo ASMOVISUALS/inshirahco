@@ -301,50 +301,13 @@
 
 .dark .votw-tile { --votw-rest: 0.16; }
 
-/* Shimmering green border glow */
-.votw-tile::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  padding: 1.5px;
-  opacity: 0;
-  transition: opacity 700ms ease-out;
-  background: conic-gradient(from 0deg,
-    color-mix(in oklab, var(--tazkiyah) 15%, transparent),
-    color-mix(in oklab, var(--tazkiyah) 85%, transparent) 18%,
-    color-mix(in oklab, var(--tazkiyah) 25%, transparent) 34%,
-    color-mix(in oklab, var(--gold-decorative) 70%, transparent) 52%,
-    color-mix(in oklab, var(--tazkiyah) 20%, transparent) 68%,
-    color-mix(in oklab, var(--tazkiyah) 90%, transparent) 84%,
-    color-mix(in oklab, var(--tazkiyah) 15%, transparent) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  filter: blur(0.6px);
-}
-
-.votw-tile:hover::after,
-.votw-tile:focus-visible::after {
-  opacity: 1;
-  animation: votw-shimmer 6s linear infinite, votw-breathe-glow 3.2s ease-in-out infinite;
-}
-
+/* Shimmering green border glow (inset ring, no rotating layer) */
 .votw-tile:hover,
 .votw-tile:focus-visible {
   border-color: color-mix(in oklab, var(--tazkiyah) 55%, transparent);
   animation: votw-glow-pulse 4.5s ease-in-out infinite;
 }
 
-@keyframes votw-shimmer {
-  to { rotate: 1turn; }
-}
-
-@keyframes votw-breathe-glow {
-  0%, 100% { filter: blur(0.6px) brightness(1); }
-  50% { filter: blur(1.4px) brightness(1.35); }
-}
 
 @keyframes votw-glow-pulse {
   0%, 100% {
