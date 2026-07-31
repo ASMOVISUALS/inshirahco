@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { currentVerseQuery, myLikesQuery, myReflectionsQuery, verseReflectionsQuery } from "@/lib/queries";
+import { currentVerseQuery, myLikesQuery, myReflectionsQuery, publicProfilesQuery, verseReflectionsQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
@@ -31,6 +31,8 @@ function VersePage() {
   const { data: liked = [] } = useQuery(myLikesQuery(user?.id ?? null));
   const { data: mine = [] } = useQuery(myReflectionsQuery(user?.id ?? null, verse?.id ?? null));
   const hasReflected = mine.length > 0;
+  const authorIds = useMemo(() => [...new Set(reflections.map((r) => r.user_id))], [reflections]);
+  const { data: authors = {} } = useQuery(publicProfilesQuery(authorIds));
 
   const [body, setBody] = useState("");
   const [reportId, setReportId] = useState<string | null>(null);
@@ -166,6 +168,7 @@ function VersePage() {
         ) : (
           <FloatingReflections
             reflections={reflections}
+            authors={authors}
             likedIds={likedSet}
             canAct={!!user}
             onLike={(id) => like.mutate(id)}
