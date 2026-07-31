@@ -313,17 +313,20 @@
   0%, 100% {
     box-shadow:
       0 0 12px -4px color-mix(in oklab, var(--tazkiyah) 55%, transparent),
-      0 0 28px -10px color-mix(in oklab, var(--tazkiyah) 40%, transparent);
+      0 0 28px -10px color-mix(in oklab, var(--tazkiyah) 40%, transparent),
+      inset 0 0 10px -4px color-mix(in oklab, var(--tazkiyah) 45%, transparent);
   }
   35% {
     box-shadow:
       0 0 20px -3px color-mix(in oklab, var(--tazkiyah) 75%, transparent),
-      0 0 48px -8px color-mix(in oklab, var(--tazkiyah) 55%, transparent);
+      0 0 48px -8px color-mix(in oklab, var(--tazkiyah) 55%, transparent),
+      inset 0 0 16px -4px color-mix(in oklab, var(--tazkiyah) 65%, transparent);
   }
   65% {
     box-shadow:
       0 0 15px -4px color-mix(in oklab, var(--tazkiyah) 60%, transparent),
-      0 0 38px -10px color-mix(in oklab, var(--gold-decorative) 35%, transparent);
+      0 0 38px -10px color-mix(in oklab, var(--gold-decorative) 35%, transparent),
+      inset 0 0 12px -4px color-mix(in oklab, var(--gold-decorative) 40%, transparent);
   }
 }
 
@@ -391,6 +394,5 @@
   .votw-tile:hover .votw-ring,
   .votw-tile:focus-visible .votw-ring { animation: none; }
   .votw-tile:hover, .votw-tile:focus-visible { animation: none; }
-  .votw-tile:hover::after, .votw-tile:focus-visible::after { animation: none; opacity: 1; }
 }
 
