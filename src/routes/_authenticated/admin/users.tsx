@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminMembersQuery, organisationsQuery } from "@/lib/queries";
+import { useUsernameColour } from "@/lib/member-colours";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({ meta: [{ title: "Members — Admin" }, { name: "robots", content: "noindex" }] }),
@@ -11,6 +13,26 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 function MembersAdmin() {
   const { data: members = [], isLoading } = useQuery(adminMembersQuery());
   const { data: orgs = [] } = useQuery(organisationsQuery());
+  const colourFor = useUsernameColour();
+  const qc = useQueryClient();
+
+  /** Grants or removes the "special" badge. Admin roles are managed in the database only. */
+  const setSpecial = useMutation({
+    mutationFn: async ({ userId, special }: { userId: string; special: boolean }) => {
+      if (special) {
+        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "special" as never });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", "special" as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-members"] }),
+  });
   const [org, setOrg] = useState<string>("all");
   const [q, setQ] = useState("");
 
@@ -66,12 +88,13 @@ function MembersAdmin() {
                 <th className="px-4 py-3 font-semibold">Username</th>
                 <th className="px-4 py-3 font-semibold">Affiliation</th>
                 <th className="px-4 py-3 font-semibold">Email</th>
+                <th className="px-4 py-3 font-semibold">Role</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => (
                 <tr key={m.user_id} className="border-t border-border">
-                  <td className="px-4 py-3 font-semibold" style={{ color: m.is_admin ? "var(--tazkiyah)" : "var(--heart)" }}>@{m.username}</td>
+                  <td className="px-4 py-3 font-semibold" style={{ color: colourFor(m.role_tag) }}>@{m.username}</td>
                   <td className="px-4 py-3">
                     {m.organisation ? (
                       <span className="flex items-center gap-2">
