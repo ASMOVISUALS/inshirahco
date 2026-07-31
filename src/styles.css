@@ -397,3 +397,22 @@
   .votw-tile:hover, .votw-tile:focus-visible { animation: none; }
 }
 
+
+/* Verse page — faint girih backdrop across the whole page */
+.verse-page {
+  position: relative;
+  isolation: isolate;
+}
+.verse-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: var(--votw-tile-light);
+  background-repeat: repeat;
+  background-size: 360px 360px;
+  background-position: center;
+}
+.dark .verse-page::before { background-image: var(--votw-tile-dark); opacity: 0.07; }

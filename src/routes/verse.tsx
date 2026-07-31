@@ -7,6 +7,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
 import { FloatingReflections } from "@/components/FloatingReflections";
+import girihLight from "@/assets/girih-tile-light.svg.asset.json";
+import girihDark from "@/assets/girih-tile-dark.svg.asset.json";
 
 export const Route = createFileRoute("/verse")({
   ssr: false,
@@ -106,7 +108,15 @@ function VersePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16 md:py-24">
+    <div
+      className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
+      style={
+        {
+          "--votw-tile-light": `url(${girihLight.url})`,
+          "--votw-tile-dark": `url(${girihDark.url})`,
+        } as React.CSSProperties
+      }
+    >
       <header className="text-center">
         <p className="eyebrow" style={{ color: "var(--tazkiyah)" }}>Verse of the week</p>
         <h1 className="mt-3 font-display text-4xl md:text-5xl" style={{ fontVariationSettings: '"SOFT" 60, "WONK" 1' }}>
