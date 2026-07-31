@@ -299,6 +299,42 @@ export type Database = {
         }
         Relationships: []
       }
+      organisations: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          short_name: string | null
+          slug: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          short_name?: string | null
+          slug: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          short_name?: string | null
+          slug?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       pages: {
         Row: {
           archived_at: string | null
@@ -408,8 +444,10 @@ export type Database = {
           gender: Database["public"]["Enums"]["gender_type"] | null
           id: string
           name: string | null
+          organisation_id: string | null
           updated_at: string
           user_id: string
+          username: string
         }
         Insert: {
           avatar_url?: string | null
@@ -420,8 +458,10 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           name?: string | null
+          organisation_id?: string | null
           updated_at?: string
           user_id: string
+          username: string
         }
         Update: {
           avatar_url?: string | null
@@ -432,10 +472,55 @@ export type Database = {
           gender?: Database["public"]["Enums"]["gender_type"] | null
           id?: string
           name?: string | null
+          organisation_id?: string | null
           updated_at?: string
           user_id?: string
+          username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_profiles: {
+        Row: {
+          created_at: string
+          email_mask: string | null
+          organisation_id: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email_mask?: string | null
+          organisation_id?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email_mask?: string | null
+          organisation_id?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_profiles_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reflection_likes: {
         Row: {
@@ -896,6 +981,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mask_email: { Args: { _email: string }; Returns: string }
       rotate_verse_of_the_week: { Args: never; Returns: undefined }
       rotate_verse_of_the_week_if_due: { Args: never; Returns: undefined }
       votw_next_friday: { Args: { _from?: string }; Returns: string }
