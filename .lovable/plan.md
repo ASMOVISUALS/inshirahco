@@ -1,37 +1,39 @@
 ## Goal
 
-Replace the hand-coded CSS girih mask on the Verse of the Week tile with your uploaded Islamic geometric tile, recoloured to the Inshirah palette and settled at a low opacity so the verse text stays readable.
+Fix the messy overlapping reflection tiles on `/verse`, add a Popular / Recent selector, and make Refresh update only the tiles.
 
-## What the uploaded file is
+## 1. Stop the overlap — measured masonry layout
 
-`Islamic-Geometric-Tile-2.svg` — a 1600×1600 vector panel with flat fills in four source colours:
+Today `FloatingReflections.tsx` positions every tile with `position: absolute` on a fixed row height (210px) and then animates each one by up to ±36px. Tiles are different heights (1-line vs 6-line reflections), so tall ones spill into the row below and the drift pushes them into each other.
 
-| Source colour | Role in the artwork | Maps to |
-|---|---|---|
-| `#002C7C` navy (dominant) | main star / strapwork lattice | `--tazkiyah` green |
-| `#007EA1` teal (secondary) | interlacing bands | mid-green (tazkiyah blended toward soft) |
-| `#BF5700` burnt orange | accent shapes | `--heart` red |
-| `#FFAB00` amber | small highlight nodes | `--gold-decorative` |
-| `#FFFFFF` | background plate | made transparent so the tile's own warm background shows through |
+Replace the hand-rolled grid with **`masonic`** (the standard React masonry package: it measures each child's real height with a resize observer and packs columns with no gaps and no overlap; it also virtualises long lists, which matters as reflections grow).
 
-## Approach
+- Install `masonic`.
+- `FloatingReflections` renders `<Masonry>` with responsive column count (1 on mobile, 2 on tablet, 3 on desktop) and a gutter of ~24px.
+- Keep the "floating" feel without breaking the packing: each tile keeps a slow motion loop, but limited to a small transform-only drift (±4px translate, ±0.6deg rotate) plus a staggered fade/rise on mount. Because the amplitude stays well inside the gutter, tiles never touch. `prefers-reduced-motion` disables the drift as it does now.
+- Mobile keeps the single-column stack.
 
-1. **Create the brand asset.** Recolour the SVG by swapping those five fills for brand values, and produce two variants:
-   - `girih-tile-light.svg` — light-mode tokens (`#4F7F62`, `#A63C33`, `#C99A44`)
-   - `girih-tile-dark.svg` — warm-dark tokens (`#A8CFB5`, `#E29A91`, `#E0B458`)
+## 2. Popular / Recent selector
 
-   Two static files rather than one CSS-variable-driven inline SVG, because a 148 KB inlined SVG in the JS bundle would be heavy and background-image data URIs can't read CSS variables. Both go through the Lovable asset CDN, so nothing large lands in the repo.
+A small horizontal segmented bar sits above the tiles, styled like the existing chip filters in the admin panel (rounded pill, tazkiyah green when active, muted otherwise):
 
-2. **Check tileability.** Render the artwork repeated 2×2 and inspect for seams. If it tiles cleanly it becomes a `repeat` background at roughly 320–400 px; if the edges don't meet, it is used as a single centred motif scaled to cover the card instead. Either way the geometry is your artwork, unchanged.
+```text
+[ Popular ][ Recent ]              My Nottingham ISOC   ⟳ Refresh
+```
 
-3. **Wire it into the tile.** In `src/styles.css`, `.votw-pattern` drops the two hand-built mask layers (`::before` star lattice, `::after` gold rosettes) and instead paints the asset as a `background-image`. The `.dark` variant points at the dark file.
+- `sort` state in `verse.tsx`: `"popular"` (likes desc, then newest) — the current behaviour and the default — or `"recent"` (created_at desc).
+- The existing "My org" checkbox and Refresh stay on the right of the same row.
+- Sorting happens client-side in the existing `visibleReflections` memo, so switching is instant with no refetch.
 
-4. **Keep the existing motion, adjust the settle.** The reveal stays exactly as it is now — `clip-path: circle(0% → 85%)` easing outward from the centre, with the `.votw-ring` glow expanding ahead of it. The change is the end state: the pattern animates in bright (around `0.42` opacity) as the wave passes, then eases down over ~600 ms to a resting `0.13` in light mode and `0.16` in dark, so the verse, translation and reference stay comfortably readable. On mouse-out it fades back to zero.
+## 3. Refresh refetches only the tiles
 
-5. **Motion safety.** Keep the existing `prefers-reduced-motion` handling — no wave, just a straight fade to the resting opacity.
+Today Refresh calls `invalidateQueries` on three keys, which puts the reflections query into a loading state and re-renders the section. Change it to:
+
+- Call `refetch()` on the reflections / likes / my-reflections queries directly, so React Query keeps showing the current data while the new data loads (no blank flash, no layout jump, verse panel untouched).
+- Spin the refresh icon (`animate-spin`) and disable the button while fetching, then stop.
 
 ## Technical notes
 
-- Files touched: `src/styles.css` (pattern layers and the settle keyframes), plus the two new asset pointers under `src/assets/`. `VerseOfTheWeek.tsx` keeps its existing `.votw-pattern` / `.votw-ring` spans, so no component change is expected.
-- Resting opacity values are a starting point — easy to nudge once you see it live.
-- Contrast is checked against the Arabic and the italic translation at the resting opacity before finishing.
+- New dependency: `masonic`.
+- Files touched: `src/components/FloatingReflections.tsx` (masonry + toned-down drift), `src/routes/verse.tsx` (sort state, segmented control, refresh handler). No database or query-shape changes.
+- `masonic` renders client-side only; the `/verse` route is already `ssr: false`, so there is no hydration concern.
