@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { organisationsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/profile/edit")({
   head: () => ({ meta: [{ title: "Profile — Inshirah" }, { name: "robots", content: "noindex" }] }),
@@ -16,10 +17,39 @@ function ProfileEdit() {
     queryKey: ["profile", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("name,email").eq("user_id", user!.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("name,email,username,organisation_id").eq("user_id", user!.id).maybeSingle();
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: orgs = [] } = useQuery(organisationsQuery());
+  const [username, setUsername] = useState("");
+  const [orgId, setOrgId] = useState("");
+  const [idStatus, setIdStatus] = useState<string | null>(null);
+  useEffect(() => {
+    setUsername(profile?.username ?? "");
+    setOrgId(profile?.organisation_id ?? "");
+  }, [profile?.username, profile?.organisation_id]);
+
+  const saveIdentity = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Not signed in");
+      const value = username.trim();
+      if (!/^[a-zA-Z0-9_.]{3,24}$/.test(value)) {
+        throw new Error("Username must be 3–24 characters: letters, numbers, dots or underscores.");
+      }
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username: value, organisation_id: orgId || null })
+        .eq("user_id", user.id);
+      if (error) throw new Error(error.code === "23505" ? "That username is already taken." : error.message);
+    },
+    onSuccess: () => {
+      setIdStatus("Saved.");
+      qc.invalidateQueries({ queryKey: ["profile", user?.id] });
+    },
+    onError: (e: Error) => setIdStatus(e.message),
   });
 
   const [name, setName] = useState("");
@@ -67,6 +97,50 @@ function ProfileEdit() {
     <div className="mx-auto max-w-2xl">
       <p className="eyebrow mb-3">Account</p>
       <h1 className="font-display text-4xl md:text-5xl leading-tight">Profile</h1>
+
+      <section className="mt-10 rounded-3xl border border-border bg-card p-6 md:p-8">
+        <h2 className="font-display text-2xl">Username &amp; affiliation</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your username appears on the reflections you share, alongside the organisation you belong to.
+        </p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-heart"
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground" htmlFor="org">Affiliation</label>
+            <select
+              id="org"
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-heart"
+            >
+              <option value="">No affiliation</option>
+              {orgs.map((o) => (
+                <option key={o.id} value={o.id}>{o.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => { setIdStatus(null); saveIdentity.mutate(); }}
+            disabled={saveIdentity.isPending}
+            className="btn-primary text-sm disabled:opacity-50"
+          >
+            {saveIdentity.isPending ? "Saving…" : "Save"}
+          </button>
+          {idStatus && <span className="text-xs text-muted-foreground">{idStatus}</span>}
+        </div>
+      </section>
 
       <section className="mt-10 rounded-3xl border border-border bg-card p-6 md:p-8">
         <h2 className="font-display text-2xl">Your name</h2>
