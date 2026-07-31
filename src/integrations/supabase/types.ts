@@ -493,6 +493,7 @@ export type Database = {
           email_mask: string | null
           is_admin: boolean
           organisation_id: string | null
+          role_tag: string
           updated_at: string
           user_id: string
           username: string
@@ -502,6 +503,7 @@ export type Database = {
           email_mask?: string | null
           is_admin?: boolean
           organisation_id?: string | null
+          role_tag?: string
           updated_at?: string
           user_id: string
           username: string
@@ -511,6 +513,7 @@ export type Database = {
           email_mask?: string | null
           is_admin?: boolean
           organisation_id?: string | null
+          role_tag?: string
           updated_at?: string
           user_id?: string
           username?: string
@@ -984,13 +987,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      highest_role_tag: { Args: { _user_id: string }; Returns: string }
       mask_email: { Args: { _email: string }; Returns: string }
       rotate_verse_of_the_week: { Args: never; Returns: undefined }
       rotate_verse_of_the_week_if_due: { Args: never; Returns: undefined }
       votw_next_friday: { Args: { _from?: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "member"
+      app_role: "admin" | "member" | "special"
       gender_type: "male" | "female" | "prefer_not_to_say"
       page_status: "published" | "hidden" | "coming_soon"
     }
@@ -1120,7 +1124,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "member"],
+      app_role: ["admin", "member", "special"],
       gender_type: ["male", "female", "prefer_not_to_say"],
       page_status: ["published", "hidden", "coming_soon"],
     },
