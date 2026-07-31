@@ -202,7 +202,31 @@ function FieldRow({ field, value, onChange }: { field: SettingField; value: unkn
   );
 }
 
+function BrandColourField({ value, onChange, label }: { value: unknown; onChange: (v: unknown) => void; label: string }) {
+  const selected = normaliseBrandToken(value, BRAND_TEXT_COLOURS[0].value);
+  return (
+    <div className="flex flex-wrap gap-2" role="group" aria-label={`${label} — brand colours`}>
+      {BRAND_TEXT_COLOURS.map((c) => (
+        <button
+          key={c.value}
+          type="button"
+          onClick={() => onChange(c.value)}
+          aria-pressed={selected === c.value}
+          title={c.label}
+          className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
+            selected === c.value ? "border-primary bg-secondary font-semibold" : "border-border hover:bg-secondary/60"
+          }`}
+        >
+          <span className="size-4 rounded-full border border-border" style={{ background: `var(--${c.value})` }} />
+          <span style={{ color: `var(--${c.value})` }}>{c.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function useFieldOptions(field: SettingField) {
+
   const dyn = useQuery(dynamicOptionsQuery(field.options_source));
   if (field.options_source === "static") return field.options ?? [];
   return dyn.data ?? [];
