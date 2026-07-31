@@ -1,7 +1,9 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { brandColourVar } from "@/lib/brand-colours";
 
-export const DEFAULT_MEMBER_COLOURS = { admin_color: "#A63C33", special_color: "#4F7F62" };
+/** Stored as brand colour tokens (see `BRAND_TEXT_COLOURS`), not raw hex. */
+export const DEFAULT_MEMBER_COLOURS = { admin_color: "heart", special_color: "tazkiyah" };
 
 export type MemberColours = typeof DEFAULT_MEMBER_COLOURS;
 
@@ -29,8 +31,8 @@ export const memberColoursQuery = () =>
 export function useUsernameColour() {
   const { data: colours = DEFAULT_MEMBER_COLOURS } = useQuery(memberColoursQuery());
   return (roleTag: string | undefined): string | undefined => {
-    if (roleTag === "admin") return colours.admin_color;
-    if (roleTag === "special") return colours.special_color;
+    if (roleTag === "admin") return brandColourVar(colours.admin_color, DEFAULT_MEMBER_COLOURS.admin_color);
+    if (roleTag === "special") return brandColourVar(colours.special_color, DEFAULT_MEMBER_COLOURS.special_color);
     return undefined;
   };
 }
