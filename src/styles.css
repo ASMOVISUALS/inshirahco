@@ -291,7 +291,14 @@
 
 
 /* Verse of the week tile — glowing geometric wave on hover */
-.votw-tile { position: relative; isolation: isolate; overflow: hidden; }
+.votw-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  --votw-rest: 0.13;
+}
+
+.dark .votw-tile { --votw-rest: 0.16; }
 
 .votw-pattern {
   position: absolute;
@@ -299,36 +306,15 @@
   z-index: -1;
   opacity: 0;
   clip-path: circle(0% at 50% 50%);
-  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease-out;
-  background-color: color-mix(in oklab, var(--tazkiyah-soft) 55%, var(--paper-warm));
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out;
+  /* Brand girih tile artwork (light variant by default) */
+  background-image: var(--votw-tile-light);
+  background-repeat: repeat;
+  background-size: 360px 360px;
+  background-position: center;
 }
 
-/* Islamic star-and-cross girih tiling, drawn as a mask so it inherits brand tokens */
-.votw-pattern::before,
-.votw-pattern::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  -webkit-mask-repeat: repeat;
-  mask-repeat: repeat;
-  -webkit-mask-size: 96px 96px;
-  mask-size: 96px 96px;
-}
-
-.votw-pattern::before {
-  background-color: color-mix(in oklab, var(--tazkiyah) 38%, transparent);
-  --votw-girih: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'%3E%3Cg%3E%3Cpolygon points='48,16 80,48 48,80 16,48'/%3E%3Cpolygon points='25.4,25.4 70.6,25.4 70.6,70.6 25.4,70.6'/%3E%3Cpolygon points='48,30 66,48 48,66 30,48'/%3E%3C/g%3E%3Cg transform='translate(-48,-48)'%3E%3Cpolygon points='48,16 80,48 48,80 16,48'/%3E%3Cpolygon points='25.4,25.4 70.6,25.4 70.6,70.6 25.4,70.6'/%3E%3C/g%3E%3Cg transform='translate(48,-48)'%3E%3Cpolygon points='48,16 80,48 48,80 16,48'/%3E%3Cpolygon points='25.4,25.4 70.6,25.4 70.6,70.6 25.4,70.6'/%3E%3C/g%3E%3Cg transform='translate(-48,48)'%3E%3Cpolygon points='48,16 80,48 48,80 16,48'/%3E%3Cpolygon points='25.4,25.4 70.6,25.4 70.6,70.6 25.4,70.6'/%3E%3C/g%3E%3Cg transform='translate(48,48)'%3E%3Cpolygon points='48,16 80,48 48,80 16,48'/%3E%3Cpolygon points='25.4,25.4 70.6,25.4 70.6,70.6 25.4,70.6'/%3E%3C/g%3E%3Cpath d='M48 0 L96 48 L48 96 L0 48 Z'/%3E%3C/svg%3E");
-  -webkit-mask-image: var(--votw-girih);
-  mask-image: var(--votw-girih);
-}
-
-.votw-pattern::after {
-  background-color: color-mix(in oklab, var(--gold-decorative) 55%, transparent);
-  --votw-girih-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96' fill='none' stroke='%23000' stroke-width='1.4'%3E%3Ccircle cx='48' cy='48' r='7'/%3E%3Ccircle cx='0' cy='0' r='7'/%3E%3Ccircle cx='96' cy='0' r='7'/%3E%3Ccircle cx='0' cy='96' r='7'/%3E%3Ccircle cx='96' cy='96' r='7'/%3E%3C/svg%3E");
-  -webkit-mask-image: var(--votw-girih-gold);
-  mask-image: var(--votw-girih-gold);
-}
-
+.dark .votw-pattern { background-image: var(--votw-tile-dark); }
 
 .votw-ring {
   position: absolute;
@@ -349,10 +335,21 @@
 }
 
 .votw-tile:hover .votw-pattern,
-.votw-tile:focus-visible .votw-pattern { opacity: 1; clip-path: circle(85% at 50% 50%); }
+.votw-tile:focus-visible .votw-pattern {
+  clip-path: circle(85% at 50% 50%);
+  animation: votw-settle 1500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 .votw-tile:hover .votw-ring,
 .votw-tile:focus-visible .votw-ring { animation: votw-wave 950ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Reveal bright as the wave passes, then settle low so the verse stays readable */
+@keyframes votw-settle {
+  0%   { opacity: 0; }
+  35%  { opacity: 0.42; }
+  60%  { opacity: 0.42; }
+  100% { opacity: var(--votw-rest); }
+}
 
 @keyframes votw-wave {
   0%   { transform: scale(0.05); opacity: 0; }
@@ -360,3 +357,16 @@
   70%  { opacity: 0.85; }
   100% { transform: scale(1); opacity: 0; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .votw-pattern { transition: opacity 300ms ease-out; }
+  .votw-tile:hover .votw-pattern,
+  .votw-tile:focus-visible .votw-pattern {
+    animation: none;
+    clip-path: circle(85% at 50% 50%);
+    opacity: var(--votw-rest);
+  }
+  .votw-tile:hover .votw-ring,
+  .votw-tile:focus-visible .votw-ring { animation: none; }
+}
+
