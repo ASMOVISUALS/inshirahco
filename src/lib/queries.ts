@@ -576,18 +576,20 @@ export type PublicProfileRow = {
   username: string;
   email_mask: string | null;
   is_admin: boolean;
+  role_tag: string;
   organisation_id: string | null;
   organisation: { name: string; short_name: string | null; logo_url: string | null } | null;
 };
 
 const selectPublicProfiles =
-  "user_id,username,email_mask,is_admin,organisation_id,organisations(name,short_name,logo_url)";
+  "user_id,username,email_mask,is_admin,role_tag,organisation_id,organisations(name,short_name,logo_url)";
 
 const mapPublicProfile = (r: Record<string, unknown>): PublicProfileRow => ({
   user_id: String(r.user_id),
   username: String(r.username),
   email_mask: (r.email_mask as string) ?? null,
   is_admin: r.is_admin === true,
+  role_tag: typeof r.role_tag === "string" ? r.role_tag : "member",
   organisation_id: (r.organisation_id as string) ?? null,
   organisation: (r.organisations as PublicProfileRow["organisation"]) ?? null,
 });
