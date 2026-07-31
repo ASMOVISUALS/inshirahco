@@ -12,13 +12,16 @@ export function VerseOfTheWeek() {
     <Link
       to="/verse"
       aria-label="Verse of the week — open the reflection space"
-      className="block w-full cursor-pointer rounded-3xl border p-8 text-center transition-transform hover:-translate-y-0.5 md:p-10"
+      className="votw-tile block w-full cursor-pointer rounded-3xl border p-8 text-center transition-transform hover:-translate-y-0.5 md:p-10"
       style={{
         background: "color-mix(in oklab, var(--tazkiyah-soft) 40%, var(--paper-warm))",
         borderColor: "color-mix(in oklab, var(--tazkiyah) 25%, transparent)",
       }}
     >
+      <span aria-hidden className="votw-pattern" />
+      <span aria-hidden className="votw-ring" />
       <p className="eyebrow" style={{ color: "var(--tazkiyah)" }}>Verse of the week</p>
+
       <p className="font-arabic mx-auto mt-6 max-w-2xl text-3xl leading-loose md:text-4xl" style={{ color: "var(--ink)" }} dir="rtl">
         {verse.arabic}
       </p>
