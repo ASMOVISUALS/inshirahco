@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { currentVerseQuery } from "@/lib/queries";
+import girihLight from "@/assets/girih-tile-light.svg.asset.json";
+import girihDark from "@/assets/girih-tile-dark.svg.asset.json";
 
 /** Verse of the week — set every Friday; tapping it opens the verse dashboard. */
 export function VerseOfTheWeek() {
@@ -13,11 +15,16 @@ export function VerseOfTheWeek() {
       to="/verse"
       aria-label="Verse of the week — open the reflection space"
       className="votw-tile block w-full cursor-pointer rounded-3xl border p-8 text-center transition-transform hover:-translate-y-0.5 md:p-10"
-      style={{
-        background: "color-mix(in oklab, var(--tazkiyah-soft) 40%, var(--paper-warm))",
-        borderColor: "color-mix(in oklab, var(--tazkiyah) 25%, transparent)",
-      }}
+      style={
+        {
+          background: "color-mix(in oklab, var(--tazkiyah-soft) 40%, var(--paper-warm))",
+          borderColor: "color-mix(in oklab, var(--tazkiyah) 25%, transparent)",
+          "--votw-tile-light": `url(${girihLight.url})`,
+          "--votw-tile-dark": `url(${girihDark.url})`,
+        } as React.CSSProperties
+      }
     >
+
       <span aria-hidden className="votw-pattern" />
       <span aria-hidden className="votw-ring" />
       <p className="eyebrow" style={{ color: "var(--tazkiyah)" }}>Verse of the week</p>
