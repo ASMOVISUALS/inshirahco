@@ -305,7 +305,7 @@
 .votw-tile::after {
   content: "";
   position: absolute;
-  inset: -1px;
+  inset: 0;
   z-index: -1;
   border-radius: inherit;
   padding: 1.5px;
@@ -427,5 +427,7 @@
   }
   .votw-tile:hover .votw-ring,
   .votw-tile:focus-visible .votw-ring { animation: none; }
+  .votw-tile:hover, .votw-tile:focus-visible { animation: none; }
+  .votw-tile:hover::after, .votw-tile:focus-visible::after { animation: none; opacity: 1; }
 }
 
