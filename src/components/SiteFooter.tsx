@@ -84,6 +84,9 @@ export function SiteFooter() {
               © {new Date().getFullYear()} Inshirah. {copyright}
             </p>
             <p className="mt-2 text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>
+              Built by ASMO Visuals
+            </p>
+            <p className="mt-2 text-sm" style={{ color: "color-mix(in oklab, var(--paper) 60%, transparent)" }}>
               {domain}
             </p>
           </FooterCol>

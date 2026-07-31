@@ -93,9 +93,13 @@ function Tile({
 }) {
   return (
     <article className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <p className="mb-3 text-xs font-bold tracking-wide" style={{ color: "var(--heart)" }}>
+      <p
+        className="mb-3 text-xs font-bold tracking-wide"
+        style={{ color: author?.is_admin ? "var(--tazkiyah)" : "var(--heart)" }}
+      >
         @{author?.username ?? "member"}
       </p>
+
       <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed">{r.body}</p>
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
         <div className="min-w-0">

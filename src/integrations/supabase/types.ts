@@ -491,6 +491,7 @@ export type Database = {
         Row: {
           created_at: string
           email_mask: string | null
+          is_admin: boolean
           organisation_id: string | null
           updated_at: string
           user_id: string
@@ -499,6 +500,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email_mask?: string | null
+          is_admin?: boolean
           organisation_id?: string | null
           updated_at?: string
           user_id: string
@@ -507,6 +509,7 @@ export type Database = {
         Update: {
           created_at?: string
           email_mask?: string | null
+          is_admin?: boolean
           organisation_id?: string | null
           updated_at?: string
           user_id?: string
