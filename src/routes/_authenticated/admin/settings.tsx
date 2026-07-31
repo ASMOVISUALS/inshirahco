@@ -193,8 +193,9 @@ function FieldRow({ field, value, onChange }: { field: SettingField; value: unkn
         />
       )}
       {field.field_type === "color" && (
-        <Input type="color" value={String(value ?? "#000000")} onChange={(e) => onChange(e.target.value)} className="h-10 w-24 p-1" />
+        <BrandColourField value={value} onChange={onChange} label={field.label} />
       )}
+
       {field.field_type === "select" && <SelectField field={field} value={value} onChange={onChange} />}
       {field.field_type === "multiselect" && <MultiselectField field={field} value={value} onChange={onChange} />}
     </div>
