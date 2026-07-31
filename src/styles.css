@@ -296,7 +296,8 @@
   isolation: isolate;
   overflow: hidden;
   --votw-rest: 0.13;
-  transition: box-shadow 700ms ease-out, border-color 700ms ease-out;
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--tazkiyah) 0%, transparent);
+  transition: box-shadow 400ms ease-out, border-color 400ms ease-out;
 }
 
 .dark .votw-tile { --votw-rest: 0.16; }
@@ -338,7 +339,7 @@
   opacity: 0;
   clip-path: circle(0% at 50% 50%);
   /* Hover-out: slow fade, clip resets instantly once faded */
-  transition: opacity 900ms ease-out, clip-path 0ms linear 900ms;
+  transition: opacity 400ms ease-out, clip-path 0ms linear 400ms;
   /* Brand girih tile artwork (light variant by default) */
   background-image: var(--votw-tile-light);
   background-repeat: repeat;
