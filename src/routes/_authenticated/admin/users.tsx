@@ -71,7 +71,7 @@ function MembersAdmin() {
             <tbody>
               {rows.map((m) => (
                 <tr key={m.user_id} className="border-t border-border">
-                  <td className="px-4 py-3 font-semibold">@{m.username}</td>
+                  <td className="px-4 py-3 font-semibold" style={{ color: m.is_admin ? "var(--tazkiyah)" : "var(--heart)" }}>@{m.username}</td>
                   <td className="px-4 py-3">
                     {m.organisation ? (
                       <span className="flex items-center gap-2">
