@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Heart, Flag } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { PublicReflection } from "@/lib/queries";
+import type { PublicReflection, PublicProfileRow } from "@/lib/queries";
 
 /** Deterministic pseudo-random in [0,1) from a string seed. */
 function seeded(id: string, salt: number) {
@@ -15,6 +15,7 @@ function seeded(id: string, salt: number) {
 
 type Props = {
   reflections: PublicReflection[];
+  authors: Record<string, PublicProfileRow>;
   likedIds: Set<string>;
   canAct: boolean;
   onLike: (id: string) => void;
@@ -22,7 +23,7 @@ type Props = {
 };
 
 /** Reflections drifting slowly around the verse, like leaves on still water. */
-export function FloatingReflections({ reflections, likedIds, canAct, onLike, onReport }: Props) {
+export function FloatingReflections({ reflections, authors, likedIds, canAct, onLike, onReport }: Props) {
   const isMobile = useIsMobile();
   const reduceMotion = useReducedMotion();
 
@@ -30,7 +31,7 @@ export function FloatingReflections({ reflections, likedIds, canAct, onLike, onR
     return (
       <div className="mt-8 grid gap-4">
         {reflections.map((r) => (
-          <Tile key={r.id} r={r} liked={likedIds.has(r.id)} canAct={canAct} onLike={onLike} onReport={onReport} />
+          <Tile key={r.id} r={r} author={authors[r.user_id]} liked={likedIds.has(r.id)} canAct={canAct} onLike={onLike} onReport={onReport} />
         ))}
       </div>
     );
@@ -72,7 +73,7 @@ export function FloatingReflections({ reflections, likedIds, canAct, onLike, onR
             }
             transition={{ duration, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }}
           >
-            <Tile r={r} liked={likedIds.has(r.id)} canAct={canAct} onLike={onLike} onReport={onReport} />
+            <Tile r={r} author={authors[r.user_id]} liked={likedIds.has(r.id)} canAct={canAct} onLike={onLike} onReport={onReport} />
           </motion.div>
         );
       })}
@@ -81,9 +82,10 @@ export function FloatingReflections({ reflections, likedIds, canAct, onLike, onR
 }
 
 function Tile({
-  r, liked, canAct, onLike, onReport,
+  r, author, liked, canAct, onLike, onReport,
 }: {
   r: PublicReflection;
+  author?: PublicProfileRow;
   liked: boolean;
   canAct: boolean;
   onLike: (id: string) => void;
@@ -91,9 +93,34 @@ function Tile({
 }) {
   return (
     <article className="flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <p className="mb-3 text-xs font-bold tracking-wide" style={{ color: "var(--heart)" }}>
+        @{author?.username ?? "member"}
+      </p>
       <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed">{r.body}</p>
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
-        <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+        <div className="min-w-0">
+          {author?.organisation && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {author.organisation.logo_url ? (
+                <img
+                  src={author.organisation.logo_url}
+                  alt=""
+                  className="h-4 w-4 shrink-0 rounded-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <span
+                  className="grid h-4 w-4 shrink-0 place-items-center rounded-full text-[8px] font-bold"
+                  style={{ background: "var(--tazkiyah-soft)", color: "var(--tazkiyah)" }}
+                >
+                  {author.organisation.name.charAt(0)}
+                </span>
+              )}
+              <span className="truncate">{author.organisation.name}</span>
+            </span>
+          )}
+          <span className="block text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+        </div>
         <div className="flex items-center gap-2">
           <button
             type="button"

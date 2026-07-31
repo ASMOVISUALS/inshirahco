@@ -32,6 +32,7 @@ import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminVersesRouteImport } from './routes/_authenticated/admin/verses'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminTestimonialsRouteImport } from './routes/_authenticated/admin/testimonials'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminSeriesRouteImport } from './routes/_authenticated/admin/series'
@@ -165,6 +166,11 @@ const AuthenticatedAdminVersesRoute =
     path: '/verses',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminTestimonialsRoute =
   AuthenticatedAdminTestimonialsRouteImport.update({
     id: '/testimonials',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/series': typeof AuthenticatedAdminSeriesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/testimonials': typeof AuthenticatedAdminTestimonialsRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
     | '/admin/'
@@ -428,6 +438,7 @@ export interface FileRouteTypes {
     | '/admin/series'
     | '/admin/settings'
     | '/admin/testimonials'
+    | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
     | '/admin'
@@ -467,6 +478,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/series'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/testimonials'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/verses'
     | '/_authenticated/profile/edit'
     | '/_authenticated/admin/'
@@ -661,6 +673,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVersesRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/testimonials': {
       id: '/_authenticated/admin/testimonials'
       path: '/testimonials'
@@ -771,6 +790,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminSeriesRoute: typeof AuthenticatedAdminSeriesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTestimonialsRoute: typeof AuthenticatedAdminTestimonialsRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVersesRoute: typeof AuthenticatedAdminVersesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminArticlesIdRoute: typeof AuthenticatedAdminArticlesIdRoute
@@ -791,6 +811,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminSeriesRoute: AuthenticatedAdminSeriesRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminTestimonialsRoute: AuthenticatedAdminTestimonialsRoute,
+    AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVersesRoute: AuthenticatedAdminVersesRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
     AuthenticatedAdminArticlesIdRoute: AuthenticatedAdminArticlesIdRoute,
@@ -868,13 +889,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
