@@ -1,36 +1,39 @@
-## My recommendation
+## Goal
 
-Yes — remove it entirely for now. Don't build empty Videos/Courses pages.
+Fix the messy overlapping reflection tiles on `/verse`, add a Popular / Recent selector, and make Refresh update only the tiles.
 
-Reasons, based on what's actually in the code:
-- `resource_formats` currently drives the nav mega-menu, the Resources library block filters, the format labels on every content card, the search overlay, and a settings option source. That's a lot of moving parts maintaining a concept you have exactly one value for.
-- `articles.type` is a foreign key to `resource_formats.slug`. Keeping a one-value FK is pure overhead.
-- When videos/podcasts/courses genuinely arrive, they won't share the articles schema anyway (duration, embed URL, transcript, modules/lessons). A separate `videos` / `courses` table created then will be cleaner than a format flag bolted on now. Adding an empty table today locks in guesses.
+## 1. Stop the overlap — measured masonry layout
 
-So: one `articles` table, no formats, no Resources hub. Add new tables when the content actually exists.
+Today `FloatingReflections.tsx` positions every tile with `position: absolute` on a fixed row height (210px) and then animates each one by up to ±36px. Tiles are different heights (1-line vs 6-line reflections), so tall ones spill into the row below and the drift pushes them into each other.
 
-## What changes
+Replace the hand-rolled grid with **`masonic`** (the standard React masonry package: it measures each child's real height with a resize observer and packs columns with no gaps and no overlap; it also virtualises long lists, which matters as reflections grow).
 
-**Database (one migration)**
-- Drop the `articles_type_fkey` constraint and the `articles.type` column.
-- Drop the `resource_formats` table.
+- Install `masonic`.
+- `FloatingReflections` renders `<Masonry>` with responsive column count (1 on mobile, 2 on tablet, 3 on desktop) and a gutter of ~24px.
+- Keep the "floating" feel without breaking the packing: each tile keeps a slow motion loop, but limited to a small transform-only drift (±4px translate, ±0.6deg rotate) plus a staggered fade/rise on mount. Because the amplitude stays well inside the gutter, tiles never touch. `prefers-reduced-motion` disables the drift as it does now.
+- Mobile keeps the single-column stack.
 
-**Public site**
-- Delete the `/resources` route and its `resources` page record; remove the Resources item from the nav mega-menu (`SiteNav.tsx`, desktop + mobile), the "All resources" footer link, and `/resources` from the sitemap.
-- Remove the `ResourcesLibraryBlock` page block (and its entry in the block-kind registry) from `page-blocks.tsx`.
-- Content cards, the article page, and the search overlay stop showing a format label — the eyebrow becomes pillar-only.
-- Homepage "media" strip currently filters by `type === video | podcast | tadabbur`; that filter goes, and the carousel is either dropped or fed by the same article list. I'll confirm with you visually once it's built if it looks thin.
+## 2. Popular / Recent selector
 
-**Admin**
-- Delete `/admin/formats` and its sidebar entry.
-- Remove the Format column from the articles list and the format picker from the article editor; new articles no longer set `type`.
-- Remove the `formats` dynamic option source from the settings schema (and any setting field pointing at it).
+A small horizontal segmented bar sits above the tiles, styled like the existing chip filters in the admin panel (rounded pill, tazkiyah green when active, muted otherwise):
 
-**Shared code**
-- Remove `ResourceType`, `RESOURCE_TYPES`, `FormatRow`, `formatsQuery`, `useFormats`, `useFormatMap`, `useOnSiteFormatSlugs`, `formatLabel`, and `type` from `ContentItem`.
+```text
+[ Popular ][ Recent ]              My Nottingham ISOC   ⟳ Refresh
+```
 
-## Ordering
-Migration first (it needs your approval and regenerates types), then the code cleanup in one pass.
+- `sort` state in `verse.tsx`: `"popular"` (likes desc, then newest) — the current behaviour and the default — or `"recent"` (created_at desc).
+- The existing "My org" checkbox and Refresh stay on the right of the same row.
+- Sorting happens client-side in the existing `visibleReflections` memo, so switching is instant with no refetch.
 
-## Note on existing data
-Any articles currently stored with a non-article type (video, podcast, etc.) stay as normal articles — only the label disappears. If you'd rather archive those rows instead, say so and I'll add it.
+## 3. Refresh refetches only the tiles
+
+Today Refresh calls `invalidateQueries` on three keys, which puts the reflections query into a loading state and re-renders the section. Change it to:
+
+- Call `refetch()` on the reflections / likes / my-reflections queries directly, so React Query keeps showing the current data while the new data loads (no blank flash, no layout jump, verse panel untouched).
+- Spin the refresh icon (`animate-spin`) and disable the button while fetching, then stop.
+
+## Technical notes
+
+- New dependency: `masonic`.
+- Files touched: `src/components/FloatingReflections.tsx` (masonry + toned-down drift), `src/routes/verse.tsx` (sort state, segmented control, refresh handler). No database or query-shape changes.
+- `masonic` renders client-side only; the `/verse` route is already `ssr: false`, so there is no hydration concern.

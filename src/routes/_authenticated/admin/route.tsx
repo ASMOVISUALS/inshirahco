@@ -16,6 +16,7 @@ import {
   Flag,
   Settings,
   Layers,
+  Users,
   
 } from "lucide-react";
 import {
@@ -52,6 +53,7 @@ const sections: { label: string; items: { title: string; url: string; icon: type
   {
     label: "Audience",
     items: [
+      { title: "Members", url: "/admin/users", icon: Users },
       { title: "Testimonials", url: "/admin/testimonials", icon: MessageSquareQuote },
       { title: "Newsletter", url: "/admin/newsletter", icon: Mail },
     ],

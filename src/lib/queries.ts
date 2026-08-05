@@ -410,6 +410,38 @@ export const pageBySlugContentQuery = (slug: string) =>
     staleTime: 60_000,
   });
 
+export interface NavItemRow {
+  key: string;
+  slug: string;
+  label: string;
+  nav_order: number;
+}
+
+/** Navbar items chosen by admins in the Pages panel. */
+export const navItemsQuery = () =>
+  queryOptions({
+    queryKey: ["cms", "nav-items"],
+    queryFn: async (): Promise<NavItemRow[]> => {
+      const { data, error } = await supabase
+        .from("pages")
+        .select("key,slug,title,nav_label,nav_order,status,in_nav,archived_at")
+        .eq("in_nav", true)
+        .is("archived_at", null)
+        .order("nav_order", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as Array<Record<string, unknown>>)
+        .filter((r) => r.status !== "hidden" && !!r.slug)
+        .map((r) => ({
+          key: String(r.key),
+          slug: String(r.slug),
+          label: String((r.nav_label as string) || (r.title as string) || r.slug),
+          nav_order: Number(r.nav_order ?? 0),
+        }));
+    },
+    staleTime: 60_000,
+  });
+
+
 export const pageBySlugQuery = (slug: string) =>
   queryOptions({
     queryKey: ["cms", "page-by-slug", slug],
@@ -508,4 +540,109 @@ export const newsletterSubscribersQuery = (newsletterId: string | null) =>
       return data ?? [];
     },
     enabled: !!newsletterId,
+  });
+
+/* ── Organisations (ISOC affiliations) ─────────────────────────────── */
+
+export type OrganisationRow = {
+  id: string;
+  name: string;
+  short_name: string | null;
+  slug: string;
+  logo_url: string | null;
+};
+
+export const organisationsQuery = () =>
+  queryOptions({
+    queryKey: ["organisations"],
+    queryFn: async (): Promise<OrganisationRow[]> => {
+      const { data, error } = await supabase
+        .from("organisations")
+        .select("id,name,short_name,slug,logo_url")
+        .is("archived_at", null)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as OrganisationRow[];
+    },
+    staleTime: 5 * 60_000,
+  });
+
+/**
+ * Public, privacy-safe identity for members. Real email addresses are never
+ * exposed here — only a mask such as `a****@*****.com`.
+ */
+export type PublicProfileRow = {
+  user_id: string;
+  username: string;
+  email_mask: string | null;
+  is_admin: boolean;
+  role_tag: string;
+  organisation_id: string | null;
+  organisation: { name: string; short_name: string | null; logo_url: string | null } | null;
+};
+
+const selectPublicProfiles =
+  "user_id,username,email_mask,is_admin,role_tag,organisation_id,organisations(name,short_name,logo_url)";
+
+const mapPublicProfile = (r: Record<string, unknown>): PublicProfileRow => ({
+  user_id: String(r.user_id),
+  username: String(r.username),
+  email_mask: (r.email_mask as string) ?? null,
+  is_admin: r.is_admin === true,
+  role_tag: typeof r.role_tag === "string" ? r.role_tag : "member",
+  organisation_id: (r.organisation_id as string) ?? null,
+  organisation: (r.organisations as PublicProfileRow["organisation"]) ?? null,
+});
+
+/** Public identity for a set of member ids (used by verse reflections). */
+export const publicProfilesQuery = (userIds: string[]) =>
+  queryOptions({
+    queryKey: ["public-profiles", [...userIds].sort().join(",")],
+    enabled: userIds.length > 0,
+    queryFn: async (): Promise<Record<string, PublicProfileRow>> => {
+      const { data, error } = await supabase
+        .from("public_profiles")
+        .select(selectPublicProfiles)
+        .in("user_id", userIds);
+      if (error) throw error;
+      const map: Record<string, PublicProfileRow> = {};
+      for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+        const p = mapPublicProfile(row);
+        map[p.user_id] = p;
+      }
+      return map;
+    },
+    staleTime: 60_000,
+  });
+
+/** The signed-in member's own public identity (used for the "my org" filter). */
+export const myPublicProfileQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["my-public-profile", userId ?? "anon"],
+    enabled: !!userId,
+    queryFn: async (): Promise<PublicProfileRow | null> => {
+      const { data, error } = await supabase
+        .from("public_profiles")
+        .select(selectPublicProfiles)
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? mapPublicProfile(data as Record<string, unknown>) : null;
+    },
+    staleTime: 60_000,
+  });
+
+/** Every member, with masked emails only — for the admin members panel. */
+export const adminMembersQuery = () =>
+  queryOptions({
+    queryKey: ["admin-members"],
+    queryFn: async (): Promise<PublicProfileRow[]> => {
+      const { data, error } = await supabase
+        .from("public_profiles")
+        .select(selectPublicProfiles)
+        .order("username", { ascending: true })
+        .limit(1000);
+      if (error) throw error;
+      return ((data ?? []) as Array<Record<string, unknown>>).map(mapPublicProfile);
+    },
   });

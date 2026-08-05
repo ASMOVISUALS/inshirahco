@@ -289,3 +289,130 @@
   }
 }
 
+
+/* Verse of the week tile — glowing geometric wave on hover */
+.votw-tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  --votw-rest: 0.13;
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--tazkiyah) 0%, transparent);
+  transition: box-shadow 400ms ease-out, border-color 400ms ease-out;
+}
+
+.dark .votw-tile { --votw-rest: 0.16; }
+
+/* Shimmering green border glow (inset ring, no rotating layer) */
+.votw-tile:hover,
+.votw-tile:focus-visible {
+  border-color: color-mix(in oklab, var(--tazkiyah) 55%, transparent);
+  animation: votw-glow-pulse 4.5s ease-in-out infinite;
+}
+
+
+@keyframes votw-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 12px -4px color-mix(in oklab, var(--tazkiyah) 55%, transparent),
+      0 0 28px -10px color-mix(in oklab, var(--tazkiyah) 40%, transparent),
+      inset 0 0 10px -4px color-mix(in oklab, var(--tazkiyah) 45%, transparent);
+  }
+  35% {
+    box-shadow:
+      0 0 20px -3px color-mix(in oklab, var(--tazkiyah) 75%, transparent),
+      0 0 48px -8px color-mix(in oklab, var(--tazkiyah) 55%, transparent),
+      inset 0 0 16px -4px color-mix(in oklab, var(--tazkiyah) 65%, transparent);
+  }
+  65% {
+    box-shadow:
+      0 0 15px -4px color-mix(in oklab, var(--tazkiyah) 60%, transparent),
+      0 0 38px -10px color-mix(in oklab, var(--gold-decorative) 35%, transparent),
+      inset 0 0 12px -4px color-mix(in oklab, var(--gold-decorative) 40%, transparent);
+  }
+}
+
+
+.votw-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  clip-path: circle(0% at 50% 50%);
+  /* Hover-out: slow fade, clip resets instantly once faded */
+  transition: opacity 400ms ease-out, clip-path 0ms linear 400ms;
+  /* Brand girih tile artwork (light variant by default) */
+  background-image: var(--votw-tile-light);
+  background-repeat: repeat;
+  background-size: 360px 360px;
+  background-position: center;
+}
+
+.dark .votw-pattern { background-image: var(--votw-tile-dark); }
+
+.votw-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 140%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 999px;
+  opacity: 0;
+  background: radial-gradient(circle,
+    transparent 58%,
+    color-mix(in oklab, var(--gold-decorative) 60%, transparent) 68%,
+    color-mix(in oklab, var(--tazkiyah) 35%, transparent) 76%,
+    transparent 84%);
+  filter: blur(6px);
+}
+
+.votw-tile:hover .votw-pattern,
+.votw-tile:focus-visible .votw-pattern {
+  clip-path: circle(85% at 50% 50%);
+  opacity: var(--votw-rest);
+  transition: clip-path 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 0ms linear;
+}
+
+.votw-tile:hover .votw-ring,
+.votw-tile:focus-visible .votw-ring { animation: votw-wave 950ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes votw-wave {
+  0%   { transform: scale(0.05); opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { opacity: 0.85; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .votw-pattern { transition: opacity 300ms ease-out; }
+  .votw-tile:hover .votw-pattern,
+  .votw-tile:focus-visible .votw-pattern {
+    animation: none;
+    clip-path: circle(85% at 50% 50%);
+    opacity: var(--votw-rest);
+  }
+  .votw-tile:hover .votw-ring,
+  .votw-tile:focus-visible .votw-ring { animation: none; }
+  .votw-tile:hover, .votw-tile:focus-visible { animation: none; }
+}
+
+
+/* Verse page — faint girih backdrop across the whole page */
+.verse-page {
+  position: relative;
+  isolation: isolate;
+}
+.verse-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: var(--votw-tile-light);
+  background-repeat: repeat;
+  background-size: 360px 360px;
+  background-position: center;
+}
+.dark .verse-page::before { background-image: var(--votw-tile-dark); opacity: 0.07; }
