@@ -1,39 +1,21 @@
-## Goal
+## Why the tile is missing on your GitHub deploy
 
-Fix the messy overlapping reflection tiles on `/verse`, add a Popular / Recent selector, and make Refresh update only the tiles.
+The two girih SVGs aren't in the repo. They live on Lovable's asset CDN, and the repo only holds pointer files (`src/assets/girih-tile-*.svg.asset.json`) whose URL is `/__l5e/assets-v1/...`. That path is served by Lovable's hosting only. On your own deployment the browser requests it, gets a 404, and the pattern never paints — everything else on the page looks fine because the pattern is purely decorative.
 
-## 1. Stop the overlap — measured masonry layout
+## Fix — commit the SVGs
 
-Today `FloatingReflections.tsx` positions every tile with `position: absolute` on a fixed row height (210px) and then animates each one by up to ±36px. Tiles are different heights (1-line vs 6-line reflections), so tall ones spill into the row below and the drift pushes them into each other.
+1. Download both tiles from the CDN and save them in the repo as:
+   - `public/patterns/girih-tile-light.svg`
+   - `public/patterns/girih-tile-dark.svg`
+2. Point the code at plain public paths instead of the pointer files:
+   - `src/components/VerseOfTheWeek.tsx` — drop the two `.asset.json` imports; set `--votw-tile-light: url(/patterns/girih-tile-light.svg)` and the dark equivalent.
+   - `src/routes/verse.tsx` — same change for the full-page backdrop.
+3. Delete the now-unused `src/assets/girih-tile-light.svg.asset.json` and `src/assets/girih-tile-dark.svg.asset.json`.
 
-Replace the hand-rolled grid with **`masonic`** (the standard React masonry package: it measures each child's real height with a resize observer and packs columns with no gaps and no overlap; it also virtualises long lists, which matters as reflections grow).
+`src/styles.css` needs no change — it already reads the `--votw-tile-light` / `--votw-tile-dark` variables.
 
-- Install `masonic`.
-- `FloatingReflections` renders `<Masonry>` with responsive column count (1 on mobile, 2 on tablet, 3 on desktop) and a gutter of ~24px.
-- Keep the "floating" feel without breaking the packing: each tile keeps a slow motion loop, but limited to a small transform-only drift (±4px translate, ±0.6deg rotate) plus a staggered fade/rise on mount. Because the amplitude stays well inside the gutter, tiles never touch. `prefers-reduced-motion` disables the drift as it does now.
-- Mobile keeps the single-column stack.
+## Notes
 
-## 2. Popular / Recent selector
-
-A small horizontal segmented bar sits above the tiles, styled like the existing chip filters in the admin panel (rounded pill, tazkiyah green when active, muted otherwise):
-
-```text
-[ Popular ][ Recent ]              My Nottingham ISOC   ⟳ Refresh
-```
-
-- `sort` state in `verse.tsx`: `"popular"` (likes desc, then newest) — the current behaviour and the default — or `"recent"` (created_at desc).
-- The existing "My org" checkbox and Refresh stay on the right of the same row.
-- Sorting happens client-side in the existing `visibleReflections` memo, so switching is instant with no refetch.
-
-## 3. Refresh refetches only the tiles
-
-Today Refresh calls `invalidateQueries` on three keys, which puts the reflections query into a loading state and re-renders the section. Change it to:
-
-- Call `refetch()` on the reflections / likes / my-reflections queries directly, so React Query keeps showing the current data while the new data loads (no blank flash, no layout jump, verse panel untouched).
-- Spin the refresh icon (`animate-spin`) and disable the button while fetching, then stop.
-
-## Technical notes
-
-- New dependency: `masonic`.
-- Files touched: `src/components/FloatingReflections.tsx` (masonry + toned-down drift), `src/routes/verse.tsx` (sort state, segmented control, refresh handler). No database or query-shape changes.
-- `masonic` renders client-side only; the `/verse` route is already `ssr: false`, so there is no hydration concern.
+- Adds roughly 300 KB across the two SVGs to the repo; they're served straight from your host with normal caching.
+- Works identically on the Lovable preview and any external host.
+- Verification: build, then confirm both `/patterns/girih-tile-light.svg` and `/patterns/girih-tile-dark.svg` return 200 and the hover pattern still renders on the home tile and the `/verse` backdrop.
