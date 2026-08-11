@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Trash2, Plus, Pencil, Shuffle, LayoutGrid, GripVertical } from "lucide-react";
+import { Trash2, Plus, Pencil, Shuffle, LayoutGrid, GripVertical, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QuranFetcher } from "@/components/QuranFetcher";
 import { AdminPasswordGate } from "@/components/AdminPasswordGate";
@@ -474,6 +474,18 @@ function VersesAdmin() {
                 {STATUSES.find((s) => s.value === r.status)?.label ?? r.status}
               </span>
               {!r.surah_id && <p className="mt-1 text-xs text-destructive">Not linked to a surah — edit to fix.</p>}
+
+              {r.status === "used" && (
+                <Link
+                  to="/verse-archive/$id"
+                  params={{ id: r.id }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full border border-heart/40 px-3 py-1.5 text-xs font-semibold text-heart transition-colors hover:bg-heart/10"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Reflections
+                </Link>
+              )}
 
               {selected && r.status !== "used" && (
                 <div className="mt-3 flex items-center justify-end gap-2 border-t border-heart/20 pt-3">
