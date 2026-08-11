@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { currentVerseQuery } from "@/lib/queries";
-import girihLight from "@/assets/girih-tile-light.svg.asset.json";
-import girihDark from "@/assets/girih-tile-dark.svg.asset.json";
 
 /** Verse of the week — set every Friday; tapping it opens the verse dashboard. */
 export function VerseOfTheWeek() {
@@ -19,8 +17,8 @@ export function VerseOfTheWeek() {
         {
           background: "color-mix(in oklab, var(--tazkiyah-soft) 40%, var(--paper-warm))",
           borderColor: "color-mix(in oklab, var(--tazkiyah) 25%, transparent)",
-          "--votw-tile-light": `url(${girihLight.url})`,
-          "--votw-tile-dark": `url(${girihDark.url})`,
+          "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
+          "--votw-tile-dark": "url(/patterns/girih-tile-dark.svg)",
         } as React.CSSProperties
       }
     >
