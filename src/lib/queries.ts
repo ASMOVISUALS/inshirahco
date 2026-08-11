@@ -109,6 +109,24 @@ export const verseReflectionsQuery = (ayahId: string | null) =>
     },
   });
 
+export type ArchivedVerse = AyahRow & { day_start: string | null; day_end: string | null; status: string };
+
+/** A single verse by id — used by the archived verse of the week pages. */
+export const verseByIdQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["verse", id],
+    queryFn: async (): Promise<ArchivedVerse | null> => {
+      const { data, error } = await supabase
+        .from("ayahs")
+        .select("id,arabic,translation,reference,sort_order,surah_id,ayah_number,day_start,day_end,status")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as ArchivedVerse | null) ?? null;
+    },
+    staleTime: 5 * 60_000,
+  });
+
 /** Reflection ids the signed-in member has already liked. */
 export const myLikesQuery = (userId: string | null) =>
   queryOptions({
