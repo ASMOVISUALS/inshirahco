@@ -1,18 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Parallax helper for the Verse of the Week page background.
- * Returns a ref to attach to the page container; as the user scrolls, the fixed
- * girih pattern is shifted by a fraction of the scroll distance so it feels
- * deep and far away.
+ * Returns a callback ref to attach to the page container. Once the element is
+ * mounted, the fixed girih pattern is shifted by a fraction of the scroll
+ * distance as the user scrolls, giving it a slow, far-away depth effect.
  */
 export function useVotwParallax<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
+  const [node, setNode] = useState<T | null>(null);
 
   useEffect(() => {
-    console.log("[parallax] effect", ref.current);
-    const page = ref.current;
-    if (!page) return;
+    if (!node) return;
 
     let raf = 0;
     let lastScroll = window.scrollY;
@@ -20,17 +18,17 @@ export function useVotwParallax<T extends HTMLElement>() {
     const update = () => {
       const y = window.scrollY;
       if (y !== lastScroll) {
-        page.style.setProperty("--votw-scroll", `${y}px`);
+        node.style.setProperty("--votw-scroll", `${y}px`);
         lastScroll = y;
       }
       raf = requestAnimationFrame(update);
     };
 
-    page.style.setProperty("--votw-scroll", `${lastScroll}px`);
+    node.style.setProperty("--votw-scroll", `${lastScroll}px`);
     raf = requestAnimationFrame(update);
 
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [node]);
 
-  return ref;
+  return setNode;
 }
