@@ -4,8 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Check, ArrowLeft } from "lucide-react";
 import { myLikesQuery, myPublicProfileQuery, publicProfilesQuery, verseByIdQuery, verseReflectionsQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
+import { useVotwParallax } from "@/hooks/use-votw-parallax";
 import { FloatingReflections } from "@/components/FloatingReflections";
 import { ReportDialog } from "@/components/ReportDialog";
+
+
 
 export const Route = createFileRoute("/verse-archive/$id")({
   ssr: false,

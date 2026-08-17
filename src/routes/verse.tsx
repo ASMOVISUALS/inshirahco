@@ -4,9 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { currentVerseQuery, myLikesQuery, myPublicProfileQuery, myReflectionsQuery, publicProfilesQuery, verseReflectionsQuery } from "@/lib/queries";
 import { RefreshCw, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useVotwParallax } from "@/hooks/use-votw-parallax";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
 import { FloatingReflections } from "@/components/FloatingReflections";
+
+
 
 export const Route = createFileRoute("/verse")({
   ssr: false,
