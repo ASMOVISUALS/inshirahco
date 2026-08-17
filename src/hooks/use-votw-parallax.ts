@@ -10,6 +10,7 @@ export function useVotwParallax<T extends HTMLElement>() {
   const ref = useRef<T>(null);
 
   useEffect(() => {
+    console.log("[parallax] effect", ref.current);
     const page = ref.current;
     if (!page) return;
 
