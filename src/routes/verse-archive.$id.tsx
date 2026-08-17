@@ -87,6 +87,7 @@ function ArchivedVersePage() {
 
   return (
     <div
+      ref={pageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
       style={
         {
@@ -95,6 +96,7 @@ function ArchivedVersePage() {
         } as React.CSSProperties
       }
     >
+
       {/* Thin archive header */}
       <div
         className="mb-10 flex flex-wrap items-center justify-between gap-3 rounded-full border px-5 py-2 text-[11px] font-bold uppercase tracking-[0.18em]"

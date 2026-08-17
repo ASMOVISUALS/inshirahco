@@ -127,6 +127,7 @@ function VersePage() {
 
   return (
     <div
+      ref={pageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
       style={
         {
@@ -135,6 +136,7 @@ function VersePage() {
         } as React.CSSProperties
       }
     >
+
       <header className="text-center">
         <p className="eyebrow" style={{ color: "var(--tazkiyah)" }}>Verse of the week</p>
         <h1 className="mt-3 font-display text-4xl md:text-5xl" style={{ fontVariationSettings: '"SOFT" 60, "WONK" 1' }}>
