@@ -81,7 +81,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
             {navItems.map((item) => (
               <Link
                 key={item.key}
-                to={("/" + item.slug) as "/$pageSlug"}
+                to={("/" + item.slug) as any}
                 className="rounded-pill px-4 py-2 text-[0.94rem] font-semibold text-foreground/85 transition-colors hover:bg-secondary hover:text-foreground"
                 activeProps={{ style: { color: "var(--heart)" } }}
               >
@@ -176,7 +176,7 @@ export function SiteNav({ minimal = false, title = "Control Room", eyebrow = "Ad
             </div>
             <nav className="mt-8 flex flex-col gap-1" aria-label="Mobile primary">
               {navItems.map((item) => (
-                <Link key={item.key} to={("/" + item.slug) as "/$pageSlug"} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
+                <Link key={item.key} to={("/" + item.slug) as any} onClick={() => setOpenMobile(false)} className="rounded-2xl px-4 py-3 text-lg font-semibold hover:bg-secondary">
                   {item.label}
                 </Link>
               ))}
