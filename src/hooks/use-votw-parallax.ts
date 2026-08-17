@@ -1,19 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
- * Parallax helper for .verse-page.
- * As the page scrolls, the fixed girih background is shifted by a fraction of
- * the scroll distance so the pattern feels deep and far away.
+ * Parallax helper for the Verse of the Week page background.
+ * Returns a ref to attach to the page container; as the user scrolls, the fixed
+ * girih pattern is shifted by a fraction of the scroll distance so it feels
+ * deep and far away.
  */
-export function useVotwParallax() {
+export function useVotwParallax<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+
   useEffect(() => {
-    console.log("[parallax] hook mounted");
-    const page = document.querySelector<HTMLElement>(".verse-page");
-    if (!page) {
-      console.log("[parallax] no page found");
-      return;
-    }
-    console.log("[parallax] page found", page);
+    const page = ref.current;
+    if (!page) return;
 
     let raf = 0;
     let lastScroll = window.scrollY;
@@ -32,4 +30,6 @@ export function useVotwParallax() {
 
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  return ref;
 }
