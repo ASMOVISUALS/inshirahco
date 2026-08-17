@@ -7,8 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
 import { FloatingReflections } from "@/components/FloatingReflections";
-import girihLight from "@/assets/girih-tile-light.svg.asset.json";
-import girihDark from "@/assets/girih-tile-dark.svg.asset.json";
 
 export const Route = createFileRoute("/verse")({
   ssr: false,
@@ -126,8 +124,8 @@ function VersePage() {
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
       style={
         {
-          "--votw-tile-light": `url(${girihLight.url})`,
-          "--votw-tile-dark": `url(${girihDark.url})`,
+          "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
+          "--votw-tile-dark": "url(/patterns/girih-tile-dark.svg)",
         } as React.CSSProperties
       }
     >

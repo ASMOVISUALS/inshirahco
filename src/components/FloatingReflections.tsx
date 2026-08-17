@@ -5,6 +5,8 @@ import { Masonry, type RenderComponentProps } from "masonic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { PublicReflection, PublicProfileRow } from "@/lib/queries";
 import { useUsernameColour } from "@/lib/member-colours";
+import { timeAgo } from "@/lib/utils";
+
 
 /** Deterministic pseudo-random in [0,1) from a string seed. */
 function seeded(id: string, salt: number) {
@@ -139,7 +141,7 @@ function Tile({
               <span className="truncate">{author.organisation.name}</span>
             </span>
           )}
-          <span className="block text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+          <span className="block text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
         </div>
         <div className="flex items-center gap-2">
           <button

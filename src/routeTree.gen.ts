@@ -24,6 +24,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as PageSlugRouteImport } from './routes/$pageSlug'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VerseArchiveIdRouteImport } from './routes/verse-archive.$id'
 import { Route as ReadSlugRouteImport } from './routes/read.$slug'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authenticated/profile/route'
@@ -120,6 +121,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerseArchiveIdRoute = VerseArchiveIdRouteImport.update({
+  id: '/verse-archive/$id',
+  path: '/verse-archive/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReadSlugRoute = ReadSlugRouteImport.update({
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/youth': typeof YouthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/read/$slug': typeof ReadSlugRoute
+  '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/auth/callback'
     | '/read/$slug'
+    | '/verse-archive/$id'
     | '/admin/archive'
     | '/admin/faqs'
     | '/admin/newsletter'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/youth'
     | '/auth/callback'
     | '/read/$slug'
+    | '/verse-archive/$id'
     | '/admin/archive'
     | '/admin/faqs'
     | '/admin/newsletter'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/auth/callback'
     | '/read/$slug'
+    | '/verse-archive/$id'
     | '/_authenticated/admin/archive'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/newsletter'
@@ -508,6 +520,7 @@ export interface RootRouteChildren {
   VerseRoute: typeof VerseRoute
   YouthRoute: typeof YouthRoute
   ReadSlugRoute: typeof ReadSlugRoute
+  VerseArchiveIdRoute: typeof VerseArchiveIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -615,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verse-archive/$id': {
+      id: '/verse-archive/$id'
+      path: '/verse-archive/$id'
+      fullPath: '/verse-archive/$id'
+      preLoaderRoute: typeof VerseArchiveIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/read/$slug': {
@@ -885,7 +905,18 @@ const rootRouteChildren: RootRouteChildren = {
   VerseRoute: VerseRoute,
   YouthRoute: YouthRoute,
   ReadSlugRoute: ReadSlugRoute,
+  VerseArchiveIdRoute: VerseArchiveIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
