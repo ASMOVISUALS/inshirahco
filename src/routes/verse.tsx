@@ -28,8 +28,9 @@ export const Route = createFileRoute("/verse")({
 });
 
 function VersePage() {
-  useVotwParallax();
+  const pageRef = useVotwParallax<HTMLDivElement>();
   const { user, loading } = useAuth();
+
 
   const qc = useQueryClient();
   const { data: verse, isLoading } = useQuery(currentVerseQuery());

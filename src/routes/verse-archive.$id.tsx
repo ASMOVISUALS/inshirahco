@@ -30,8 +30,9 @@ const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 function ArchivedVersePage() {
-  useVotwParallax();
+  const pageRef = useVotwParallax<HTMLDivElement>();
   const { id } = Route.useParams();
+
 
   const { user } = useAuth();
   const qc = useQueryClient();
