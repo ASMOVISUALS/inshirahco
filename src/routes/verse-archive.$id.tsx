@@ -4,8 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Check, ArrowLeft } from "lucide-react";
 import { myLikesQuery, myPublicProfileQuery, publicProfilesQuery, verseByIdQuery, verseReflectionsQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
+import { useVotwParallax } from "@/hooks/use-votw-parallax";
 import { FloatingReflections } from "@/components/FloatingReflections";
 import { ReportDialog } from "@/components/ReportDialog";
+
+
 
 export const Route = createFileRoute("/verse-archive/$id")({
   ssr: false,
@@ -27,7 +30,11 @@ const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 function ArchivedVersePage() {
+  const setPageRef = useVotwParallax<HTMLDivElement>();
   const { id } = Route.useParams();
+
+
+
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -81,7 +88,9 @@ function ArchivedVersePage() {
 
   return (
     <div
+      ref={setPageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
+
       style={
         {
           "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
@@ -89,6 +98,7 @@ function ArchivedVersePage() {
         } as React.CSSProperties
       }
     >
+
       {/* Thin archive header */}
       <div
         className="mb-10 flex flex-wrap items-center justify-between gap-3 rounded-full border px-5 py-2 text-[11px] font-bold uppercase tracking-[0.18em]"

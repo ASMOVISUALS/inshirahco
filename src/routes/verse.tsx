@@ -4,9 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { currentVerseQuery, myLikesQuery, myPublicProfileQuery, myReflectionsQuery, publicProfilesQuery, verseReflectionsQuery } from "@/lib/queries";
 import { RefreshCw, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useVotwParallax } from "@/hooks/use-votw-parallax";
 import { supabase } from "@/integrations/supabase/client";
 import { ReportDialog } from "@/components/ReportDialog";
 import { FloatingReflections } from "@/components/FloatingReflections";
+
+
 
 export const Route = createFileRoute("/verse")({
   ssr: false,
@@ -25,7 +28,11 @@ export const Route = createFileRoute("/verse")({
 });
 
 function VersePage() {
+  const setPageRef = useVotwParallax<HTMLDivElement>();
   const { user, loading } = useAuth();
+
+
+
   const qc = useQueryClient();
   const { data: verse, isLoading } = useQuery(currentVerseQuery());
   const { data: reflections = [] } = useQuery(verseReflectionsQuery(verse?.id ?? null));
@@ -121,7 +128,9 @@ function VersePage() {
 
   return (
     <div
+      ref={setPageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
+
       style={
         {
           "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
@@ -129,6 +138,7 @@ function VersePage() {
         } as React.CSSProperties
       }
     >
+
       <header className="text-center">
         <p className="eyebrow" style={{ color: "var(--tazkiyah)" }}>Verse of the week</p>
         <h1 className="mt-3 font-display text-4xl md:text-5xl" style={{ fontVariationSettings: '"SOFT" 60, "WONK" 1' }}>
