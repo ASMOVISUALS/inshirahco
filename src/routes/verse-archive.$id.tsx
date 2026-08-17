@@ -30,8 +30,9 @@ const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 function ArchivedVersePage() {
-  const pageRef = useVotwParallax<HTMLDivElement>();
+  const setPageRef = useVotwParallax<HTMLDivElement>();
   const { id } = Route.useParams();
+
 
 
   const { user } = useAuth();
@@ -87,8 +88,9 @@ function ArchivedVersePage() {
 
   return (
     <div
-      ref={pageRef}
+      ref={setPageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
+
       style={
         {
           "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",

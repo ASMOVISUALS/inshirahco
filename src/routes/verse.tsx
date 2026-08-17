@@ -28,8 +28,9 @@ export const Route = createFileRoute("/verse")({
 });
 
 function VersePage() {
-  const pageRef = useVotwParallax<HTMLDivElement>();
+  const setPageRef = useVotwParallax<HTMLDivElement>();
   const { user, loading } = useAuth();
+
 
 
   const qc = useQueryClient();
@@ -127,8 +128,9 @@ function VersePage() {
 
   return (
     <div
-      ref={pageRef}
+      ref={setPageRef}
       className="verse-page mx-auto max-w-5xl px-6 py-16 md:py-24"
+
       style={
         {
           "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
