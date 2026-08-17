@@ -7,8 +7,13 @@ import { useEffect } from "react";
  */
 export function useVotwParallax() {
   useEffect(() => {
+    console.log("[parallax] hook mounted");
     const page = document.querySelector<HTMLElement>(".verse-page");
-    if (!page) return;
+    if (!page) {
+      console.log("[parallax] no page found");
+      return;
+    }
+    console.log("[parallax] page found", page);
 
     let raf = 0;
     let lastScroll = window.scrollY;
