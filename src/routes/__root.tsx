@@ -18,6 +18,7 @@ import { useAuthAccess } from "@/lib/auth-access";
 import { useAuth } from "@/hooks/use-auth";
 import { signOutCompletely } from "@/lib/auth";
 import { hasAdminRoleQuery } from "@/lib/queries";
+import { SiteGate, SiteModeBanner, useSiteGateClosed } from "@/components/SiteGate";
 
 function NotFoundComponent() {
   return (
