@@ -18,6 +18,7 @@ import { useAuthAccess } from "@/lib/auth-access";
 import { useAuth } from "@/hooks/use-auth";
 import { signOutCompletely } from "@/lib/auth";
 import { hasAdminRoleQuery } from "@/lib/queries";
+import { SiteGate, SiteModeBanner, useSiteGateClosed } from "@/components/SiteGate";
 
 function NotFoundComponent() {
   return (
@@ -122,14 +123,26 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthAccessEnforcer />
-      <div className="flex min-h-screen flex-col">
-        {!isBuilder && <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />}
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        {!minimal && !isBuilder && <SiteFooter />}
-      </div>
+      <SiteShell isBuilder={isBuilder} minimal={minimal} isProfile={isProfile} />
     </QueryClientProvider>
+  );
+}
+
+function SiteShell({ isBuilder, minimal, isProfile }: { isBuilder: boolean; minimal: boolean; isProfile: boolean }) {
+  const gateClosed = useSiteGateClosed();
+  return (
+    <div className="flex min-h-screen flex-col">
+      <SiteModeBanner />
+      {!isBuilder && !gateClosed && (
+        <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />
+      )}
+      <main className="flex-1">
+        <SiteGate>
+          <Outlet />
+        </SiteGate>
+      </main>
+      {!minimal && !isBuilder && !gateClosed && <SiteFooter />}
+    </div>
   );
 }
 
