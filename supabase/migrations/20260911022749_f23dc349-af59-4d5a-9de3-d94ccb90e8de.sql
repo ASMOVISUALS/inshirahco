@@ -1,0 +1,2 @@
+CREATE POLICY "Admins manage article media" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'article-media' AND public.has_role(auth.uid(), 'admin')) WITH CHECK (bucket_id = 'article-media' AND public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Article media readable" ON storage.objects FOR SELECT TO authenticated, anon USING (bucket_id = 'article-media');
