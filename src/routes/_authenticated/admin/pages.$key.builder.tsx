@@ -519,6 +519,7 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "subtitle", label: "Subtitle", kind: "textarea", rows: 3 },
     { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
     { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+    ...HERO_STYLE_FIELDS,
   ],
   hidden_frame: [
     { key: "eyebrow", label: "Eyebrow (supports {{page_name}})", kind: "text" },
@@ -526,6 +527,7 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "subtitle", label: "Subtitle (supports {{page_name}})", kind: "textarea", rows: 3 },
     { key: "arabic_watermark", label: "Arabic watermark", kind: "arabic" },
     { key: "arabic_verse", label: "Arabic verse", kind: "arabic" },
+    ...HERO_STYLE_FIELDS,
   ],
   explore_pages: [
     { key: "items", label: "Links", kind: "list_object", shape: [
