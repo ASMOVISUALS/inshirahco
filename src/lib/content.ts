@@ -37,8 +37,11 @@ export interface ContentItem {
   author: { name: string; role?: string };
   tags: string[];
   downloadable?: boolean;
+  coverImage?: string;
+  likesCount: number;
   body?: ContentBlock[];
 }
+
 
 export const PILLARS: Record<Pillar, { label: string; short: string; letter: string; tint: string; description: string; href: string; }> = {
   "tadabbur": {
