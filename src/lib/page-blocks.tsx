@@ -187,7 +187,7 @@ export function newBlock(type: BlockType): Block {
       cta_secondary_label: "Our story", cta_secondary_href: "/about",
       background: "radial",
       graphic: "none",
-      graphic_opacity: 15,
+      graphic_opacity: 8,
     },
     section_header: { eyebrow: "New section", title: "A quiet heading", description: "", align: "left" },
     heading: { level: 2, text: "A heading" },
@@ -219,7 +219,7 @@ export function newBlock(type: BlockType): Block {
       align: "center",
       background: "radial",
       graphic: "girih",
-      graphic_opacity: 15,
+      graphic_opacity: 8,
       height: "full",
       show_newsletter: "no",
       newsletter_heading: "Be there when it opens",
@@ -235,7 +235,7 @@ export function newBlock(type: BlockType): Block {
       arabic_verse: "إن مع العسر يسرا",
       background: "radial",
       graphic: "girih",
-      graphic_opacity: 15,
+      graphic_opacity: 8,
       height: "full",
       show_newsletter: "no",
       newsletter_heading: "Be there when it opens",
@@ -328,7 +328,7 @@ function RenderBlock({ block }: { block: Block }) {
       const bgMode = s("background", "radial");
       const bg = bgMode === "plain" ? "" : bgMode === "soft" ? "hero-soft" : "hero-radial";
       const heroGraphic = s("graphic", "none") === "girih" ? "girih-backdrop" : "";
-      const heroOpacity = Math.max(0, Math.min(100, n("graphic_opacity", 15))) / 100;
+      const heroOpacity = Math.max(0, Math.min(100, n("graphic_opacity", 8))) / 100;
       return (
         <section className={`${bg} ${heroGraphic} relative isolate overflow-hidden`} style={{ ["--girih-opacity" as string]: String(heroOpacity) }}>
           {s("arabic") && (
@@ -560,7 +560,7 @@ function RenderBlock({ block }: { block: Block }) {
           verse={s("arabic_verse")}
           background={s("background", "radial")}
           graphic={s("graphic", "girih")}
-          graphicOpacity={n("graphic_opacity", 15)}
+          graphicOpacity={n("graphic_opacity", 8)}
           height={s("height", "full")}
           newsletter={s("show_newsletter", "no") === "yes"}
           newsletterHeading={s("newsletter_heading")}
