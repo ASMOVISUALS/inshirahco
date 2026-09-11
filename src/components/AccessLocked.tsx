@@ -20,7 +20,7 @@ export function AccessLocked({
   const [adminOpen, setAdminOpen] = useState(false);
 
   return (
-    <section className="hero-radial relative min-h-[calc(100vh-80px)]">
+    <section className="hero-radial girih-backdrop relative min-h-[calc(100vh-80px)]">
       <div className="container-wide py-16 md:py-24">
         <div className="mx-auto max-w-xl">
           <div className="flex items-center gap-4">
