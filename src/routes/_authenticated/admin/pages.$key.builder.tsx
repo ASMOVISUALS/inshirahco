@@ -360,7 +360,7 @@ function BlockList({
                 <BlockInspector block={b} onChange={(props) => onChange(b.id, props)} />
                 {CONTAINER_TYPES.includes(b.type) && (
                   <NestedBlocks
-                    children={blockChildren(b)}
+                    items={blockChildren(b)}
                     onChange={(next) => onChange(b.id, { ...(b.props as Record<string, unknown>), children: next })}
                   />
                 )}
