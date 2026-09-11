@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  BLOCK_CATEGORIES, BLOCK_LABEL, PageRenderer,
+  BLOCK_CATEGORIES, BLOCK_LABEL, PageRenderer, CONTAINER_TYPES, blockChildren,
   newBlock, isBlockArray, type Block, type BlockType,
 } from "@/lib/page-blocks";
 import { newslettersQuery } from "@/lib/queries";
