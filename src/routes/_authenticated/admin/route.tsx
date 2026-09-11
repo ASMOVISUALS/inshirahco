@@ -17,6 +17,8 @@ import {
   Settings,
   Layers,
   Users,
+  Palette,
+  
   
 } from "lucide-react";
 import {
