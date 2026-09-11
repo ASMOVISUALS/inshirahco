@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 const items = [
   { title: "Dashboard", url: "/profile", icon: LayoutDashboard },
+  { title: "My Reflections", url: "/profile/reflections", icon: NotebookPen },
   { title: "Profile", url: "/profile/edit", icon: UserCircle },
 ];
 
