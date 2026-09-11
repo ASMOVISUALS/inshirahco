@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bookmark } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContentCard } from "@/components/ContentCard";
 import { useAuth } from "@/hooks/use-auth";
-import { articlesQuery, bookmarksQuery } from "@/lib/queries";
+import { articlesQuery, articleLikesQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/profile/liked-articles")({
   head: () => ({
