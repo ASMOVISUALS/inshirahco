@@ -131,7 +131,16 @@ function Detail() {
       />
 
       <article>
-        <header className="container-wide max-w-3xl pt-16 pb-10 md:pt-24">
+        {item.coverImage && (
+          <div className="container-wide max-w-4xl pt-10 md:pt-16">
+            <img
+              src={item.coverImage}
+              alt={item.title}
+              className="aspect-[16/9] w-full rounded-3xl object-cover"
+            />
+          </div>
+        )}
+        <header className={`container-wide max-w-3xl pb-10 ${item.coverImage ? "pt-10" : "pt-16 md:pt-24"}`}>
           <Link to={pillar.href} className="eyebrow inline-block hover:underline">
             ← {pillar.label}
           </Link>
@@ -159,15 +168,26 @@ function Detail() {
             <span className="text-muted-foreground">·</span>
 
             <button
+              onClick={onLike}
+              aria-pressed={liked}
+              aria-label={liked ? "Unlike this article" : "Like this article"}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
+            >
+              <Heart className={`h-4 w-4 ${liked ? "fill-heart" : ""}`} style={liked ? { color: "var(--heart)" } : undefined} />
+              {likeCount}
+            </button>
+
+            <button
               onClick={() => toggle(item.slug)}
               aria-pressed={saved}
               aria-label={saved ? "Remove bookmark" : "Save for later"}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
+              className="inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
             >
               <Bookmark className={`h-4 w-4 ${saved ? "fill-heart" : ""}`} style={saved ? { color: "var(--heart)" } : undefined} />
               {saved ? "Saved" : "Save"}
             </button>
           </div>
+
 
           {item.downloadable && (
             <a href="#" className="btn-ghost mt-6 inline-flex" onClick={(e) => e.preventDefault()}>
