@@ -424,6 +424,42 @@ type FieldDef =
   | { key: string; label: string; kind: "list_object"; shape: { key: string; label: string; kind: "text" | "textarea" | "select"; options?: { value: string; label: string }[] }[] };
 
 
+const BACKGROUND_FIELD: FieldDef = {
+  key: "background", label: "Background style", kind: "select",
+  options: [
+    { value: "radial", label: "Radial glow" },
+    { value: "soft", label: "Soft gold wash" },
+    { value: "plain", label: "Plain" },
+  ],
+};
+
+const GRAPHIC_FIELDS: FieldDef[] = [
+  { key: "graphic", label: "Background graphic", kind: "select", options: [
+    { value: "girih", label: "Stained glass (girih tile)" },
+    { value: "none", label: "None" },
+  ]},
+  { key: "graphic_opacity", label: "Graphic opacity (%)", kind: "number", min: 0, max: 100 },
+];
+
+const HERO_STYLE_FIELDS: FieldDef[] = [
+  BACKGROUND_FIELD,
+  ...GRAPHIC_FIELDS,
+  { key: "height", label: "Height", kind: "select", options: [
+    { value: "screen", label: "Full screen" },
+    { value: "full", label: "Almost full screen" },
+    { value: "medium", label: "Medium" },
+    { value: "short", label: "Short" },
+  ]},
+  { key: "show_newsletter", label: "Show newsletter inside hero", kind: "select", options: [
+    { value: "no", label: "No" },
+    { value: "yes", label: "Yes" },
+  ]},
+  { key: "newsletter_heading", label: "Newsletter heading", kind: "text" },
+  { key: "newsletter_description", label: "Newsletter description", kind: "textarea", rows: 2 },
+  { key: "newsletter_cta", label: "Newsletter button", kind: "text" },
+  { key: "newsletterId", label: "Newsletter list", kind: "newsletter_select" },
+];
+
 const FIELDS: Record<BlockType, FieldDef[]> = {
   hero: [
     { key: "eyebrow", label: "Eyebrow", kind: "text" },
