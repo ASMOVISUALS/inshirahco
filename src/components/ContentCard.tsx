@@ -25,7 +25,7 @@ export function ContentCard({ item, compact }: Props) {
   const saved = has(item.slug);
   const likes = useArticleLikes();
   const liked = likes.has(item.slug);
-  const likeCount = Math.max(0, (item.likesCount ?? 0) + (liked && !(item.likesCount ?? 0) ? 0 : 0));
+  const likeCount = item.likesCount ?? 0;
   const cover = item.coverImage;
 
   return (
