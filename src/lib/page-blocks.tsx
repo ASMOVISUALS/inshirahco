@@ -277,7 +277,7 @@ export function newBlock(type: BlockType): Block {
       ],
     },
     footer_columns: { columns: 4, gap: "lg", children: [] },
-    footer_row: { align: "start", gap: "md", children: [] },
+    footer_row: { direction: "row", align: "start", gap: "md", children: [] },
   };
   return { id, type, props: defaults[type] };
 }
