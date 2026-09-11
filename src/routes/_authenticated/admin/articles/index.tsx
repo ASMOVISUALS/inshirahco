@@ -234,6 +234,13 @@ function ArticlesList() {
                   </td>
                   <td className="px-4 py-3">{PILLARS[a.pillar as Pillar]?.short ?? a.pillar}</td>
                   <td className="px-4 py-3">
+                    {(seriesByArticle.get(a.id) ?? []).length === 0 ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      (seriesByArticle.get(a.id) ?? []).map((s) => s.title).join(", ")
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <span
                       className="rounded-pill px-3 py-1 text-xs font-bold"
                       style={a.published
