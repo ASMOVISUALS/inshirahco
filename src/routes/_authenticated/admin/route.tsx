@@ -17,6 +17,8 @@ import {
   Settings,
   Layers,
   Users,
+  Palette,
+  
   
 } from "lucide-react";
 import {
@@ -164,6 +166,14 @@ function AdminSidebar() {
               <Link to="/admin/archive">
                 <Archive className="h-4 w-4" />
                 <span>Archive</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/branding")} tooltip="Brand">
+              <Link to="/admin/branding">
+                <Palette className="h-4 w-4" />
+                <span>Brand</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
