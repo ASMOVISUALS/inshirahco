@@ -527,10 +527,25 @@ function RenderBlock({ block }: { block: Block }) {
     }
 
     case "hero_fullscreen":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
-
     case "hidden_frame":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+      return (
+        <HiddenFrameBlock
+          eyebrow={s("eyebrow")}
+          title={s("title")}
+          subtitle={s("subtitle")}
+          watermark={s("arabic_watermark")}
+          verse={s("arabic_verse")}
+          background={s("background", "radial")}
+          graphic={s("graphic", "girih")}
+          graphicOpacity={n("graphic_opacity", 15)}
+          height={s("height", "full")}
+          newsletter={s("show_newsletter", "no") === "yes"}
+          newsletterHeading={s("newsletter_heading")}
+          newsletterDescription={s("newsletter_description")}
+          newsletterCta={s("newsletter_cta")}
+          newsletterId={(p.newsletterId as string) || undefined}
+        />
+      );
 
     case "explore_pages": {
       const items = (Array.isArray(p.items) ? p.items : []) as { label: string; href: string }[];
