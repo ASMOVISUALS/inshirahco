@@ -19,7 +19,7 @@ function ordinalSuffix(day: number) {
   }
 }
 
-function fullDate(iso: string) {
+export function fullDate(iso: string) {
   const d = new Date(iso);
   const day = d.getDate();
   const month = d.toLocaleDateString("en-GB", { month: "short" });
