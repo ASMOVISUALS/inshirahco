@@ -186,6 +186,8 @@ export function newBlock(type: BlockType): Block {
       cta_primary_label: "Start reading", cta_primary_href: "/",
       cta_secondary_label: "Our story", cta_secondary_href: "/about",
       background: "radial",
+      graphic: "none",
+      graphic_opacity: 15,
     },
     section_header: { eyebrow: "New section", title: "A quiet heading", description: "", align: "left" },
     heading: { level: 2, text: "A heading" },
@@ -215,6 +217,15 @@ export function newBlock(type: BlockType): Block {
       arabic_watermark: "انشراح",
       arabic_verse: "",
       align: "center",
+      background: "radial",
+      graphic: "girih",
+      graphic_opacity: 15,
+      height: "full",
+      show_newsletter: "no",
+      newsletter_heading: "Be there when it opens",
+      newsletter_description: "Leave your email and we'll write to you the day it goes live.",
+      newsletter_cta: "Keep me posted",
+      newsletterId: "",
     },
     hidden_frame: {
       eyebrow: "{{page_name}}",
@@ -222,6 +233,15 @@ export function newBlock(type: BlockType): Block {
       subtitle: "Come back soon — but feel free to explore other pages below.",
       arabic_watermark: "سِرّ",
       arabic_verse: "إن مع العسر يسرا",
+      background: "radial",
+      graphic: "girih",
+      graphic_opacity: 15,
+      height: "full",
+      show_newsletter: "no",
+      newsletter_heading: "Be there when it opens",
+      newsletter_description: "Leave your email and we'll write to you the day it goes live.",
+      newsletter_cta: "Keep me posted",
+      newsletterId: "",
     },
     explore_pages: {
       items: [
@@ -305,9 +325,12 @@ function RenderBlock({ block }: { block: Block }) {
 
   switch (block.type) {
     case "hero": {
-      const bg = s("background", "radial") === "plain" ? "" : "hero-radial";
+      const bgMode = s("background", "radial");
+      const bg = bgMode === "plain" ? "" : bgMode === "soft" ? "hero-soft" : "hero-radial";
+      const heroGraphic = s("graphic", "none") === "girih" ? "girih-backdrop" : "";
+      const heroOpacity = Math.max(0, Math.min(100, n("graphic_opacity", 15))) / 100;
       return (
-        <section className={`${bg} relative overflow-hidden`}>
+        <section className={`${bg} ${heroGraphic} relative isolate overflow-hidden`} style={{ ["--girih-opacity" as string]: String(heroOpacity) }}>
           {s("arabic") && (
             <span
               aria-hidden
@@ -527,10 +550,25 @@ function RenderBlock({ block }: { block: Block }) {
     }
 
     case "hero_fullscreen":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
-
     case "hidden_frame":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+      return (
+        <HiddenFrameBlock
+          eyebrow={s("eyebrow")}
+          title={s("title")}
+          subtitle={s("subtitle")}
+          watermark={s("arabic_watermark")}
+          verse={s("arabic_verse")}
+          background={s("background", "radial")}
+          graphic={s("graphic", "girih")}
+          graphicOpacity={n("graphic_opacity", 15)}
+          height={s("height", "full")}
+          newsletter={s("show_newsletter", "no") === "yes"}
+          newsletterHeading={s("newsletter_heading")}
+          newsletterDescription={s("newsletter_description")}
+          newsletterCta={s("newsletter_cta")}
+          newsletterId={(p.newsletterId as string) || undefined}
+        />
+      );
 
     case "explore_pages": {
       const items = (Array.isArray(p.items) ? p.items : []) as { label: string; href: string }[];
@@ -851,24 +889,23 @@ function FaqBlock({ pageKey, items }: { pageKey?: string; items: { question: str
   );
 }
 
-function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string }) {
+function HiddenFrameBlock({
+  eyebrow, title, subtitle, watermark, verse,
+  background = "radial", graphic = "girih", graphicOpacity = 15, height = "full",
+  newsletter, newsletterHeading, newsletterDescription, newsletterCta, newsletterId,
+}: {
+  eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string;
+  background?: string; graphic?: string; graphicOpacity?: number; height?: string;
+  newsletter?: boolean; newsletterHeading?: string; newsletterDescription?: string; newsletterCta?: string; newsletterId?: string;
+}) {
+  const minH = height === "screen" ? "min-h-screen" : height === "full" ? "min-h-[92svh]" : height === "short" ? "min-h-[52svh]" : "min-h-[70svh]";
+  const bgClass = background === "plain" ? "" : background === "soft" ? "hero-soft" : "hero-radial";
+  const opacity = Math.max(0, Math.min(100, graphicOpacity)) / 100;
   return (
-    <section className="relative isolate overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--heart) 55%, transparent) 0, transparent 42%),
-            radial-gradient(circle at 82% 68%, color-mix(in oklab, var(--gold) 45%, transparent) 0, transparent 45%),
-            url("data:image/svg+xml;utf8,${encodeURIComponent(
-              `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='#B4463D' stroke-width='0.9' opacity='0.9'><circle cx='80' cy='80' r='40'/><circle cx='80' cy='80' r='28' stroke='#D4AF37'/><polygon points='80,32 116,64 116,96 80,128 44,96 44,64'/><polygon points='80,44 106,68 106,92 80,116 54,92 54,68' stroke='#D4AF37'/><polygon points='80,56 96,72 96,88 80,104 64,88 64,72'/><path d='M0 80 L160 80 M80 0 L80 160 M20 20 L140 140 M140 20 L20 140' stroke-opacity='0.35'/></g></svg>`,
-            )}")`,
-          backgroundRepeat: "no-repeat, no-repeat, repeat",
-          backgroundSize: "auto, auto, 200px 200px",
-          backgroundPosition: "center, center, center",
-        }}
-      />
+    <section
+      className={`relative isolate overflow-hidden ${bgClass} ${graphic === "girih" ? "girih-backdrop" : ""}`}
+      style={{ ["--girih-opacity" as string]: String(opacity) }}
+    >
       {watermark && (
         <span
           aria-hidden
@@ -879,7 +916,7 @@ function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyeb
           {watermark}
         </span>
       )}
-      <div className="container-wide relative z-10 flex min-h-[70svh] flex-col items-center justify-center py-24 text-center">
+      <div className={`container-wide relative z-10 flex ${minH} flex-col items-center justify-center py-24 text-center`}>
         {eyebrow && <p className="eyebrow mb-6" style={{ color: "var(--heart)" }}>{eyebrow}</p>}
         {title && (
           <h1 className="mx-auto max-w-3xl text-6xl leading-[1.02] md:text-8xl" style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1', color: "var(--ink)" }}>
@@ -889,6 +926,16 @@ function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyeb
         {subtitle && <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground md:text-xl">{subtitle}</p>}
         {verse && (
           <p className="mt-10 font-arabic text-2xl" dir="rtl" style={{ color: "color-mix(in oklab, var(--heart) 70%, transparent)" }}>{verse}</p>
+        )}
+        {newsletter && (
+          <div className="mt-12 w-full max-w-2xl text-left">
+            <NewsletterSignup
+              heading={newsletterHeading || undefined}
+              description={newsletterDescription || undefined}
+              cta={newsletterCta || undefined}
+              newsletterId={newsletterId}
+            />
+          </div>
         )}
       </div>
     </section>
