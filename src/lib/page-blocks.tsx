@@ -305,9 +305,12 @@ function RenderBlock({ block }: { block: Block }) {
 
   switch (block.type) {
     case "hero": {
-      const bg = s("background", "radial") === "plain" ? "" : "hero-radial";
+      const bgMode = s("background", "radial");
+      const bg = bgMode === "plain" ? "" : bgMode === "soft" ? "hero-soft" : "hero-radial";
+      const heroGraphic = s("graphic", "none") === "girih" ? "girih-backdrop" : "";
+      const heroOpacity = Math.max(0, Math.min(100, n("graphic_opacity", 15))) / 100;
       return (
-        <section className={`${bg} relative overflow-hidden`}>
+        <section className={`${bg} ${heroGraphic} relative isolate overflow-hidden`} style={{ ["--girih-opacity" as string]: String(heroOpacity) }}>
           {s("arabic") && (
             <span
               aria-hidden
