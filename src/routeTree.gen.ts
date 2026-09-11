@@ -31,6 +31,7 @@ import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedProfileReflectionsRouteImport } from './routes/_authenticated/profile/reflections'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminVersesRouteImport } from './routes/_authenticated/admin/verses'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -41,6 +42,7 @@ import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
+import { Route as AuthenticatedAdminBrandingRouteImport } from './routes/_authenticated/admin/branding'
 import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
 import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
 import { Route as AuthenticatedAdminPagesIndexRouteImport } from './routes/_authenticated/admin/pages.index'
@@ -160,6 +162,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedProfileReflectionsRoute =
+  AuthenticatedProfileReflectionsRouteImport.update({
+    id: '/reflections',
+    path: '/reflections',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
 const AuthenticatedProfileEditRoute =
   AuthenticatedProfileEditRouteImport.update({
     id: '/edit',
@@ -218,6 +226,12 @@ const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminBrandingRoute =
+  AuthenticatedAdminBrandingRouteImport.update({
+    id: '/branding',
+    path: '/branding',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminArchiveRoute =
   AuthenticatedAdminArchiveRouteImport.update({
     id: '/archive',
@@ -282,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -292,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -320,6 +336,7 @@ export interface FileRoutesByTo {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -330,6 +347,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -362,6 +380,7 @@ export interface FileRoutesById {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/_authenticated/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -372,6 +391,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/_authenticated/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -404,6 +424,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/admin/archive'
+    | '/admin/branding'
     | '/admin/faqs'
     | '/admin/newsletter'
     | '/admin/reflections'
@@ -414,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/reflections'
     | '/admin/'
     | '/profile/'
     | '/admin/articles/$id'
@@ -442,6 +464,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/admin/archive'
+    | '/admin/branding'
     | '/admin/faqs'
     | '/admin/newsletter'
     | '/admin/reflections'
@@ -452,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/reflections'
     | '/admin'
     | '/profile'
     | '/admin/articles/$id'
@@ -483,6 +507,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/_authenticated/admin/archive'
+    | '/_authenticated/admin/branding'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/reflections'
@@ -493,6 +518,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verses'
     | '/_authenticated/profile/edit'
+    | '/_authenticated/profile/reflections'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/articles/$id'
@@ -679,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/profile/reflections': {
+      id: '/_authenticated/profile/reflections'
+      path: '/reflections'
+      fullPath: '/profile/reflections'
+      preLoaderRoute: typeof AuthenticatedProfileReflectionsRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
     '/_authenticated/profile/edit': {
       id: '/_authenticated/profile/edit'
       path: '/edit'
@@ -749,6 +782,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/branding': {
+      id: '/_authenticated/admin/branding'
+      path: '/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AuthenticatedAdminBrandingRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/archive': {
       id: '/_authenticated/admin/archive'
       path: '/archive'
@@ -803,6 +843,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
+  AuthenticatedAdminBrandingRoute: typeof AuthenticatedAdminBrandingRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
@@ -824,6 +865,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
+    AuthenticatedAdminBrandingRoute: AuthenticatedAdminBrandingRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
@@ -851,12 +893,14 @@ const AuthenticatedAdminRouteRouteWithChildren =
 
 interface AuthenticatedProfileRouteRouteChildren {
   AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfileReflectionsRoute: typeof AuthenticatedProfileReflectionsRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
 
 const AuthenticatedProfileRouteRouteChildren: AuthenticatedProfileRouteRouteChildren =
   {
     AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+    AuthenticatedProfileReflectionsRoute: AuthenticatedProfileReflectionsRoute,
     AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   }
 

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
+import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather, Instagram, Youtube, Twitter, Mail, Linkedin, Facebook } from "lucide-react";
 import { articlesQuery, testimonialsQuery, faqsQuery, publicSeriesQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
@@ -41,7 +41,17 @@ export type BlockType =
   | "pillar_series"
   | "previews_grid"
   | "mentors_row"
-  | "contact_form";
+  | "contact_form"
+  | "footer_brand"
+  | "footer_description"
+  | "footer_heading"
+  | "footer_link"
+  | "footer_text"
+  | "footer_copyright"
+  | "footer_newsletter"
+  | "footer_socials"
+  | "footer_columns"
+  | "footer_row";
 
 
 export interface Block<TProps = Record<string, unknown>> {
@@ -123,16 +133,54 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       { type: "contact_form", label: "Contact form" },
     ],
   },
+  {
+    key: "footer",
+    label: "Footer",
+    items: [
+      { type: "footer_columns", label: "Columns maker", description: "Split into columns" },
+      { type: "footer_row", label: "Rows maker", description: "Lay blocks side by side" },
+      { type: "footer_brand", label: "Inshirah title", description: "Wordmark + Arabic" },
+      { type: "footer_description", label: "Description box" },
+      { type: "footer_heading", label: "Yellow title" },
+      { type: "footer_link", label: "Text hyperlink" },
+      { type: "footer_text", label: "Normal text" },
+      { type: "footer_copyright", label: "Copyright block" },
+      { type: "footer_newsletter", label: "Email / newsletter block" },
+      { type: "footer_socials", label: "Social media icons" },
+    ],
+  },
 ];
+
+/** Blocks that hold other blocks in props.children. */
+export const CONTAINER_TYPES: BlockType[] = ["footer_columns", "footer_row"];
 
 export const BLOCK_LABEL: Record<BlockType, string> = Object.fromEntries(
   BLOCK_CATEGORIES.flatMap((c) => c.items.map((i) => [i.type, i.label] as const))
 ) as Record<BlockType, string>;
 
+export function blockChildren(b: Block): Block[] {
+  const raw = (b.props as Record<string, unknown>).children;
+  return isBlockArray(raw) ? (raw as Block[]) : [];
+}
+
 const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   compass: Compass, users: Users, mountain: Mountain, sparkles: Sparkles,
   book: BookOpen, calendar: Calendar, heart: Heart, star: Star, quote: Quote, feather: Feather,
 };
+
+const FOOT_SOFT = "color-mix(in oklab, var(--paper) 78%, transparent)";
+const FOOT_FAINT = "color-mix(in oklab, var(--paper) 60%, transparent)";
+
+function themeAwareOpacity(base: number): { light: number; dark: number } {
+  const dark = Math.max(0, Math.min(100, base)) / 100;
+  const light = Math.min(dark * 1.6, 0.22);
+  return { light, dark };
+}
+
+const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number; style?: React.CSSProperties }>> = {
+  instagram: Instagram, youtube: Youtube, twitter: Twitter, mail: Mail, linkedin: Linkedin, facebook: Facebook,
+};
+
 
 export function newBlock(type: BlockType): Block {
   const id = crypto.randomUUID();
@@ -145,6 +193,8 @@ export function newBlock(type: BlockType): Block {
       cta_primary_label: "Start reading", cta_primary_href: "/",
       cta_secondary_label: "Our story", cta_secondary_href: "/about",
       background: "radial",
+      graphic: "none",
+      graphic_opacity: 8,
     },
     section_header: { eyebrow: "New section", title: "A quiet heading", description: "", align: "left" },
     heading: { level: 2, text: "A heading" },
@@ -174,6 +224,15 @@ export function newBlock(type: BlockType): Block {
       arabic_watermark: "انشراح",
       arabic_verse: "",
       align: "center",
+      background: "radial",
+      graphic: "girih",
+      graphic_opacity: 8,
+      height: "full",
+      show_newsletter: "no",
+      newsletter_heading: "Be there when it opens",
+      newsletter_description: "Leave your email and we'll write to you the day it goes live.",
+      newsletter_cta: "Keep me posted",
+      newsletterId: "",
     },
     hidden_frame: {
       eyebrow: "{{page_name}}",
@@ -181,6 +240,15 @@ export function newBlock(type: BlockType): Block {
       subtitle: "Come back soon — but feel free to explore other pages below.",
       arabic_watermark: "سِرّ",
       arabic_verse: "إن مع العسر يسرا",
+      background: "radial",
+      graphic: "girih",
+      graphic_opacity: 8,
+      height: "full",
+      show_newsletter: "no",
+      newsletter_heading: "Be there when it opens",
+      newsletter_description: "Leave your email and we'll write to you the day it goes live.",
+      newsletter_cta: "Keep me posted",
+      newsletterId: "",
     },
     explore_pages: {
       items: [
@@ -222,6 +290,21 @@ export function newBlock(type: BlockType): Block {
       support_body: "Inshirah is freely offered. If it has served you, consider supporting the work.",
       support_footnote: "",
     },
+    footer_brand: { title: "inshirah", arabic: "انشراح" },
+    footer_description: { text: "Islamic psychology, for the world of good." },
+    footer_heading: { text: "Read" },
+    footer_link: { label: "About", href: "/about" },
+    footer_text: { text: "A line of small print.", size: "sm" },
+    footer_copyright: { owner: "Inshirah", note: "A passion project, offered freely.", lines: ["Built by ASMO Visuals", "inshirah.co"] },
+    footer_newsletter: { heading: "A gentle letter, now and then", description: "", cta: "Subscribe", newsletterId: "" },
+    footer_socials: {
+      items: [
+        { label: "Instagram", href: "#", icon: "instagram" },
+        { label: "YouTube", href: "#", icon: "youtube" },
+      ],
+    },
+    footer_columns: { columns: 4, gap: "lg", children: [] },
+    footer_row: { direction: "row", align: "start", gap: "md", children: [] },
   };
   return { id, type, props: defaults[type] };
 }
@@ -249,9 +332,15 @@ function RenderBlock({ block }: { block: Block }) {
 
   switch (block.type) {
     case "hero": {
-      const bg = s("background", "radial") === "plain" ? "" : "hero-radial";
+      const bgMode = s("background", "radial");
+      const bg = bgMode === "plain" ? "" : bgMode === "soft" ? "hero-soft" : "hero-radial";
+      const heroGraphic = s("graphic", "none") === "girih" ? "girih-backdrop" : "";
+      const { light: lightOpacity, dark: darkOpacity } = themeAwareOpacity(n("graphic_opacity", 8));
       return (
-        <section className={`${bg} relative overflow-hidden`}>
+        <section
+          className={`${bg} ${heroGraphic} relative isolate overflow-hidden`}
+          style={{ ["--girih-opacity" as string]: String(lightOpacity), ["--girih-opacity-dark" as string]: String(darkOpacity) }}
+        >
           {s("arabic") && (
             <span
               aria-hidden
@@ -471,10 +560,25 @@ function RenderBlock({ block }: { block: Block }) {
     }
 
     case "hero_fullscreen":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
-
     case "hidden_frame":
-      return <HiddenFrameBlock eyebrow={s("eyebrow")} title={s("title")} subtitle={s("subtitle")} watermark={s("arabic_watermark")} verse={s("arabic_verse")} />;
+      return (
+        <HiddenFrameBlock
+          eyebrow={s("eyebrow")}
+          title={s("title")}
+          subtitle={s("subtitle")}
+          watermark={s("arabic_watermark")}
+          verse={s("arabic_verse")}
+          background={s("background", "radial")}
+          graphic={s("graphic", "girih")}
+          graphicOpacity={n("graphic_opacity", 8)}
+          height={s("height", "full")}
+          newsletter={s("show_newsletter", "no") === "yes"}
+          newsletterHeading={s("newsletter_heading")}
+          newsletterDescription={s("newsletter_description")}
+          newsletterCta={s("newsletter_cta")}
+          newsletterId={(p.newsletterId as string) || undefined}
+        />
+      );
 
     case "explore_pages": {
       const items = (Array.isArray(p.items) ? p.items : []) as { label: string; href: string }[];
@@ -558,6 +662,130 @@ function RenderBlock({ block }: { block: Block }) {
 
     case "contact_form":
       return <ContactFormBlock successArabic={s("success_arabic")} successTitle={s("success_title")} successDescription={s("success_description")} supportTitle={s("support_title")} supportBody={s("support_body")} supportFootnote={s("support_footnote")} />;
+
+    // ---- Footer blocks ----
+
+    case "footer_brand":
+      return (
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-3xl" style={{ color: "var(--paper)", fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>{s("title")}</span>
+          {s("arabic") && <span className="font-arabic text-3xl" style={{ color: "var(--gold-decorative)" }} dir="rtl">{s("arabic")}</span>}
+        </div>
+      );
+
+    case "footer_description":
+      return <p className="mt-4 max-w-md text-[1.05rem] leading-relaxed" style={{ color: FOOT_SOFT }}>{s("text")}</p>;
+
+    case "footer_heading":
+      return (
+        <h4
+          className="mb-4 text-sm font-bold uppercase"
+          style={{ color: "var(--gold-decorative)", fontFamily: "var(--font-sans)", letterSpacing: "0.16em" }}
+        >
+          {s("text")}
+        </h4>
+      );
+
+    case "footer_link":
+      return (
+        <a href={s("href", "#")} className="block py-1 text-[0.95rem] transition-colors hover:text-white" style={{ color: FOOT_SOFT }}>
+          {s("label")}
+        </a>
+      );
+
+    case "footer_text": {
+      const size = s("size", "sm") === "base" ? "text-[0.95rem]" : "text-sm";
+      return <p className={`${size} leading-relaxed`} style={{ color: FOOT_FAINT }}>{s("text")}</p>;
+    }
+
+    case "footer_copyright": {
+      const lines = (Array.isArray(p.lines) ? p.lines : []) as string[];
+      return (
+        <div>
+          <p className="text-sm" style={{ color: FOOT_FAINT }}>
+            © {new Date().getFullYear()} {s("owner")}{s("note") ? `. ${s("note")}` : ""}
+          </p>
+          {lines.map((l, i) => (
+            <p key={i} className="mt-2 text-sm" style={{ color: FOOT_FAINT }}>{l}</p>
+          ))}
+        </div>
+      );
+    }
+
+    case "footer_newsletter":
+      return (
+        <NewsletterSignup
+          variant="dark"
+          heading={s("heading") || undefined}
+          description={s("description") || undefined}
+          cta={s("cta") || undefined}
+          newsletterId={(p.newsletterId as string) || undefined}
+        />
+      );
+
+    case "footer_socials": {
+      const items = (Array.isArray(p.items) ? p.items : []) as { label?: string; href?: string; icon?: string }[];
+      return (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {items.map((it, i) => {
+            const Icon = SOCIAL_ICONS[(it.icon ?? "instagram").toLowerCase()] ?? Instagram;
+            return (
+              <a
+                key={i}
+                href={it.href || "#"}
+                aria-label={it.label || "Social link"}
+                className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-white/10"
+                style={{ borderColor: "color-mix(in oklab, var(--paper) 25%, transparent)" }}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.6} style={{ color: "var(--paper)" }} />
+              </a>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case "footer_columns": {
+      const cols = Math.min(6, Math.max(1, n("columns", 4)));
+      const gap = s("gap", "lg") === "sm" ? "1rem" : s("gap", "lg") === "md" ? "2rem" : "3rem";
+      const kids = blockChildren(block);
+      if (kids.length === 0) return <PlaceholderBlock label="Columns (empty — add blocks inside)" />;
+      return (
+        <div
+          className="grid"
+          style={{ gap, gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${Math.floor(1100 / cols)}px), 1fr))` }}
+        >
+          {kids.map((c) => (
+            <div key={c.id}><RenderBlock block={c} /></div>
+          ))}
+        </div>
+      );
+    }
+
+    case "footer_row": {
+      const gap = s("gap", "md") === "sm" ? "0.5rem" : s("gap", "md") === "lg" ? "2rem" : "1rem";
+      const align = s("align", "start");
+      const column = s("direction", "row") === "column";
+      const kids = blockChildren(block);
+      if (kids.length === 0) return <PlaceholderBlock label="Stack (empty — add blocks inside)" />;
+      return (
+        <div
+          className={column ? "flex flex-col" : "flex flex-wrap"}
+          style={{
+            gap,
+            alignItems: column
+              ? (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start")
+              : (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start"),
+            justifyContent: align === "between" ? "space-between" : undefined,
+          }}
+        >
+          {kids.map((c) => (
+            <div key={c.id}><RenderBlock block={c} /></div>
+          ))}
+        </div>
+      );
+    }
+
 
 
     default:
@@ -671,24 +899,23 @@ function FaqBlock({ pageKey, items }: { pageKey?: string; items: { question: str
   );
 }
 
-function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string }) {
+function HiddenFrameBlock({
+  eyebrow, title, subtitle, watermark, verse,
+  background = "radial", graphic = "girih", graphicOpacity = 15, height = "full",
+  newsletter, newsletterHeading, newsletterDescription, newsletterCta, newsletterId,
+}: {
+  eyebrow?: string; title?: string; subtitle?: string; watermark?: string; verse?: string;
+  background?: string; graphic?: string; graphicOpacity?: number; height?: string;
+  newsletter?: boolean; newsletterHeading?: string; newsletterDescription?: string; newsletterCta?: string; newsletterId?: string;
+}) {
+  const minH = height === "screen" ? "min-h-screen" : height === "full" ? "min-h-[92svh]" : height === "short" ? "min-h-[52svh]" : "min-h-[70svh]";
+  const bgClass = background === "plain" ? "" : background === "soft" ? "hero-soft" : "hero-radial";
+  const { light: lightOpacity, dark: darkOpacity } = themeAwareOpacity(graphicOpacity ?? 8);
   return (
-    <section className="relative isolate overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--heart) 55%, transparent) 0, transparent 42%),
-            radial-gradient(circle at 82% 68%, color-mix(in oklab, var(--gold) 45%, transparent) 0, transparent 45%),
-            url("data:image/svg+xml;utf8,${encodeURIComponent(
-              `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='#B4463D' stroke-width='0.9' opacity='0.9'><circle cx='80' cy='80' r='40'/><circle cx='80' cy='80' r='28' stroke='#D4AF37'/><polygon points='80,32 116,64 116,96 80,128 44,96 44,64'/><polygon points='80,44 106,68 106,92 80,116 54,92 54,68' stroke='#D4AF37'/><polygon points='80,56 96,72 96,88 80,104 64,88 64,72'/><path d='M0 80 L160 80 M80 0 L80 160 M20 20 L140 140 M140 20 L20 140' stroke-opacity='0.35'/></g></svg>`,
-            )}")`,
-          backgroundRepeat: "no-repeat, no-repeat, repeat",
-          backgroundSize: "auto, auto, 200px 200px",
-          backgroundPosition: "center, center, center",
-        }}
-      />
+    <section
+      className={`relative isolate overflow-hidden ${bgClass} ${graphic === "girih" ? "girih-backdrop" : ""}`}
+      style={{ ["--girih-opacity" as string]: String(lightOpacity), ["--girih-opacity-dark" as string]: String(darkOpacity) }}
+    >
       {watermark && (
         <span
           aria-hidden
@@ -699,7 +926,7 @@ function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyeb
           {watermark}
         </span>
       )}
-      <div className="container-wide relative z-10 flex min-h-[70svh] flex-col items-center justify-center py-24 text-center">
+      <div className={`container-wide relative z-10 flex ${minH} flex-col items-center justify-center py-24 text-center`}>
         {eyebrow && <p className="eyebrow mb-6" style={{ color: "var(--heart)" }}>{eyebrow}</p>}
         {title && (
           <h1 className="mx-auto max-w-3xl text-6xl leading-[1.02] md:text-8xl" style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1', color: "var(--ink)" }}>
@@ -709,6 +936,16 @@ function HiddenFrameBlock({ eyebrow, title, subtitle, watermark, verse }: { eyeb
         {subtitle && <p className="mx-auto mt-8 max-w-xl text-lg text-muted-foreground md:text-xl">{subtitle}</p>}
         {verse && (
           <p className="mt-10 font-arabic text-2xl" dir="rtl" style={{ color: "color-mix(in oklab, var(--heart) 70%, transparent)" }}>{verse}</p>
+        )}
+        {newsletter && (
+          <div className="mt-12 w-full max-w-2xl text-left">
+            <NewsletterSignup
+              heading={newsletterHeading || undefined}
+              description={newsletterDescription || undefined}
+              cta={newsletterCta || undefined}
+              newsletterId={newsletterId}
+            />
+          </div>
         )}
       </div>
     </section>

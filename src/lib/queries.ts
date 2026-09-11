@@ -174,6 +174,42 @@ export const myReflectionsQuery = (userId: string | null, ayahId: string | null)
     },
   });
 
+/** One entry in the member's own reflection timeline (newest first). */
+export type MyTimelineReflection = {
+  id: string;
+  body: string;
+  created_at: string;
+  likes_count: number;
+  /** Reserved for the future campaigns feature — renders a corner flag when set. */
+  campaign: string | null;
+  ayah: { id: string; arabic: string; translation: string; reference: string } | null;
+};
+
+/** Every reflection the signed-in member has written, newest first. */
+export const myReflectionTimelineQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["my-reflection-timeline", userId ?? "anon"],
+    enabled: !!userId,
+    queryFn: async (): Promise<MyTimelineReflection[]> => {
+      const { data, error } = await supabase
+        .from("reflections")
+        .select("id,body,created_at,likes_count,ayahs(id,arabic,translation,reference)")
+        .eq("user_id", userId!)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+        id: String(r.id),
+        body: String(r.body),
+        created_at: String(r.created_at),
+        likes_count: Number(r.likes_count ?? 0),
+        campaign: null,
+        ayah: (r.ayahs as MyTimelineReflection["ayah"]) ?? null,
+      }));
+    },
+    staleTime: 30_000,
+  });
+
 
 export const testimonialsQuery = () =>
   queryOptions({

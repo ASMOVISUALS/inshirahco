@@ -135,6 +135,8 @@ function VersePage() {
         {
           "--votw-tile-light": "url(/patterns/girih-tile-light.svg)",
           "--votw-tile-dark": "url(/patterns/girih-tile-dark.svg)",
+          "--votw-opacity-light": "0.11",
+          "--votw-opacity-dark": "0.07",
         } as React.CSSProperties
       }
     >

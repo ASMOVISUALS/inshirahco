@@ -27,7 +27,7 @@ export function SiteLanding({ settings }: { settings: SiteModeSettings }) {
   const showNewsletter = mode === "coming_soon" && settings.newsletter;
 
   return (
-    <section className="verse-page hero-radial relative flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
+    <section className="verse-page hero-radial girih-backdrop relative flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
       <LetterMark letter="ش" tint={mode === "maintenance" ? "gold" : "heart"} size={72} />
       <p className="eyebrow mt-8">{d.eyebrow}</p>
       <h1 className="mt-4 max-w-3xl font-display text-[2.75rem] leading-[1.05] tracking-tight md:text-[4.5rem]">
