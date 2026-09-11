@@ -26,7 +26,7 @@ const items = [
 function ProfileLayout() {
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-72px)] w-full">
+      <div className="flex min-h-[calc(100vh-var(--chrome-h,72px))] w-full">
         <ProfileSidebar />
         <main className="flex-1 min-w-0 overflow-auto p-8">
           <Outlet />
@@ -41,7 +41,7 @@ function ProfileSidebar() {
   const isActive = (path: string) => (path === "/profile" ? currentPath === "/profile" : currentPath === path || currentPath.startsWith(path + "/"));
 
   return (
-    <Sidebar collapsible="icon" className="!top-[72px] !h-[calc(100svh-72px)]">
+    <Sidebar collapsible="icon" className="!top-[var(--chrome-h,72px)] !h-[calc(100svh-var(--chrome-h,72px))]">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
