@@ -17,6 +17,62 @@ export function seedBlocksFor(key: string, content: Record<string, unknown>): Bl
   };
 
   switch (key) {
+    case "system:footer": {
+      const col = (children: Block[], align = "start"): Block =>
+        mk("footer_row", { direction: "column", align, gap: "sm", children });
+      const linkCol = (title: string, links: { label: string; href: string }[]): Block =>
+        col([
+          mk("footer_heading", { text: title }),
+          ...links.map((l) => mk("footer_link", { label: l.label, href: l.href })),
+        ]);
+      return [
+        mk("footer_columns", {
+          columns: 2,
+          gap: "lg",
+          children: [
+            col([
+              mk("footer_brand", { title: "inshirah", arabic: "انشراح" }),
+              mk("footer_description", { text: "Islamic psychology, for the world of good." }),
+              mk("footer_socials", {
+                items: [
+                  { label: "Instagram", href: "#", icon: "instagram" },
+                  { label: "YouTube", href: "#", icon: "youtube" },
+                ],
+              }),
+            ]),
+            mk("footer_newsletter", { heading: "A gentle letter, now and then", description: "", cta: "Subscribe" }),
+          ],
+        }),
+        mk("footer_columns", {
+          columns: 4,
+          gap: "md",
+          children: [
+            linkCol("Read", [
+              { label: "Tadabbur", href: "/tadabbur" },
+              { label: "Tazkiyah", href: "/tazkiyah" },
+              { label: "Youth", href: "/youth" },
+              { label: "Suhbah", href: "/suhbah" },
+            ]),
+            linkCol("Library", [{ label: "Your saved", href: "/saved" }]),
+            linkCol("Inshirah", [
+              { label: "About", href: "/about" },
+              { label: "Contact & support", href: "/contact" },
+              { label: "Suhbah", href: "/suhbah" },
+            ]),
+            col([
+              mk("footer_heading", { text: "Small print" }),
+              mk("footer_copyright", {
+                owner: "Inshirah",
+                note: "A passion project, offered freely.",
+                lines: ["Built by ASMO Visuals", "inshirah.co"],
+              }),
+            ]),
+          ],
+        }),
+      ];
+    }
+
+
     case "home":
       return [
         mk("hero", {

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
+import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather, Instagram, Youtube, Twitter, Mail, Linkedin, Facebook } from "lucide-react";
 import { articlesQuery, testimonialsQuery, faqsQuery, publicSeriesQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
@@ -41,7 +41,17 @@ export type BlockType =
   | "pillar_series"
   | "previews_grid"
   | "mentors_row"
-  | "contact_form";
+  | "contact_form"
+  | "footer_brand"
+  | "footer_description"
+  | "footer_heading"
+  | "footer_link"
+  | "footer_text"
+  | "footer_copyright"
+  | "footer_newsletter"
+  | "footer_socials"
+  | "footer_columns"
+  | "footer_row";
 
 
 export interface Block<TProps = Record<string, unknown>> {
@@ -123,16 +133,47 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       { type: "contact_form", label: "Contact form" },
     ],
   },
+  {
+    key: "footer",
+    label: "Footer",
+    items: [
+      { type: "footer_columns", label: "Columns maker", description: "Split into columns" },
+      { type: "footer_row", label: "Rows maker", description: "Lay blocks side by side" },
+      { type: "footer_brand", label: "Inshirah title", description: "Wordmark + Arabic" },
+      { type: "footer_description", label: "Description box" },
+      { type: "footer_heading", label: "Yellow title" },
+      { type: "footer_link", label: "Text hyperlink" },
+      { type: "footer_text", label: "Normal text" },
+      { type: "footer_copyright", label: "Copyright block" },
+      { type: "footer_newsletter", label: "Email / newsletter block" },
+      { type: "footer_socials", label: "Social media icons" },
+    ],
+  },
 ];
+
+/** Blocks that hold other blocks in props.children. */
+export const CONTAINER_TYPES: BlockType[] = ["footer_columns", "footer_row"];
 
 export const BLOCK_LABEL: Record<BlockType, string> = Object.fromEntries(
   BLOCK_CATEGORIES.flatMap((c) => c.items.map((i) => [i.type, i.label] as const))
 ) as Record<BlockType, string>;
 
+export function blockChildren(b: Block): Block[] {
+  const raw = (b.props as Record<string, unknown>).children;
+  return isBlockArray(raw) ? (raw as Block[]) : [];
+}
+
 const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   compass: Compass, users: Users, mountain: Mountain, sparkles: Sparkles,
   book: BookOpen, calendar: Calendar, heart: Heart, star: Star, quote: Quote, feather: Feather,
 };
+
+const FOOT_SOFT = "color-mix(in oklab, var(--paper) 78%, transparent)";
+const FOOT_FAINT = "color-mix(in oklab, var(--paper) 60%, transparent)";
+const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number; style?: React.CSSProperties }>> = {
+  instagram: Instagram, youtube: Youtube, twitter: Twitter, mail: Mail, linkedin: Linkedin, facebook: Facebook,
+};
+
 
 export function newBlock(type: BlockType): Block {
   const id = crypto.randomUUID();
@@ -222,6 +263,21 @@ export function newBlock(type: BlockType): Block {
       support_body: "Inshirah is freely offered. If it has served you, consider supporting the work.",
       support_footnote: "",
     },
+    footer_brand: { title: "inshirah", arabic: "انشراح" },
+    footer_description: { text: "Islamic psychology, for the world of good." },
+    footer_heading: { text: "Read" },
+    footer_link: { label: "About", href: "/about" },
+    footer_text: { text: "A line of small print.", size: "sm" },
+    footer_copyright: { owner: "Inshirah", note: "A passion project, offered freely.", lines: ["Built by ASMO Visuals", "inshirah.co"] },
+    footer_newsletter: { heading: "A gentle letter, now and then", description: "", cta: "Subscribe", newsletterId: "" },
+    footer_socials: {
+      items: [
+        { label: "Instagram", href: "#", icon: "instagram" },
+        { label: "YouTube", href: "#", icon: "youtube" },
+      ],
+    },
+    footer_columns: { columns: 4, gap: "lg", children: [] },
+    footer_row: { direction: "row", align: "start", gap: "md", children: [] },
   };
   return { id, type, props: defaults[type] };
 }
@@ -558,6 +614,130 @@ function RenderBlock({ block }: { block: Block }) {
 
     case "contact_form":
       return <ContactFormBlock successArabic={s("success_arabic")} successTitle={s("success_title")} successDescription={s("success_description")} supportTitle={s("support_title")} supportBody={s("support_body")} supportFootnote={s("support_footnote")} />;
+
+    // ---- Footer blocks ----
+
+    case "footer_brand":
+      return (
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-3xl" style={{ color: "var(--paper)", fontVariationSettings: '"SOFT" 80, "WONK" 1' }}>{s("title")}</span>
+          {s("arabic") && <span className="font-arabic text-3xl" style={{ color: "var(--gold-decorative)" }} dir="rtl">{s("arabic")}</span>}
+        </div>
+      );
+
+    case "footer_description":
+      return <p className="mt-4 max-w-md text-[1.05rem] leading-relaxed" style={{ color: FOOT_SOFT }}>{s("text")}</p>;
+
+    case "footer_heading":
+      return (
+        <h4
+          className="mb-4 text-sm font-bold uppercase"
+          style={{ color: "var(--gold-decorative)", fontFamily: "var(--font-sans)", letterSpacing: "0.16em" }}
+        >
+          {s("text")}
+        </h4>
+      );
+
+    case "footer_link":
+      return (
+        <a href={s("href", "#")} className="block py-1 text-[0.95rem] transition-colors hover:text-white" style={{ color: FOOT_SOFT }}>
+          {s("label")}
+        </a>
+      );
+
+    case "footer_text": {
+      const size = s("size", "sm") === "base" ? "text-[0.95rem]" : "text-sm";
+      return <p className={`${size} leading-relaxed`} style={{ color: FOOT_FAINT }}>{s("text")}</p>;
+    }
+
+    case "footer_copyright": {
+      const lines = (Array.isArray(p.lines) ? p.lines : []) as string[];
+      return (
+        <div>
+          <p className="text-sm" style={{ color: FOOT_FAINT }}>
+            © {new Date().getFullYear()} {s("owner")}{s("note") ? `. ${s("note")}` : ""}
+          </p>
+          {lines.map((l, i) => (
+            <p key={i} className="mt-2 text-sm" style={{ color: FOOT_FAINT }}>{l}</p>
+          ))}
+        </div>
+      );
+    }
+
+    case "footer_newsletter":
+      return (
+        <NewsletterSignup
+          variant="dark"
+          heading={s("heading") || undefined}
+          description={s("description") || undefined}
+          cta={s("cta") || undefined}
+          newsletterId={(p.newsletterId as string) || undefined}
+        />
+      );
+
+    case "footer_socials": {
+      const items = (Array.isArray(p.items) ? p.items : []) as { label?: string; href?: string; icon?: string }[];
+      return (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {items.map((it, i) => {
+            const Icon = SOCIAL_ICONS[(it.icon ?? "instagram").toLowerCase()] ?? Instagram;
+            return (
+              <a
+                key={i}
+                href={it.href || "#"}
+                aria-label={it.label || "Social link"}
+                className="grid h-11 w-11 place-items-center rounded-full border transition-colors hover:bg-white/10"
+                style={{ borderColor: "color-mix(in oklab, var(--paper) 25%, transparent)" }}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.6} style={{ color: "var(--paper)" }} />
+              </a>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case "footer_columns": {
+      const cols = Math.min(6, Math.max(1, n("columns", 4)));
+      const gap = s("gap", "lg") === "sm" ? "1rem" : s("gap", "lg") === "md" ? "2rem" : "3rem";
+      const kids = blockChildren(block);
+      if (kids.length === 0) return <PlaceholderBlock label="Columns (empty — add blocks inside)" />;
+      return (
+        <div
+          className="grid"
+          style={{ gap, gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${Math.floor(1100 / cols)}px), 1fr))` }}
+        >
+          {kids.map((c) => (
+            <div key={c.id}><RenderBlock block={c} /></div>
+          ))}
+        </div>
+      );
+    }
+
+    case "footer_row": {
+      const gap = s("gap", "md") === "sm" ? "0.5rem" : s("gap", "md") === "lg" ? "2rem" : "1rem";
+      const align = s("align", "start");
+      const column = s("direction", "row") === "column";
+      const kids = blockChildren(block);
+      if (kids.length === 0) return <PlaceholderBlock label="Stack (empty — add blocks inside)" />;
+      return (
+        <div
+          className={column ? "flex flex-col" : "flex flex-wrap"}
+          style={{
+            gap,
+            alignItems: column
+              ? (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start")
+              : (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start"),
+            justifyContent: align === "between" ? "space-between" : undefined,
+          }}
+        >
+          {kids.map((c) => (
+            <div key={c.id}><RenderBlock block={c} /></div>
+          ))}
+        </div>
+      );
+    }
+
 
 
     default:
