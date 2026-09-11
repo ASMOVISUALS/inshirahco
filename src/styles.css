@@ -435,10 +435,10 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.15;
+  opacity: var(--girih-opacity, 0.15);
   background-image: url(/patterns/girih-tile-light.svg);
   background-repeat: repeat;
-  background-size: 360px 360px;
+  background-size: var(--girih-size, 360px) var(--girih-size, 360px);
   background-position: center;
 }
 .dark .girih-backdrop::before { background-image: url(/patterns/girih-tile-dark.svg); }
