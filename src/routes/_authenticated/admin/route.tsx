@@ -98,9 +98,9 @@ function AdminLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-var(--chrome-h,72px))] w-full">
+      <div className="flex h-[calc(100vh-var(--chrome-h,72px))] w-full overflow-hidden">
         <AdminSidebar />
-        <main className="flex-1 min-w-0 overflow-auto p-8">
+        <main className="flex-1 min-w-0 overflow-y-auto p-8">
           <Outlet />
         </main>
       </div>
