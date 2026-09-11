@@ -358,8 +358,15 @@ function BlockList({
             {open && (
               <div className="border-x border-b border-border bg-background p-3">
                 <BlockInspector block={b} onChange={(props) => onChange(b.id, props)} />
+                {CONTAINER_TYPES.includes(b.type) && (
+                  <NestedBlocks
+                    children={blockChildren(b)}
+                    onChange={(next) => onChange(b.id, { ...(b.props as Record<string, unknown>), children: next })}
+                  />
+                )}
               </div>
             )}
+
           </li>
         );
       })}
