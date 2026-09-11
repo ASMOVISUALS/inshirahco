@@ -4,7 +4,10 @@ import { Instagram, Youtube, Twitter } from "lucide-react";
 import { Logo } from "./Logo";
 import { NewsletterSignup } from "./NewsletterSignup";
 import { usePillars } from "@/hooks/use-cms";
-import { siteSettingQuery } from "@/lib/queries";
+import { siteSettingQuery, pageContentQuery } from "@/lib/queries";
+import { PageRenderer, readBlocks } from "@/lib/page-blocks";
+
+export const FOOTER_PAGE_KEY = "system:footer";
 
 const ICONS: Record<string, typeof Instagram> = {
   instagram: Instagram,
@@ -15,6 +18,23 @@ const ICONS: Record<string, typeof Instagram> = {
 interface SocialLink { label: string; href: string; icon: string }
 
 export function SiteFooter() {
+  const { data: page } = useQuery(pageContentQuery(FOOTER_PAGE_KEY));
+  const blocks = readBlocks(page?.content);
+
+  if (blocks.length > 0) {
+    return (
+      <footer className="mt-24" style={{ background: "color-mix(in oklab, var(--ink) 95%, black)", color: "var(--paper)" }}>
+        <div className="container-wide flex flex-col gap-10 py-16 md:py-20">
+          <PageRenderer blocks={blocks} />
+        </div>
+      </footer>
+    );
+  }
+
+  return <DefaultFooter />;
+}
+
+function DefaultFooter() {
   const pillars = usePillars();
   const { data: footer = {} } = useQuery(siteSettingQuery("footer"));
 
@@ -29,6 +49,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24" style={{ background: "color-mix(in oklab, var(--ink) 95%, black)", color: "var(--paper)" }}>
       <div className="container-wide py-16 md:py-20">
+
         <div className="grid gap-12 md:grid-cols-[1.1fr_1fr]">
           <div>
             <div className="flex items-baseline gap-3">
