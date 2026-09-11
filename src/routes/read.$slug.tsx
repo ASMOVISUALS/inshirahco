@@ -87,6 +87,15 @@ function Detail() {
   });
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
+  const navigate = useNavigate();
+  const { data: live } = useQuery(articleBySlugQuery(item.slug));
+  const likes = useArticleLikes();
+  const liked = likes.has(item.slug);
+  const likeCount = live?.likesCount ?? item.likesCount ?? 0;
+  const onLike = async () => {
+    if (!likes.signedIn) { navigate({ to: "/auth" }); return; }
+    await likes.toggle(item.slug);
+  };
   const [progress, setProgress] = useState(0);
   const [copied, setCopied] = useState(false);
 
