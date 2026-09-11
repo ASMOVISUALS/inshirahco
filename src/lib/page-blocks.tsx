@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather } from "lucide-react";
+import { ArrowRight, Compass, Users, Mountain, Sparkles, BookOpen, Calendar, Heart, Star, Quote, Feather, Instagram, Youtube, Twitter, Mail, Linkedin, Facebook } from "lucide-react";
 import { articlesQuery, testimonialsQuery, faqsQuery, publicSeriesQuery } from "@/lib/queries";
 import { usePillars } from "@/hooks/use-cms";
 import { LetterMark } from "@/components/LetterMark";
