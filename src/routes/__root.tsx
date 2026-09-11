@@ -8,7 +8,7 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -130,12 +130,31 @@ function RootComponent() {
 
 function SiteShell({ isBuilder, minimal, isProfile }: { isBuilder: boolean; minimal: boolean; isProfile: boolean }) {
   const gateClosed = useSiteGateClosed();
+  const chromeRef = useRef<HTMLDivElement | null>(null);
+  // Track the real height of the top chrome (mode banner + nav) so fixed
+  // sidebars in admin/profile always start below it, whatever bars appear.
+  useEffect(() => {
+    const el = chromeRef.current;
+    if (!el) return;
+    const apply = () => {
+      document.documentElement.style.setProperty("--chrome-h", `${el.offsetHeight}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.removeProperty("--chrome-h");
+    };
+  }, [gateClosed, isBuilder]);
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteModeBanner />
-      {!isBuilder && !gateClosed && (
-        <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />
-      )}
+      <div ref={chromeRef}>
+        <SiteModeBanner />
+        {!isBuilder && !gateClosed && (
+          <SiteNav minimal={minimal} title={isProfile ? "My Profile" : "Control Room"} eyebrow={isProfile ? "Account" : "Admin"} />
+        )}
+      </div>
       <main className="flex-1">
         <SiteGate>
           <Outlet />
