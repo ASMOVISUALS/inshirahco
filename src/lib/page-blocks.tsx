@@ -41,7 +41,17 @@ export type BlockType =
   | "pillar_series"
   | "previews_grid"
   | "mentors_row"
-  | "contact_form";
+  | "contact_form"
+  | "footer_brand"
+  | "footer_description"
+  | "footer_heading"
+  | "footer_link"
+  | "footer_text"
+  | "footer_copyright"
+  | "footer_newsletter"
+  | "footer_socials"
+  | "footer_columns"
+  | "footer_row";
 
 
 export interface Block<TProps = Record<string, unknown>> {
