@@ -186,6 +186,8 @@ export function newBlock(type: BlockType): Block {
       cta_primary_label: "Start reading", cta_primary_href: "/",
       cta_secondary_label: "Our story", cta_secondary_href: "/about",
       background: "radial",
+      graphic: "none",
+      graphic_opacity: 15,
     },
     section_header: { eyebrow: "New section", title: "A quiet heading", description: "", align: "left" },
     heading: { level: 2, text: "A heading" },
