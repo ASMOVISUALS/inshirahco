@@ -717,12 +717,19 @@ function RenderBlock({ block }: { block: Block }) {
     case "footer_row": {
       const gap = s("gap", "md") === "sm" ? "0.5rem" : s("gap", "md") === "lg" ? "2rem" : "1rem";
       const align = s("align", "start");
+      const column = s("direction", "row") === "column";
       const kids = blockChildren(block);
-      if (kids.length === 0) return <PlaceholderBlock label="Row (empty — add blocks inside)" />;
+      if (kids.length === 0) return <PlaceholderBlock label="Stack (empty — add blocks inside)" />;
       return (
         <div
-          className="flex flex-wrap"
-          style={{ gap, alignItems: align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start", justifyContent: align === "between" ? "space-between" : undefined }}
+          className={column ? "flex flex-col" : "flex flex-wrap"}
+          style={{
+            gap,
+            alignItems: column
+              ? (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start")
+              : (align === "center" ? "center" : align === "end" ? "flex-end" : "flex-start"),
+            justifyContent: align === "between" ? "space-between" : undefined,
+          }}
         >
           {kids.map((c) => (
             <div key={c.id}><RenderBlock block={c} /></div>
@@ -730,6 +737,7 @@ function RenderBlock({ block }: { block: Block }) {
         </div>
       );
     }
+
 
 
     default:
