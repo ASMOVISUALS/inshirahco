@@ -135,14 +135,47 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
   },
 ];
 
+  {
+    key: "footer",
+    label: "Footer",
+    items: [
+      { type: "footer_columns", label: "Columns maker", description: "Split into columns" },
+      { type: "footer_row", label: "Rows maker", description: "Lay blocks side by side" },
+      { type: "footer_brand", label: "Inshirah title", description: "Wordmark + Arabic" },
+      { type: "footer_description", label: "Description box" },
+      { type: "footer_heading", label: "Yellow title" },
+      { type: "footer_link", label: "Text hyperlink" },
+      { type: "footer_text", label: "Normal text" },
+      { type: "footer_copyright", label: "Copyright block" },
+      { type: "footer_newsletter", label: "Email / newsletter block" },
+      { type: "footer_socials", label: "Social media icons" },
+    ],
+  },
+];
+
+/** Blocks that hold other blocks in props.children. */
+export const CONTAINER_TYPES: BlockType[] = ["footer_columns", "footer_row"];
+
 export const BLOCK_LABEL: Record<BlockType, string> = Object.fromEntries(
   BLOCK_CATEGORIES.flatMap((c) => c.items.map((i) => [i.type, i.label] as const))
 ) as Record<BlockType, string>;
+
+export function blockChildren(b: Block): Block[] {
+  const raw = (b.props as Record<string, unknown>).children;
+  return isBlockArray(raw) ? (raw as Block[]) : [];
+}
 
 const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   compass: Compass, users: Users, mountain: Mountain, sparkles: Sparkles,
   book: BookOpen, calendar: Calendar, heart: Heart, star: Star, quote: Quote, feather: Feather,
 };
+
+const FOOT_SOFT = "color-mix(in oklab, var(--paper) 78%, transparent)";
+const FOOT_FAINT = "color-mix(in oklab, var(--paper) 60%, transparent)";
+const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number; style?: React.CSSProperties }>> = {
+  instagram: Instagram, youtube: Youtube, twitter: Twitter, mail: Mail, linkedin: Linkedin, facebook: Facebook,
+};
+
 
 export function newBlock(type: BlockType): Block {
   const id = crypto.randomUUID();
