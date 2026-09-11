@@ -118,6 +118,7 @@ function PageBuilderRoute() {
 
   void selectedId;
   const vpWidth = viewport === "desktop" ? "100%" : viewport === "tablet" ? "820px" : "390px";
+  const isFooterPage = row.key === "system:footer";
 
   return (
     <div className="flex h-screen flex-col bg-background">
