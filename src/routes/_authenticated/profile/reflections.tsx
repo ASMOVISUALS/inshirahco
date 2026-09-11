@@ -62,7 +62,7 @@ function MyReflectionsPage() {
           <div className="hidden w-8 shrink-0 sm:block">
             <div className="sticky top-24 flex justify-center">
               <span
-                className="font-display text-sm tracking-[0.35em] text-muted-foreground"
+                className="font-display text-sm tracking-[0.35em] text-heart"
                 style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
               >
                 {year}
