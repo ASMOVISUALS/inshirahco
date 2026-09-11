@@ -182,6 +182,12 @@
     var(--color-background);
 }
 
+@utility hero-soft {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--gold-decorative) 12%, transparent), transparent 55%),
+    var(--color-background);
+}
+
 @utility btn-primary {
   display: inline-flex;
   align-items: center;
