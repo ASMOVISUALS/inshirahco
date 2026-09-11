@@ -340,6 +340,7 @@ function RenderBlock({ block }: { block: Block }) {
         <section
           className={`${bg} ${heroGraphic} relative isolate overflow-hidden`}
           style={{ ["--girih-opacity" as string]: String(lightOpacity), ["--girih-opacity-dark" as string]: String(darkOpacity) }}
+        >
           {s("arabic") && (
             <span
               aria-hidden
