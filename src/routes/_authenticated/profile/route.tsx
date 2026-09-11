@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, UserCircle, NotebookPen } from "lucide-react";
+import { Bookmark, Heart, LayoutDashboard, UserCircle, NotebookPen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/profile")({
 const items = [
   { title: "Dashboard", url: "/profile", icon: LayoutDashboard },
   { title: "My Reflections", url: "/profile/reflections", icon: NotebookPen },
+  { title: "Liked Reflections", url: "/profile/liked-reflections", icon: Heart },
+  { title: "Liked Articles", url: "/profile/liked-articles", icon: Bookmark },
   { title: "Profile", url: "/profile/edit", icon: UserCircle },
 ];
 
