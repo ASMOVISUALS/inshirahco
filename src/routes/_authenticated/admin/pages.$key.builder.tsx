@@ -596,7 +596,93 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "support_body", label: "Support panel body", kind: "textarea", rows: 4 },
     { key: "support_footnote", label: "Support panel footnote", kind: "text" },
   ],
+  footer_brand: [
+    { key: "title", label: "Wordmark", kind: "text" },
+    { key: "arabic", label: "Arabic", kind: "arabic" },
+  ],
+  footer_description: [{ key: "text", label: "Description", kind: "textarea", rows: 3 }],
+  footer_heading: [{ key: "text", label: "Title", kind: "text" }],
+  footer_link: [
+    { key: "label", label: "Label", kind: "text" },
+    { key: "href", label: "Link", kind: "text" },
+  ],
+  footer_text: [
+    { key: "text", label: "Text", kind: "textarea", rows: 2 },
+    { key: "size", label: "Size", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "base", label: "Normal" }] },
+  ],
+  footer_copyright: [
+    { key: "owner", label: "Owner", kind: "text" },
+    { key: "note", label: "Note", kind: "text" },
+    { key: "lines", label: "Extra lines", kind: "list_string" },
+  ],
+  footer_newsletter: [
+    { key: "heading", label: "Heading", kind: "text" },
+    { key: "description", label: "Description", kind: "textarea", rows: 2 },
+    { key: "cta", label: "CTA label", kind: "text" },
+    { key: "newsletterId", label: "Send signups to", kind: "newsletter_select" },
+  ],
+  footer_socials: [
+    { key: "items", label: "Social links", kind: "list_object", shape: [
+      { key: "icon", label: "Icon", kind: "select", options: [
+        { value: "instagram", label: "Instagram" }, { value: "youtube", label: "YouTube" }, { value: "twitter", label: "Twitter / X" },
+        { value: "facebook", label: "Facebook" }, { value: "linkedin", label: "LinkedIn" }, { value: "mail", label: "Email" },
+      ]},
+      { key: "label", label: "Label", kind: "text" },
+      { key: "href", label: "Link", kind: "text" },
+    ]},
+  ],
+  footer_columns: [
+    { key: "columns", label: "Columns", kind: "number", min: 1, max: 6 },
+    { key: "gap", label: "Gap", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] },
+  ],
+  footer_row: [
+    { key: "direction", label: "Direction", kind: "select", options: [{ value: "row", label: "Side by side" }, { value: "column", label: "Stacked" }] },
+    { key: "align", label: "Align", kind: "select", options: [
+      { value: "start", label: "Start" }, { value: "center", label: "Center" }, { value: "end", label: "End" }, { value: "between", label: "Space between" },
+    ]},
+    { key: "gap", label: "Gap", kind: "select", options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] },
+  ],
 };
+
+// -------- Nested children editor (containers) --------
+
+function NestedBlocks({ items, onChange }: { items: Block[]; onChange: (next: Block[]) => void }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const footerItems = BLOCK_CATEGORIES.find((c) => c.key === "footer")?.items ?? [];
+
+  return (
+    <div className="mt-3 rounded-md border border-dashed border-border p-2">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inside this container</p>
+      {items.length === 0 ? (
+        <p className="mb-2 text-[11px] text-muted-foreground">Empty — add a block below.</p>
+      ) : (
+        <BlockList
+          blocks={items}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onReorder={onChange}
+          onDelete={(id) => onChange(items.filter((b) => b.id !== id))}
+          onChange={(id, props) => onChange(items.map((b) => (b.id === id ? { ...b, props } : b)))}
+        />
+      )}
+      <select
+        className="mt-2 w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+        value=""
+        onChange={(e) => {
+          if (!e.target.value) return;
+          const b = newBlock(e.target.value as BlockType);
+          onChange([...items, b]);
+          e.target.value = "";
+        }}
+      >
+        <option value="">+ Add block inside…</option>
+        {footerItems.map((i) => <option key={i.type} value={i.type}>{i.label}</option>)}
+      </select>
+    </div>
+  );
+}
+
+
 
 function Field({ field, value, onChange }: { field: FieldDef; value: unknown; onChange: (v: unknown) => void }) {
   const base = "w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm outline-none focus:border-heart";
