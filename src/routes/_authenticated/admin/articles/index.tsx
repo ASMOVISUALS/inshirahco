@@ -196,8 +196,28 @@ function ArticlesList() {
             <thead className="bg-secondary text-left">
               <tr>
                 <th className="px-4 py-3 font-semibold">Title</th>
-                <th className="px-4 py-3 font-semibold">Pillar</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-2">
+                  <ColumnFilter label="Pillar" options={pillarOptions} selected={pillarFilter} onChange={setPillarFilter} />
+                </th>
+                <th className="px-4 py-2">
+                  <ColumnFilter
+                    label="Series"
+                    options={[
+                      ...seriesList.map((s) => ({ value: s.id, label: s.title })),
+                      { value: "__none__", label: "No series" },
+                    ]}
+                    selected={seriesFilter}
+                    onChange={setSeriesFilter}
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <ColumnFilter
+                    label="Status"
+                    options={[{ value: "published", label: "Published" }, { value: "draft", label: "Draft" }]}
+                    selected={statusFilter}
+                    onChange={setStatusFilter}
+                  />
+                </th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
