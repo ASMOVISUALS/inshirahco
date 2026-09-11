@@ -142,6 +142,66 @@ export const myLikesQuery = (userId: string | null) =>
     },
   });
 
+export type LikedReflection = PublicReflection & {
+  liked_at: string;
+  author: PublicProfileRow | null;
+};
+
+/** Reflections the signed-in member has liked, newest like first. */
+export const likedReflectionsQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["liked-reflections", userId ?? "anon"],
+    enabled: !!userId,
+    queryFn: async (): Promise<LikedReflection[]> => {
+      if (!userId) return [];
+
+      const { data: likes, error: likesError } = await supabase
+        .from("reflection_likes")
+        .select("reflection_id,created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (likesError) throw likesError;
+      if (!likes?.length) return [];
+
+      const reflectionIds = likes.map((like) => like.reflection_id);
+      const { data: reflections, error: reflectionsError } = await supabase
+        .from("reflections")
+        .select("id,body,created_at,likes_count,user_id")
+        .in("id", reflectionIds);
+      if (reflectionsError) throw reflectionsError;
+
+      const authorIds = [...new Set((reflections ?? []).map((reflection) => reflection.user_id))];
+      const { data: profiles, error: profilesError } = authorIds.length
+        ? await supabase
+            .from("public_profiles")
+            .select(selectPublicProfiles)
+            .in("user_id", authorIds)
+        : { data: [], error: null };
+      if (profilesError) throw profilesError;
+
+      const reflectionMap = new Map(
+        ((reflections ?? []) as PublicReflection[]).map((reflection) => [reflection.id, reflection]),
+      );
+      const profileMap = new Map(
+        ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => {
+          const mapped = mapPublicProfile(profile);
+          return [mapped.user_id, mapped] as const;
+        }),
+      );
+
+      return likes.flatMap((like) => {
+        const reflection = reflectionMap.get(like.reflection_id);
+        if (!reflection) return [];
+        return [{
+          ...reflection,
+          liked_at: like.created_at,
+          author: profileMap.get(reflection.user_id) ?? null,
+        }];
+      });
+    },
+    staleTime: 30_000,
+  });
+
 
 export const surahsQuery = () =>
   queryOptions({

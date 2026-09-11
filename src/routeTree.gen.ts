@@ -32,6 +32,8 @@ import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedProfileReflectionsRouteImport } from './routes/_authenticated/profile/reflections'
+import { Route as AuthenticatedProfileLikedReflectionsRouteImport } from './routes/_authenticated/profile/liked-reflections'
+import { Route as AuthenticatedProfileLikedArticlesRouteImport } from './routes/_authenticated/profile/liked-articles'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminVersesRouteImport } from './routes/_authenticated/admin/verses'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -166,6 +168,18 @@ const AuthenticatedProfileReflectionsRoute =
   AuthenticatedProfileReflectionsRouteImport.update({
     id: '/reflections',
     path: '/reflections',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
+const AuthenticatedProfileLikedReflectionsRoute =
+  AuthenticatedProfileLikedReflectionsRouteImport.update({
+    id: '/liked-reflections',
+    path: '/liked-reflections',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
+const AuthenticatedProfileLikedArticlesRoute =
+  AuthenticatedProfileLikedArticlesRouteImport.update({
+    id: '/liked-articles',
+    path: '/liked-articles',
     getParentRoute: () => AuthenticatedProfileRouteRoute,
   } as any)
 const AuthenticatedProfileEditRoute =
@@ -307,6 +321,8 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/liked-articles': typeof AuthenticatedProfileLikedArticlesRoute
+  '/profile/liked-reflections': typeof AuthenticatedProfileLikedReflectionsRoute
   '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
@@ -347,6 +363,8 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/liked-articles': typeof AuthenticatedProfileLikedArticlesRoute
+  '/profile/liked-reflections': typeof AuthenticatedProfileLikedReflectionsRoute
   '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
@@ -391,6 +409,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/_authenticated/profile/liked-articles': typeof AuthenticatedProfileLikedArticlesRoute
+  '/_authenticated/profile/liked-reflections': typeof AuthenticatedProfileLikedReflectionsRoute
   '/_authenticated/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
@@ -435,6 +455,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/liked-articles'
+    | '/profile/liked-reflections'
     | '/profile/reflections'
     | '/admin/'
     | '/profile/'
@@ -475,6 +497,8 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/liked-articles'
+    | '/profile/liked-reflections'
     | '/profile/reflections'
     | '/admin'
     | '/profile'
@@ -518,6 +542,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verses'
     | '/_authenticated/profile/edit'
+    | '/_authenticated/profile/liked-articles'
+    | '/_authenticated/profile/liked-reflections'
     | '/_authenticated/profile/reflections'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
@@ -712,6 +738,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileReflectionsRouteImport
       parentRoute: typeof AuthenticatedProfileRouteRoute
     }
+    '/_authenticated/profile/liked-reflections': {
+      id: '/_authenticated/profile/liked-reflections'
+      path: '/liked-reflections'
+      fullPath: '/profile/liked-reflections'
+      preLoaderRoute: typeof AuthenticatedProfileLikedReflectionsRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
+    '/_authenticated/profile/liked-articles': {
+      id: '/_authenticated/profile/liked-articles'
+      path: '/liked-articles'
+      fullPath: '/profile/liked-articles'
+      preLoaderRoute: typeof AuthenticatedProfileLikedArticlesRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
     '/_authenticated/profile/edit': {
       id: '/_authenticated/profile/edit'
       path: '/edit'
@@ -893,6 +933,8 @@ const AuthenticatedAdminRouteRouteWithChildren =
 
 interface AuthenticatedProfileRouteRouteChildren {
   AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfileLikedArticlesRoute: typeof AuthenticatedProfileLikedArticlesRoute
+  AuthenticatedProfileLikedReflectionsRoute: typeof AuthenticatedProfileLikedReflectionsRoute
   AuthenticatedProfileReflectionsRoute: typeof AuthenticatedProfileReflectionsRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
@@ -900,6 +942,10 @@ interface AuthenticatedProfileRouteRouteChildren {
 const AuthenticatedProfileRouteRouteChildren: AuthenticatedProfileRouteRouteChildren =
   {
     AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+    AuthenticatedProfileLikedArticlesRoute:
+      AuthenticatedProfileLikedArticlesRoute,
+    AuthenticatedProfileLikedReflectionsRoute:
+      AuthenticatedProfileLikedReflectionsRoute,
     AuthenticatedProfileReflectionsRoute: AuthenticatedProfileReflectionsRoute,
     AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   }
