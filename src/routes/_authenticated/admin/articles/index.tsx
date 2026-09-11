@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, type Pillar } from "@/lib/content";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
 import { SortBar } from "@/components/admin/SortBar";
+import { ColumnFilter } from "@/components/admin/ColumnFilter";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/")({
   head: () => ({ meta: [{ title: "Articles — Admin", }, { name: "robots", content: "noindex" }] }),
