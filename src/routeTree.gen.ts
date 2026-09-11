@@ -41,6 +41,7 @@ import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminReflectionsRouteImport } from './routes/_authenticated/admin/reflections'
 import { Route as AuthenticatedAdminNewsletterRouteImport } from './routes/_authenticated/admin/newsletter'
 import { Route as AuthenticatedAdminFaqsRouteImport } from './routes/_authenticated/admin/faqs'
+import { Route as AuthenticatedAdminBrandingRouteImport } from './routes/_authenticated/admin/branding'
 import { Route as AuthenticatedAdminArchiveRouteImport } from './routes/_authenticated/admin/archive'
 import { Route as AuthenticatedAdminPillarsIndexRouteImport } from './routes/_authenticated/admin/pillars.index'
 import { Route as AuthenticatedAdminPagesIndexRouteImport } from './routes/_authenticated/admin/pages.index'
@@ -218,6 +219,12 @@ const AuthenticatedAdminFaqsRoute = AuthenticatedAdminFaqsRouteImport.update({
   path: '/faqs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminBrandingRoute =
+  AuthenticatedAdminBrandingRouteImport.update({
+    id: '/branding',
+    path: '/branding',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminArchiveRoute =
   AuthenticatedAdminArchiveRouteImport.update({
     id: '/archive',
@@ -282,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -320,6 +328,7 @@ export interface FileRoutesByTo {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -362,6 +371,7 @@ export interface FileRoutesById {
   '/read/$slug': typeof ReadSlugRoute
   '/verse-archive/$id': typeof VerseArchiveIdRoute
   '/_authenticated/admin/archive': typeof AuthenticatedAdminArchiveRoute
+  '/_authenticated/admin/branding': typeof AuthenticatedAdminBrandingRoute
   '/_authenticated/admin/faqs': typeof AuthenticatedAdminFaqsRoute
   '/_authenticated/admin/newsletter': typeof AuthenticatedAdminNewsletterRoute
   '/_authenticated/admin/reflections': typeof AuthenticatedAdminReflectionsRoute
@@ -404,6 +414,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/admin/archive'
+    | '/admin/branding'
     | '/admin/faqs'
     | '/admin/newsletter'
     | '/admin/reflections'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/admin/archive'
+    | '/admin/branding'
     | '/admin/faqs'
     | '/admin/newsletter'
     | '/admin/reflections'
@@ -483,6 +495,7 @@ export interface FileRouteTypes {
     | '/read/$slug'
     | '/verse-archive/$id'
     | '/_authenticated/admin/archive'
+    | '/_authenticated/admin/branding'
     | '/_authenticated/admin/faqs'
     | '/_authenticated/admin/newsletter'
     | '/_authenticated/admin/reflections'
@@ -749,6 +762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFaqsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/branding': {
+      id: '/_authenticated/admin/branding'
+      path: '/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AuthenticatedAdminBrandingRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/archive': {
       id: '/_authenticated/admin/archive'
       path: '/archive'
@@ -803,6 +823,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminArchiveRoute: typeof AuthenticatedAdminArchiveRoute
+  AuthenticatedAdminBrandingRoute: typeof AuthenticatedAdminBrandingRoute
   AuthenticatedAdminFaqsRoute: typeof AuthenticatedAdminFaqsRoute
   AuthenticatedAdminNewsletterRoute: typeof AuthenticatedAdminNewsletterRoute
   AuthenticatedAdminReflectionsRoute: typeof AuthenticatedAdminReflectionsRoute
@@ -824,6 +845,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminArchiveRoute: AuthenticatedAdminArchiveRoute,
+    AuthenticatedAdminBrandingRoute: AuthenticatedAdminBrandingRoute,
     AuthenticatedAdminFaqsRoute: AuthenticatedAdminFaqsRoute,
     AuthenticatedAdminNewsletterRoute: AuthenticatedAdminNewsletterRoute,
     AuthenticatedAdminReflectionsRoute: AuthenticatedAdminReflectionsRoute,
