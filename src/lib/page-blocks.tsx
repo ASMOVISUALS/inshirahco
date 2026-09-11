@@ -133,8 +133,6 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
       { type: "contact_form", label: "Contact form" },
     ],
   },
-];
-
   {
     key: "footer",
     label: "Footer",
