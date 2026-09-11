@@ -32,6 +32,7 @@ import { PILLARS, type Pillar, type ContentBlock } from "@/lib/content";
 import { LetterMark } from "@/components/LetterMark";
 import { RenderBlock, wordsIn, readTimeFrom } from "@/lib/article-blocks";
 import { QuranFetcher } from "@/components/QuranFetcher";
+import { CoverImageUploader } from "@/components/CoverImageUploader";
 import { quoteTintStyle, QUOTE_TINT_OPTIONS } from "@/lib/quote-tint";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/$id")({
@@ -385,15 +386,16 @@ function MetaBlock({
             <span className="mb-1 block font-bold uppercase tracking-widest text-muted-foreground">Tags (comma-separated)</span>
             <input className={inputCls} value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
           </label>
-          <label className="block text-xs sm:col-span-2">
-            <span className="mb-1 block font-bold uppercase tracking-widest text-muted-foreground">Cover image URL (optional)</span>
-            <input className={inputCls} placeholder="https://…" value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} />
+          <div className="block text-xs sm:col-span-2">
+            <span className="mb-1 block font-bold uppercase tracking-widest text-muted-foreground">Cover image (optional)</span>
+            <input className={inputCls} placeholder="Paste an image link, or upload below" value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} />
+            <CoverImageUploader value={form.cover_image} slug={form.slug} onChange={(url) => setForm({ ...form, cover_image: url })} />
             {form.cover_image.trim() ? (
               <img src={form.cover_image} alt="" className="mt-2 aspect-[16/9] w-full rounded-xl object-cover" />
             ) : (
               <span className="mt-1 block text-[11px] normal-case text-muted-foreground">Leave empty to use the default pillar tile.</span>
             )}
-          </label>
+          </div>
           <label className="inline-flex items-center gap-2 text-sm font-semibold sm:col-span-2">
             <input type="checkbox" checked={form.downloadable} onChange={(e) => setForm({ ...form, downloadable: e.target.checked })} /> Downloadable
           </label>
