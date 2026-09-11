@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, UserCircle } from "lucide-react";
+import { LayoutDashboard, UserCircle, NotebookPen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,

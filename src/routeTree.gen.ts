@@ -31,6 +31,7 @@ import { Route as AuthenticatedProfileRouteRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedProfileReflectionsRouteImport } from './routes/_authenticated/profile/reflections'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile/edit'
 import { Route as AuthenticatedAdminVersesRouteImport } from './routes/_authenticated/admin/verses'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -161,6 +162,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedProfileReflectionsRoute =
+  AuthenticatedProfileReflectionsRouteImport.update({
+    id: '/reflections',
+    path: '/reflections',
+    getParentRoute: () => AuthenticatedProfileRouteRoute,
+  } as any)
 const AuthenticatedProfileEditRoute =
   AuthenticatedProfileEditRouteImport.update({
     id: '/edit',
@@ -300,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -339,6 +347,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -382,6 +391,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/verses': typeof AuthenticatedAdminVersesRoute
   '/_authenticated/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/_authenticated/profile/reflections': typeof AuthenticatedProfileReflectionsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/articles/$id': typeof AuthenticatedAdminArticlesIdRoute
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/reflections'
     | '/admin/'
     | '/profile/'
     | '/admin/articles/$id'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verses'
     | '/profile/edit'
+    | '/profile/reflections'
     | '/admin'
     | '/profile'
     | '/admin/articles/$id'
@@ -506,6 +518,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/verses'
     | '/_authenticated/profile/edit'
+    | '/_authenticated/profile/reflections'
     | '/_authenticated/admin/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/articles/$id'
@@ -692,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/profile/reflections': {
+      id: '/_authenticated/profile/reflections'
+      path: '/reflections'
+      fullPath: '/profile/reflections'
+      preLoaderRoute: typeof AuthenticatedProfileReflectionsRouteImport
+      parentRoute: typeof AuthenticatedProfileRouteRoute
+    }
     '/_authenticated/profile/edit': {
       id: '/_authenticated/profile/edit'
       path: '/edit'
@@ -873,12 +893,14 @@ const AuthenticatedAdminRouteRouteWithChildren =
 
 interface AuthenticatedProfileRouteRouteChildren {
   AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfileReflectionsRoute: typeof AuthenticatedProfileReflectionsRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
 }
 
 const AuthenticatedProfileRouteRouteChildren: AuthenticatedProfileRouteRouteChildren =
   {
     AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+    AuthenticatedProfileReflectionsRoute: AuthenticatedProfileReflectionsRoute,
     AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   }
 
