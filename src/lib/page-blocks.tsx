@@ -263,6 +263,21 @@ export function newBlock(type: BlockType): Block {
       support_body: "Inshirah is freely offered. If it has served you, consider supporting the work.",
       support_footnote: "",
     },
+    footer_brand: { title: "inshirah", arabic: "انشراح" },
+    footer_description: { text: "Islamic psychology, for the world of good." },
+    footer_heading: { text: "Read" },
+    footer_link: { label: "About", href: "/about" },
+    footer_text: { text: "A line of small print.", size: "sm" },
+    footer_copyright: { owner: "Inshirah", note: "A passion project, offered freely.", lines: ["Built by ASMO Visuals", "inshirah.co"] },
+    footer_newsletter: { heading: "A gentle letter, now and then", description: "", cta: "Subscribe", newsletterId: "" },
+    footer_socials: {
+      items: [
+        { label: "Instagram", href: "#", icon: "instagram" },
+        { label: "YouTube", href: "#", icon: "youtube" },
+      ],
+    },
+    footer_columns: { columns: 4, gap: "lg", children: [] },
+    footer_row: { align: "start", gap: "md", children: [] },
   };
   return { id, type, props: defaults[type] };
 }
