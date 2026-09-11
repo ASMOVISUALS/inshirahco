@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
-import { Bookmark, Copy, Check, Download } from "lucide-react";
+import { Bookmark, Copy, Check, Download, Heart } from "lucide-react";
 import { PILLARS, type ContentItem } from "@/lib/content";
 import { articleBySlugQuery, articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
+import { useArticleLikes } from "@/hooks/use-article-likes";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleBodyView } from "@/lib/article-blocks";
+
 
 export const Route = createFileRoute("/read/$slug")({
   ssr: false,
