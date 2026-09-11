@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Plus, Trash2, Undo2, Redo2,
   Monitor, Tablet, Smartphone, ExternalLink, Layers, Type, Palette, Image as ImageIcon,
-  Layout as LayoutIcon, BarChart3, ChevronDown, GripVertical,
+  Layout as LayoutIcon, BarChart3, ChevronDown, GripVertical, PanelBottom,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
