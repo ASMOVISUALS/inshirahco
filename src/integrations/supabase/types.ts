@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_likes: {
+        Row: {
+          article_slug: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_slug: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_slug?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       article_series: {
         Row: {
           article_id: string
@@ -56,11 +77,13 @@ export type Database = {
           author_name: string
           author_role: string | null
           body: Json
+          cover_image: string | null
           created_at: string
           description: string
           downloadable: boolean
           id: string
           last_published_at: string | null
+          likes_count: number
           pillar: string
           pillar_id: string
           published: boolean
@@ -76,11 +99,13 @@ export type Database = {
           author_name: string
           author_role?: string | null
           body?: Json
+          cover_image?: string | null
           created_at?: string
           description: string
           downloadable?: boolean
           id?: string
           last_published_at?: string | null
+          likes_count?: number
           pillar: string
           pillar_id: string
           published?: boolean
@@ -96,11 +121,13 @@ export type Database = {
           author_name?: string
           author_role?: string | null
           body?: Json
+          cover_image?: string | null
           created_at?: string
           description?: string
           downloadable?: boolean
           id?: string
           last_published_at?: string | null
+          likes_count?: number
           pillar?: string
           pillar_id?: string
           published?: boolean
