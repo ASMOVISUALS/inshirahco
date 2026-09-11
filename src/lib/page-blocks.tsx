@@ -170,6 +170,13 @@ const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidt
 
 const FOOT_SOFT = "color-mix(in oklab, var(--paper) 78%, transparent)";
 const FOOT_FAINT = "color-mix(in oklab, var(--paper) 60%, transparent)";
+
+function themeAwareOpacity(base: number): { light: number; dark: number } {
+  const dark = Math.max(0, Math.min(100, base)) / 100;
+  const light = Math.min(dark * 1.6, 0.22);
+  return { light, dark };
+}
+
 const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number; style?: React.CSSProperties }>> = {
   instagram: Instagram, youtube: Youtube, twitter: Twitter, mail: Mail, linkedin: Linkedin, facebook: Facebook,
 };
@@ -328,9 +335,11 @@ function RenderBlock({ block }: { block: Block }) {
       const bgMode = s("background", "radial");
       const bg = bgMode === "plain" ? "" : bgMode === "soft" ? "hero-soft" : "hero-radial";
       const heroGraphic = s("graphic", "none") === "girih" ? "girih-backdrop" : "";
-      const heroOpacity = Math.max(0, Math.min(100, n("graphic_opacity", 8))) / 100;
+      const { light: lightOpacity, dark: darkOpacity } = themeAwareOpacity(n("graphic_opacity", 8));
       return (
-        <section className={`${bg} ${heroGraphic} relative isolate overflow-hidden`} style={{ ["--girih-opacity" as string]: String(heroOpacity) }}>
+        <section
+          className={`${bg} ${heroGraphic} relative isolate overflow-hidden`}
+          style={{ ["--girih-opacity" as string]: String(lightOpacity), ["--girih-opacity-dark" as string]: String(darkOpacity) }}
           {s("arabic") && (
             <span
               aria-hidden
@@ -900,11 +909,11 @@ function HiddenFrameBlock({
 }) {
   const minH = height === "screen" ? "min-h-screen" : height === "full" ? "min-h-[92svh]" : height === "short" ? "min-h-[52svh]" : "min-h-[70svh]";
   const bgClass = background === "plain" ? "" : background === "soft" ? "hero-soft" : "hero-radial";
-  const opacity = Math.max(0, Math.min(100, graphicOpacity)) / 100;
+  const { light: lightOpacity, dark: darkOpacity } = themeAwareOpacity(graphicOpacity ?? 8);
   return (
     <section
       className={`relative isolate overflow-hidden ${bgClass} ${graphic === "girih" ? "girih-backdrop" : ""}`}
-      style={{ ["--girih-opacity" as string]: String(opacity) }}
+      style={{ ["--girih-opacity" as string]: String(lightOpacity), ["--girih-opacity-dark" as string]: String(darkOpacity) }}
     >
       {watermark && (
         <span
