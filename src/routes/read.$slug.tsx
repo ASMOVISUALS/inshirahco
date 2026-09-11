@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
-import { Bookmark, Copy, Check, Download } from "lucide-react";
+import { Bookmark, Copy, Check, Download, Heart } from "lucide-react";
 import { PILLARS, type ContentItem } from "@/lib/content";
 import { articleBySlugQuery, articlesQuery } from "@/lib/queries";
 import { ContentCard } from "@/components/ContentCard";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LetterMark } from "@/components/LetterMark";
 import { useBookmarks } from "@/hooks/use-theme";
+import { useArticleLikes } from "@/hooks/use-article-likes";
 import { supabase } from "@/integrations/supabase/client";
 import { ArticleBodyView } from "@/lib/article-blocks";
+
 
 export const Route = createFileRoute("/read/$slug")({
   ssr: false,
@@ -85,6 +87,15 @@ function Detail() {
   });
   const { has, toggle } = useBookmarks();
   const saved = has(item.slug);
+  const navigate = useNavigate();
+  const { data: live } = useQuery(articleBySlugQuery(item.slug));
+  const likes = useArticleLikes();
+  const liked = likes.has(item.slug);
+  const likeCount = live?.likesCount ?? item.likesCount ?? 0;
+  const onLike = async () => {
+    if (!likes.signedIn) { navigate({ to: "/auth" }); return; }
+    await likes.toggle(item.slug);
+  };
   const [progress, setProgress] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -120,7 +131,16 @@ function Detail() {
       />
 
       <article>
-        <header className="container-wide max-w-3xl pt-16 pb-10 md:pt-24">
+        {item.coverImage && (
+          <div className="container-wide max-w-4xl pt-10 md:pt-16">
+            <img
+              src={item.coverImage}
+              alt={item.title}
+              className="aspect-[16/9] w-full rounded-3xl object-cover"
+            />
+          </div>
+        )}
+        <header className={`container-wide max-w-3xl pb-10 ${item.coverImage ? "pt-10" : "pt-16 md:pt-24"}`}>
           <Link to={pillar.href} className="eyebrow inline-block hover:underline">
             ← {pillar.label}
           </Link>
@@ -148,15 +168,26 @@ function Detail() {
             <span className="text-muted-foreground">·</span>
 
             <button
+              onClick={onLike}
+              aria-pressed={liked}
+              aria-label={liked ? "Unlike this article" : "Like this article"}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
+            >
+              <Heart className={`h-4 w-4 ${liked ? "fill-heart" : ""}`} style={liked ? { color: "var(--heart)" } : undefined} />
+              {likeCount}
+            </button>
+
+            <button
               onClick={() => toggle(item.slug)}
               aria-pressed={saved}
               aria-label={saved ? "Remove bookmark" : "Save for later"}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
+              className="inline-flex items-center gap-1.5 rounded-pill border border-border px-3 py-1.5 font-semibold hover:bg-secondary"
             >
               <Bookmark className={`h-4 w-4 ${saved ? "fill-heart" : ""}`} style={saved ? { color: "var(--heart)" } : undefined} />
               {saved ? "Saved" : "Save"}
             </button>
           </div>
+
 
           {item.downloadable && (
             <a href="#" className="btn-ghost mt-6 inline-flex" onClick={(e) => e.preventDefault()}>

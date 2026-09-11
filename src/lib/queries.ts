@@ -2,13 +2,16 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { mapArticleRow, type ContentItem } from "@/lib/content";
 
+const ARTICLE_FIELDS =
+  "slug,title,description,pillar,read_time,author_name,author_role,tags,downloadable,body,published_at,cover_image,likes_count";
+
 export const articlesQuery = () =>
   queryOptions({
     queryKey: ["articles"],
     queryFn: async (): Promise<ContentItem[]> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("slug,title,description,pillar,read_time,author_name,author_role,tags,downloadable,body,published_at")
+        .select(ARTICLE_FIELDS)
         .eq("published", true)
         .is("archived_at", null)
         .order("published_at", { ascending: false })
@@ -25,7 +28,7 @@ export const articleBySlugQuery = (slug: string) =>
     queryFn: async (): Promise<ContentItem | null> => {
       const { data, error } = await supabase
         .from("articles")
-        .select("slug,title,description,pillar,read_time,author_name,author_role,tags,downloadable,body,published_at")
+        .select(ARTICLE_FIELDS)
         .eq("slug", slug)
         .eq("published", true)
         .is("archived_at", null)
@@ -34,6 +37,25 @@ export const articleBySlugQuery = (slug: string) =>
       return data ? mapArticleRow(data) : null;
     },
   });
+
+/** Article slugs the signed-in member has liked, newest first. */
+export const articleLikesQuery = (userId: string | null) =>
+  queryOptions({
+    queryKey: ["article-likes", userId ?? "anon"],
+    enabled: !!userId,
+    queryFn: async (): Promise<string[]> => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("article_likes")
+        .select("article_slug,created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r) => r.article_slug);
+    },
+    staleTime: 30_000,
+  });
+
 
 export type AyahRow = {
   id: string;

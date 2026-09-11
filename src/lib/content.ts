@@ -37,8 +37,11 @@ export interface ContentItem {
   author: { name: string; role?: string };
   tags: string[];
   downloadable?: boolean;
+  coverImage?: string;
+  likesCount: number;
   body?: ContentBlock[];
 }
+
 
 export const PILLARS: Record<Pillar, { label: string; short: string; letter: string; tint: string; description: string; href: string; }> = {
   "tadabbur": {
@@ -90,6 +93,8 @@ export function mapArticleRow(row: {
   downloadable: boolean;
   body: unknown;
   published_at: string;
+  cover_image?: string | null;
+  likes_count?: number | null;
 }): ContentItem {
   return {
     slug: row.slug,
@@ -101,7 +106,10 @@ export function mapArticleRow(row: {
     author: { name: row.author_name, role: row.author_role ?? undefined },
     tags: row.tags ?? [],
     downloadable: row.downloadable,
+    coverImage: row.cover_image ?? undefined,
+    likesCount: Number(row.likes_count ?? 0),
     date: row.published_at,
     body: Array.isArray(row.body) ? (row.body as ContentBlock[]) : [],
   };
 }
+

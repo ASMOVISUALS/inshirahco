@@ -97,6 +97,7 @@ type Form = {
   slug: string; title: string; description: string; pillar: Pillar;
   author_name: string; author_role: string; tags: string;
   blocks: ContentBlock[]; published: boolean; downloadable: boolean;
+  cover_image: string;
 };
 
 function EditArticle() {
@@ -157,6 +158,7 @@ function EditArticle() {
         body: next.blocks as unknown as never,
         published: next.published,
         downloadable: next.downloadable,
+        cover_image: next.cover_image.trim() || null,
       }).eq("id", id);
       if (error) throw error;
     },
@@ -255,7 +257,7 @@ function EditArticle() {
 function formFromRow(data: {
   slug: string; title: string; description: string; pillar: string;
   author_name: string; author_role: string | null; tags: string[]; body: unknown;
-  published: boolean; downloadable: boolean;
+  published: boolean; downloadable: boolean; cover_image?: string | null;
 }): Form {
   return {
     slug: data.slug,
@@ -268,6 +270,7 @@ function formFromRow(data: {
     blocks: Array.isArray(data.body) ? (data.body as ContentBlock[]) : [],
     published: data.published,
     downloadable: data.downloadable,
+    cover_image: data.cover_image ?? "",
   };
 }
 
@@ -381,6 +384,15 @@ function MetaBlock({
           <label className="block text-xs">
             <span className="mb-1 block font-bold uppercase tracking-widest text-muted-foreground">Tags (comma-separated)</span>
             <input className={inputCls} value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
+          </label>
+          <label className="block text-xs sm:col-span-2">
+            <span className="mb-1 block font-bold uppercase tracking-widest text-muted-foreground">Cover image URL (optional)</span>
+            <input className={inputCls} placeholder="https://…" value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })} />
+            {form.cover_image.trim() ? (
+              <img src={form.cover_image} alt="" className="mt-2 aspect-[16/9] w-full rounded-xl object-cover" />
+            ) : (
+              <span className="mt-1 block text-[11px] normal-case text-muted-foreground">Leave empty to use the default pillar tile.</span>
+            )}
           </label>
           <label className="inline-flex items-center gap-2 text-sm font-semibold sm:col-span-2">
             <input type="checkbox" checked={form.downloadable} onChange={(e) => setForm({ ...form, downloadable: e.target.checked })} /> Downloadable
