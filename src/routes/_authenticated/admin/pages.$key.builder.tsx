@@ -471,7 +471,8 @@ const FIELDS: Record<BlockType, FieldDef[]> = {
     { key: "cta_primary_href", label: "Primary CTA link", kind: "text" },
     { key: "cta_secondary_label", label: "Secondary CTA label", kind: "text" },
     { key: "cta_secondary_href", label: "Secondary CTA link", kind: "text" },
-    { key: "background", label: "Background", kind: "select", options: [{ value: "radial", label: "Radial glow" }, { value: "plain", label: "Plain" }] },
+    BACKGROUND_FIELD,
+    ...GRAPHIC_FIELDS,
   ],
   section_header: [
     { key: "eyebrow", label: "Eyebrow", kind: "text" },
