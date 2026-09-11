@@ -26,7 +26,7 @@ interface PageRow {
 }
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  layout: LayoutIcon, content: Type, marketing: Palette, data: BarChart3, media: ImageIcon,
+  layout: LayoutIcon, content: Type, marketing: Palette, data: BarChart3, media: ImageIcon, footer: PanelBottom,
 };
 
 function PageBuilderRoute() {
