@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PILLARS, type Pillar } from "@/lib/content";
 import { ArchiveTabs, type ArchiveTab } from "@/components/admin/ArchiveTabs";
 import { SortBar } from "@/components/admin/SortBar";
+import { ColumnFilter } from "@/components/admin/ColumnFilter";
 
 export const Route = createFileRoute("/_authenticated/admin/articles/")({
   head: () => ({ meta: [{ title: "Articles — Admin", }, { name: "robots", content: "noindex" }] }),
@@ -35,18 +36,70 @@ function ArticlesList() {
     },
   });
 
+  const { data: seriesList = [] } = useQuery({
+    queryKey: ["admin-series-options"],
+    queryFn: async (): Promise<{ id: string; title: string }[]> => {
+      const { data, error } = await supabase
+        .from("series")
+        .select("id,title")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as { id: string; title: string }[];
+    },
+  });
+
+  const { data: articleSeries = [] } = useQuery({
+    queryKey: ["admin-article-series"],
+    queryFn: async (): Promise<{ article_id: string; series_id: string }[]> => {
+      const { data, error } = await supabase.from("article_series").select("article_id,series_id");
+      if (error) throw error;
+      return (data ?? []) as { article_id: string; series_id: string }[];
+    },
+  });
+
+  const seriesByArticle = useMemo(() => {
+    const titles = new Map(seriesList.map((s) => [s.id, s.title]));
+    const map = new Map<string, { id: string; title: string }[]>();
+    for (const link of articleSeries) {
+      const list = map.get(link.article_id) ?? [];
+      list.push({ id: link.series_id, title: titles.get(link.series_id) ?? "Untitled series" });
+      map.set(link.article_id, list);
+    }
+    return map;
+  }, [articleSeries, seriesList]);
+
   const [tab, setTab] = useState<ArchiveTab>("active");
   const [sort, setSort] = useState<SortKey>("last_published");
+  const [pillarFilter, setPillarFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [seriesFilter, setSeriesFilter] = useState<string[]>([]);
   const { active, archived } = useMemo(() => ({
     active: data.filter((r) => !r.archived_at),
     archived: data.filter((r) => r.archived_at),
   }), [data]);
   const base = tab === "active" ? active : archived;
+
+  const pillarOptions = useMemo(() => {
+    const slugs = Array.from(new Set(data.map((r) => r.pillar).filter(Boolean)));
+    return slugs.map((s) => ({ value: s, label: PILLARS[s as Pillar]?.short ?? s }));
+  }, [data]);
+
   const rows = useMemo(() => {
     const key = (r: Row) =>
       sort === "created" ? r.created_at : sort === "published" ? r.published_at : r.last_published_at;
-    return [...base].sort((x, y) => (key(y) ?? "").localeCompare(key(x) ?? ""));
-  }, [base, sort]);
+    const filtered = base.filter((r) => {
+      if (pillarFilter.length && !pillarFilter.includes(r.pillar)) return false;
+      if (statusFilter.length && !statusFilter.includes(r.published ? "published" : "draft")) return false;
+      if (seriesFilter.length) {
+        const ids = (seriesByArticle.get(r.id) ?? []).map((s) => s.id);
+        const wantsNone = seriesFilter.includes("__none__");
+        const matches = ids.some((id) => seriesFilter.includes(id)) || (wantsNone && ids.length === 0);
+        if (!matches) return false;
+      }
+      return true;
+    });
+    return filtered.sort((x, y) => (key(y) ?? "").localeCompare(key(x) ?? ""));
+  }, [base, sort, pillarFilter, statusFilter, seriesFilter, seriesByArticle]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-articles"] });
@@ -143,8 +196,28 @@ function ArticlesList() {
             <thead className="bg-secondary text-left">
               <tr>
                 <th className="px-4 py-3 font-semibold">Title</th>
-                <th className="px-4 py-3 font-semibold">Pillar</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-2">
+                  <ColumnFilter label="Pillar" options={pillarOptions} selected={pillarFilter} onChange={setPillarFilter} />
+                </th>
+                <th className="px-4 py-2">
+                  <ColumnFilter
+                    label="Series"
+                    options={[
+                      ...seriesList.map((s) => ({ value: s.id, label: s.title })),
+                      { value: "__none__", label: "No series" },
+                    ]}
+                    selected={seriesFilter}
+                    onChange={setSeriesFilter}
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <ColumnFilter
+                    label="Status"
+                    options={[{ value: "published", label: "Published" }, { value: "draft", label: "Draft" }]}
+                    selected={statusFilter}
+                    onChange={setStatusFilter}
+                  />
+                </th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -160,6 +233,13 @@ function ArticlesList() {
                     <p className="text-xs text-muted-foreground">/{a.slug}</p>
                   </td>
                   <td className="px-4 py-3">{PILLARS[a.pillar as Pillar]?.short ?? a.pillar}</td>
+                  <td className="px-4 py-3">
+                    {(seriesByArticle.get(a.id) ?? []).length === 0 ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      (seriesByArticle.get(a.id) ?? []).map((s) => s.title).join(", ")
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className="rounded-pill px-3 py-1 text-xs font-bold"
@@ -217,7 +297,7 @@ function ArticlesList() {
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                   {tab === "active" ? "No articles yet." : "Archive is empty."}
                 </td></tr>
               )}
