@@ -202,11 +202,24 @@ function PageBuilderRoute() {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex-1 overflow-auto bg-background p-6">
             <div
-              className="mx-auto rounded-2xl border border-border bg-[color:var(--paper)] shadow-sm"
-              style={{ width: vpWidth, maxWidth: "100%", transition: "width 200ms" }}
+              className="mx-auto rounded-2xl border border-border shadow-sm"
+              style={{
+                width: vpWidth,
+                maxWidth: "100%",
+                transition: "width 200ms",
+                background: isFooterPage ? "color-mix(in oklab, var(--ink) 95%, black)" : "var(--paper)",
+                color: isFooterPage ? "var(--paper)" : undefined,
+              }}
             >
-              <PageRenderer blocks={blocks} />
+              {isFooterPage ? (
+                <div className="container-wide flex flex-col gap-10 py-16">
+                  <PageRenderer blocks={blocks} />
+                </div>
+              ) : (
+                <PageRenderer blocks={blocks} />
+              )}
             </div>
+
           </div>
         </div>
 
