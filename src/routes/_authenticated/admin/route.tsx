@@ -168,6 +168,14 @@ function AdminSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/admin/branding")} tooltip="Brand">
+              <Link to="/admin/branding">
+                <Palette className="h-4 w-4" />
+                <span>Brand</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/admin/settings")} tooltip="Settings">
               <Link to="/admin/settings">
                 <Settings className="h-4 w-4" />
